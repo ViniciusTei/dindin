@@ -14,15 +14,15 @@ import {
   User,
   AuthError,
 } from "firebase/auth";
-import app from "../services/firebase";
+import { app } from "@/services/firebase";
 
 const auth = getAuth(app);
 
 type AuthContextType = {
   user: User | null;
-  signUp: (email: string, password: string) => void;
-  signIn: (email: string, password: string) => void;
-  signOut: () => void;
+  signUp: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext({} as AuthContextType);
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(user);
       localStorage.setItem("dindin-user", JSON.stringify(user));
     } catch (error) {
-      console.error("Erro ao registrar:", (error as AuthError).message);
+      throw new Error(`Erro ao registrar`);
     }
   };
 
@@ -67,7 +67,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(user);
       localStorage.setItem("dindin-user", JSON.stringify(user));
     } catch (error) {
-      console.error("Erro ao fazer login:", (error as AuthError).message);
+      let message = "Server error";
+
+      if ((error as AuthError).code == "auth/invalid-credential") {
+        message = "Credenciais invalidas";
+      }
+
+      throw new Error(`Erro ao fazer login: ${message}`);
     }
   };
 
@@ -78,7 +84,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(null);
       localStorage.removeItem("dindin-user");
     } catch (error) {
-      console.error("Erro ao fazer logout:", (error as AuthError).message);
+      throw new Error(`Erro ao fazer logout`);
     }
   };
 
