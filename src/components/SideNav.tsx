@@ -6,8 +6,8 @@ import { useMediaQuery } from "@/lib/hooks";
 
 function SideNav() {
   const isDesktop = useMediaQuery("(min-width: 768px)");
+  const { pathname } = window.location;
   const items = useMemo(() => {
-    const { pathname } = window.location;
     return [
       {
         icon: "home",
@@ -34,7 +34,8 @@ function SideNav() {
         active: pathname === "/settings" ? true : false,
       },
     ];
-  }, []);
+  }, [pathname]);
+
   if (isDesktop) {
     return (
       <div className="min-w-[300px] border-r border-black h-full">
