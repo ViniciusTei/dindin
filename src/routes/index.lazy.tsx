@@ -2,7 +2,7 @@ import { createLazyFileRoute } from "@tanstack/react-router";
 import Dashboard from "@/components/Dashboard";
 import { useAuth } from "@/context/auth";
 import Icon from "@/components/ui/icon";
-import UserAuth from "@/components/UserAuth";
+import { UserAuth } from "@/components/auth";
 
 export const Route = createLazyFileRoute("/")({
   component: Index,

@@ -3,7 +3,7 @@ import MonthPicker from "@/components/MonthPicker";
 import { formatMoney } from "@/lib/utils";
 import NewTransactions from "./NewTransactions";
 import { useQuery } from "@tanstack/react-query";
-import getSummary from "@/services/getSummary";
+import { getSummary } from "@/services/firebase";
 import { useAuth } from "@/context/auth";
 import Icon from "./ui/icon";
 

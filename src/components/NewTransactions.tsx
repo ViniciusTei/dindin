@@ -25,7 +25,7 @@ import DatePicker from "./form/DatePicker";
 import MoneyInput from "./form/MoneyInput";
 import TextInput from "./form/TextInput";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import addTransaction from "@/services/addTransaction";
+import { addTransaction } from "@/services/firebase";
 import { useAuth } from "@/context/auth";
 import { useState } from "react";
 

@@ -26,7 +26,7 @@ export default function PasswordInput({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Password</FormLabel>
+          <FormLabel>Senha</FormLabel>
           <FormControl>
             <Input id={name} type="password" required {...field} />
           </FormControl>

@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table";
-import getTransactions from "@/services/getTransactions";
+import { getTransactions } from "@/services/firebase";
 import { useAuth } from "@/context/auth";
 import { format } from "date-fns";
 import { formatMoney } from "@/lib/utils";
