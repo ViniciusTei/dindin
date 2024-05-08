@@ -14,7 +14,12 @@ type LoginForm = {
 export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
-  const form = useForm<LoginForm>();
+  const form = useForm<LoginForm>({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
   async function onSubmit(values: LoginForm) {
     try {
