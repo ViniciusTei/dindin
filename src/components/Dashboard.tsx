@@ -34,8 +34,8 @@ function Dashboard() {
             <MonthPicker />
             <NewTransactions />
           </div>
-          <ExpensesTable />
         </div>
+        <ExpensesTable />
       </section>
     </main>
   );
