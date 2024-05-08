@@ -1,6 +1,8 @@
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { Link, RouterProvider, createRouter } from "@tanstack/react-router";
+import posthog from "posthog-js";
+import { PostHogProvider } from "posthog-js/react";
 import "./index.css";
 
 // Import the generated route tree
@@ -26,13 +28,19 @@ declare module "@tanstack/react-router" {
   }
 }
 
+posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
+  api_host: import.meta.env.VITE_POSTHOG_HOST,
+});
+
 // Render the app
 const rootElement = document.getElementById("root")!;
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <StrictMode>
-      <RouterProvider router={router} />
+      <PostHogProvider client={posthog}>
+        <RouterProvider router={router} />
+      </PostHogProvider>
     </StrictMode>,
   );
 }
