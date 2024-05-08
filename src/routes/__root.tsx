@@ -10,7 +10,7 @@ export const Route = createRootRoute({
   component: () => (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <div className="h-full w-full flex">
+        <div className="h-full w-full flex relative">
           <SideNav />
           <Outlet />
           <Toaster />
