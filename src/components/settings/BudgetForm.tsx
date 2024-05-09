@@ -13,6 +13,7 @@ import { z } from "zod";
 import { Form } from "../ui/form";
 import DatePicker from "../form/DatePicker";
 import MoneyInput from "../form/MoneyInput";
+import { Popover } from "../ui/popover";
 
 const budgetFormSchema = z.object({
   startDate: z.date(),
@@ -59,7 +60,13 @@ export default function BudgetForm() {
             </div>
           </CardContent>
           <CardFooter className="border-t p-6">
-            <Button type="submit">Salvar</Button>
+            <Button
+              type="submit"
+              disabled
+              title="Funcionalidade ainda não está disnponível"
+            >
+              Salvar
+            </Button>
           </CardFooter>
         </form>
       </Form>

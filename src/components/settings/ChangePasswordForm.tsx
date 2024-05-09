@@ -70,7 +70,13 @@ export default function ChangePasswordForm() {
             />
           </CardContent>
           <CardFooter className="border-t p-6">
-            <Button type="submit">Salvar</Button>
+            <Button
+              type="submit"
+              disabled
+              title="Funcionalidade ainda não está disnponível"
+            >
+              Salvar
+            </Button>
           </CardFooter>
         </form>
       </Form>
