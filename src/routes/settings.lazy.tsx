@@ -1,4 +1,5 @@
 import PageHeader from "@/components/PageHeader";
+import { ChangePasswordForm } from "@/components/settings";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -46,33 +47,7 @@ function Settings() {
         </div>
 
         <div className="flex-grow">
-          <Card id="Conta" className="mb-4 max-w-screen-md">
-            <CardHeader>
-              <CardTitle>Conta</CardTitle>
-              <CardDescription>
-                Troque sua senha para melhorar a seguranca
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="currentPassword">Current Password</Label>
-                  <Input id="currentPassword" type="password" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="newPassword">New Password</Label>
-                  <Input id="newPassword" type="password" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                  <Input id="confirmPassword" type="password" />
-                </div>
-              </form>
-            </CardContent>
-            <CardFooter className="border-t p-6">
-              <Button>Salvar</Button>
-            </CardFooter>
-          </Card>
+          <ChangePasswordForm />
 
           <Card id="Budget" className="mb-4 max-w-screen-md">
             <CardHeader>

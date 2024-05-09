@@ -13,11 +13,13 @@ interface PasswordInputProps {
   form: UseFormReturn<any>;
   showDescription?: boolean;
   name?: string;
+  label?: string;
 }
 
 export default function PasswordInput({
   form,
   name = "password",
+  label = "Senha",
   showDescription = false,
 }: PasswordInputProps) {
   return (
@@ -26,7 +28,7 @@ export default function PasswordInput({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Senha</FormLabel>
+          <FormLabel>{label}</FormLabel>
           <FormControl>
             <Input id={name} type="password" required {...field} />
           </FormControl>
