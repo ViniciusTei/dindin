@@ -47,7 +47,7 @@ export default function ChangePasswordForm() {
   }
 
   return (
-    <Card id="Conta" className="mb-4 max-w-screen-md">
+    <Card id="Conta" className="mb-4 w-10/12 md:w-full md:max-w-screen-md">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardHeader>

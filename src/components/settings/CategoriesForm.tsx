@@ -13,7 +13,7 @@ import { Label } from "../ui/label";
 
 export default function CategoriesForm() {
   return (
-    <Card id="Categorias" className="mb-4 max-w-screen-md">
+    <Card id="Categorias" className="mb-4 w-10/12 md:w-full md:max-w-screen-md">
       <CardHeader>
         <CardTitle>Categorias</CardTitle>
         <CardDescription>Gerencie suas categorias</CardDescription>

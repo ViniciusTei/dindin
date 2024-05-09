@@ -38,7 +38,7 @@ export default function BudgetForm() {
   }
 
   return (
-    <Card id="Budget" className="mb-4 max-w-screen-md">
+    <Card id="Budget" className="mb-4 w-10/12 md:w-full md:max-w-screen-md">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardHeader>
@@ -46,7 +46,7 @@ export default function BudgetForm() {
             <CardDescription>Defina seu orçamento mensal</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-4">
+            <div className="flex md:items-center flex-col md:flex-row gap-4 w-full">
               <DatePicker form={form} name="startDate" label="Inicio" />
               <DatePicker form={form} name="endDate" label="Fim" />
             </div>
