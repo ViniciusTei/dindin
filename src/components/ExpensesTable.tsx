@@ -28,18 +28,19 @@ export default function ExpensesTable() {
 
   return (
     <Table className="max-h-full overflow-auto">
-      <TableCaption>A list of your recent expenses.</TableCaption>
+      <TableCaption>Lista com suas despesas recentes.</TableCaption>
       <TableHeader>
         <TableRow>
-          <TableHead>Date</TableHead>
-          <TableHead>Description</TableHead>
-          <TableHead>Amount</TableHead>
-          <TableHead>Category</TableHead>
+          <TableHead>Data</TableHead>
+          <TableHead>Descrição</TableHead>
+          <TableHead>Valor</TableHead>
+          <TableHead>Tipo</TableHead>
+          <TableHead>Categoria</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {data &&
-          data.map(({ date, type, amount, description, id }) => (
+          data.map(({ date, type, amount, description, id, category }) => (
             <TableRow key={id}>
               <TableCell className="font-medium">
                 {format(date, "LLL dd, yyyy")}
@@ -53,6 +54,7 @@ export default function ExpensesTable() {
                   <Badge variant="default">Income</Badge>
                 )}
               </TableCell>
+              <TableCell>{category}</TableCell>
             </TableRow>
           ))}
       </TableBody>
