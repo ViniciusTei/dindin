@@ -8,6 +8,9 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import useAllMonthsData from "@/services/reports/useAllMonthsData";
+import { useMemo } from "react";
+import Icon from "../ui/icon";
 
 ChartJS.register(
   CategoryScale,
@@ -45,31 +48,51 @@ const labels = [
   "Novembro",
   "Dezembro",
 ];
-const mock_data = [0, 0, 0, 0, 2500, 0, 0, 0, 0, 0, 0, 0];
 
 export default function MonthlyChart() {
+  const { data } = useAllMonthsData();
+
+  const charData = useMemo(() => {
+    if (data) {
+      return {
+        labels,
+        datasets: [
+          {
+            label: "Despesas",
+            data: data.map((report) => {
+              let value = 0;
+              if (report.type === "expense") {
+                value += report.amount;
+              }
+              return value;
+            }),
+            borderColor: "rgb(255, 99, 132)",
+            backgroundColor: "rgba(255, 99, 132, 0.5)",
+          },
+          {
+            label: "Receitas",
+            data: data.map((report) => {
+              let value = 0;
+              if (report.type === "income") {
+                value += report.amount;
+              }
+              return value;
+            }),
+            borderColor: "rgb(53, 162, 235)",
+            backgroundColor: "rgba(53, 162, 235, 0.5)",
+          },
+        ],
+      };
+    }
+  }, [data]);
+
   return (
     <div className="flex-grow">
-      <Bar
-        options={options}
-        data={{
-          labels,
-          datasets: [
-            {
-              label: "Despesas",
-              data: mock_data,
-              borderColor: "rgb(255, 99, 132)",
-              backgroundColor: "rgba(255, 99, 132, 0.5)",
-            },
-            {
-              label: "Receitas",
-              data: mock_data,
-              borderColor: "rgb(53, 162, 235)",
-              backgroundColor: "rgba(53, 162, 235, 0.5)",
-            },
-          ],
-        }}
-      />
+      {charData ? (
+        <Bar options={options} data={charData} />
+      ) : (
+        <Icon name="loading" size={40} />
+      )}
     </div>
   );
 }
