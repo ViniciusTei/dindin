@@ -14,6 +14,8 @@ export default function useAllMonthsData() {
         );
 
         const result: { month: string; amount: number; type: string }[] = [];
+        const errors = [] as string[];
+
         responses.forEach((results) => {
           if (results.status === "fulfilled") {
             results.value.forEach((doc) => {
@@ -26,7 +28,16 @@ export default function useAllMonthsData() {
               result.push(v);
             });
           }
+
+          if (results.status === "rejected") {
+            errors.push(results.reason);
+          }
         });
+
+        if (errors.length > 0) {
+          return Promise.reject(errors);
+        }
+
         return result;
       }
 
