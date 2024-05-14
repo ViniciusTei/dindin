@@ -25,7 +25,7 @@ export default async function getTransactions(
       results.push({
         id: doc.id,
         ...data,
-        date: new Date(data.date),
+        date: data.date.toDate(),
         created_at: new Date(data.created_at),
         updated_at: new Date(data.updated_at),
       } as Transaction);
