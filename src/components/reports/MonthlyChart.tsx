@@ -87,11 +87,13 @@ export default function MonthlyChart() {
   }, [data]);
 
   return (
-    <div className="flex-grow">
+    <div className="max-w-sm flex-grow self-center md:max-w-screen-sm">
       {charData ? (
         <Bar options={options} data={charData} />
       ) : (
-        <Icon name="loading" size={40} />
+        <div className="w-96 self-center flex items-center justify-center">
+          <Icon name="loading" size={40} />
+        </div>
       )}
     </div>
   );
