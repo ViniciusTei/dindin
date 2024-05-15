@@ -28,9 +28,11 @@ declare module "@tanstack/react-router" {
   }
 }
 
-posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
-  api_host: import.meta.env.VITE_POSTHOG_HOST,
-});
+if (!import.meta.env.DEV) {
+  posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
+    api_host: import.meta.env.VITE_POSTHOG_HOST,
+  });
+}
 
 // Render the app
 const rootElement = document.getElementById("root")!;
