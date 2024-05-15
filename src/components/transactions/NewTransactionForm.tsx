@@ -107,13 +107,13 @@ export default function NewTransactionForm({
                     <FormControl>
                       <RadioGroupItem value="income" />
                     </FormControl>
-                    <FormLabel className="font-normal">Income</FormLabel>
+                    <FormLabel className="font-normal">Receita</FormLabel>
                   </FormItem>
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
                       <RadioGroupItem value="expense" />
                     </FormControl>
-                    <FormLabel className="font-normal">Expenses</FormLabel>
+                    <FormLabel className="font-normal">Despesa</FormLabel>
                   </FormItem>
                 </RadioGroup>
               </FormControl>
@@ -122,14 +122,14 @@ export default function NewTransactionForm({
           )}
         />
 
-        <TextInput form={form} name="description" label="Description" />
+        <TextInput form={form} name="description" label="Descrição" />
 
-        <DatePicker form={form} name="date" label="Date" />
+        <DatePicker form={form} name="date" label="Data" />
 
         <MoneyInput
           form={form}
           name="amount"
-          label="Amount"
+          label="Preço"
           placeholder="R$00,00"
         />
 
@@ -164,7 +164,7 @@ export default function NewTransactionForm({
         />
 
         <Button type="submit" className="w-full">
-          Submit
+          Cadastrar
         </Button>
       </form>
     </Form>

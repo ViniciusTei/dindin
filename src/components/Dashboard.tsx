@@ -20,9 +20,9 @@ function Dashboard() {
       <section className="w-full">
         <ScrollArea className="w-full">
           <div className="flex w-full space-x-2">
-            <InsightCard title="Balance" value={data?.balance} />
-            <InsightCard title="Total expenses" value={data?.expense} />
-            <InsightCard title="Total income" value={data?.income} />
+            <InsightCard title="Saldo" value={data?.balance} />
+            <InsightCard title="Total despesas" value={data?.expense} />
+            <InsightCard title="Total receitas" value={data?.income} />
             <ScrollBar orientation="horizontal" />
           </div>
         </ScrollArea>
