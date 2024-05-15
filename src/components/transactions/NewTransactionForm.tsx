@@ -152,7 +152,9 @@ export default function NewTransactionForm({
                 <SelectContent>
                   {data &&
                     data.map((category) => (
-                      <SelectItem value={category}>{category}</SelectItem>
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
                     ))}
                 </SelectContent>
               </Select>

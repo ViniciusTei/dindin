@@ -34,50 +34,31 @@ const options = {
   },
 };
 
-const labels = [
-  "Janeiro",
-  "Fevereiro",
-  "Março",
-  "Abril",
-  "Maio",
-  "Junho",
-  "Julho",
-  "Agosto",
-  "Setembro",
-  "Outubro",
-  "Novembro",
-  "Dezembro",
-];
-
 export default function MonthlyChart() {
   const { data } = useAllMonthsData();
 
   const charData = useMemo(() => {
     if (data) {
+      const labels = [];
+      const expensesByMonth = [];
+      const incomeByMonth = [];
+      for (const [month, values] of data.entries()) {
+        labels.push(month);
+        expensesByMonth.push(values.amount_expense);
+        incomeByMonth.push(values.amount_income);
+      }
       return {
         labels,
         datasets: [
           {
             label: "Despesas",
-            data: data.map((report) => {
-              let value = 0;
-              if (report.type === "expense") {
-                value += report.amount;
-              }
-              return value;
-            }),
+            data: expensesByMonth,
             borderColor: "rgb(255, 99, 132)",
             backgroundColor: "rgba(255, 99, 132, 0.5)",
           },
           {
             label: "Receitas",
-            data: data.map((report) => {
-              let value = 0;
-              if (report.type === "income") {
-                value += report.amount;
-              }
-              return value;
-            }),
+            data: incomeByMonth,
             borderColor: "rgb(53, 162, 235)",
             backgroundColor: "rgba(53, 162, 235, 0.5)",
           },
