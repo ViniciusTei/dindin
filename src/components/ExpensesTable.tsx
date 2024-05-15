@@ -11,9 +11,9 @@ import {
 } from "./ui/table";
 import { getTransactions } from "@/services/firebase";
 import { useAuth } from "@/context/auth";
-import { format } from "date-fns";
 import { formatMoney } from "@/lib/utils";
 import Icon from "./ui/icon";
+import { displayDate } from "@/lib/dateUtils";
 
 export default function ExpensesTable() {
   const { user } = useAuth();
@@ -42,9 +42,7 @@ export default function ExpensesTable() {
         {data &&
           data.map(({ date, type, amount, description, id, category }) => (
             <TableRow key={id}>
-              <TableCell className="font-medium">
-                {format(date, "LLL dd, yyyy")}
-              </TableCell>
+              <TableCell className="font-medium">{displayDate(date)}</TableCell>
               <TableCell>{description}</TableCell>
               <TableCell>{formatMoney(amount)}</TableCell>
               <TableCell>

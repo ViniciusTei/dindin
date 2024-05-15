@@ -13,9 +13,9 @@ import {
 import { UseFormReturn } from "react-hook-form";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { Calendar } from "../ui/calendar";
+import { displayDate } from "@/lib/dateUtils";
 
 interface DatePickerProps {
   form: UseFormReturn<any>;
@@ -42,9 +42,9 @@ export default function DatePicker({ form, name, label }: DatePickerProps) {
                   )}
                 >
                   {field.value ? (
-                    format(field.value, "PPP")
+                    displayDate(field.value)
                   ) : (
-                    <span>Pick a date</span>
+                    <span>Selecione uma data</span>
                   )}
                   <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                 </Button>
