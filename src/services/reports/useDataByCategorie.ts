@@ -10,18 +10,16 @@ export default function useDataByCategorie() {
     queryFn: async () => {
       if (user) {
         const data = await getTransactions(user);
-        const resultCategories = data.map((d) => d.category);
+        const resultCategories = data
+          .filter((d) => d.type === "expense")
+          .map((d) => d.category);
         const result: { [key: string]: number } = {};
 
         resultCategories.forEach((category) => {
           result[category] = data
             .filter((d) => d.category === category)
             .reduce((acc, val) => {
-              if (val.type === "expense") {
-                return acc + val.amount;
-              }
-
-              return acc;
+              return acc + val.amount;
             }, 0);
         });
 
