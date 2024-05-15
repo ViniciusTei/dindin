@@ -1,5 +1,10 @@
 import { User } from "firebase/auth";
-import { getFirestore, addDoc, collection } from "firebase/firestore";
+import {
+  getFirestore,
+  addDoc,
+  collection,
+  Timestamp,
+} from "firebase/firestore";
 import app from "./firebase";
 import { CreateTransaction as Transaction } from "./types";
 
@@ -10,12 +15,11 @@ export default async function addTransaction(
   transaction: Transaction,
 ) {
   try {
-    const currentDate = new Date();
     const docRef = await addDoc(collection(db, user.uid), {
       ...transaction,
-      date: transaction.date.toISOString(),
-      created_at: currentDate.toISOString(),
-      updated_at: currentDate.toISOString(),
+      date: Timestamp.fromDate(transaction.date),
+      created_at: Timestamp.now(),
+      updated_at: Timestamp.now(),
     });
 
     console.log("Document written with ID: ", docRef.id);

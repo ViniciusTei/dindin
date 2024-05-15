@@ -1,7 +1,7 @@
 import { User } from "firebase/auth";
 import app from "./firebase";
 import { collection, getDocs, getFirestore, query } from "firebase/firestore";
-import { Transaction } from "./types";
+import { Transaction, TransactionDoc } from "./types";
 
 const db = getFirestore(app);
 
@@ -21,13 +21,13 @@ export default async function getTransactions(
     const results: Transaction[] = [];
 
     querySnapshot.forEach((doc) => {
-      const data = doc.data();
+      const data = doc.data() as TransactionDoc;
       results.push({
         id: doc.id,
         ...data,
         date: data.date.toDate(),
-        created_at: new Date(data.created_at),
-        updated_at: new Date(data.updated_at),
+        created_at: data.created_at.toDate(),
+        updated_at: data.updated_at.toDate(),
       } as Transaction);
     });
 
