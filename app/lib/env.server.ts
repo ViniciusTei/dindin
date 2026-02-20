@@ -1,0 +1,12 @@
+import "dotenv/config";
+
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`${name} não definido`);
+  return value;
+}
+
+export const env = {
+  DATABASE_URL: requireEnv("DATABASE_URL"),
+  SESSION_SECRET: requireEnv("SESSION_SECRET"),
+};
