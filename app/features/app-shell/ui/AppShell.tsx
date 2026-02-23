@@ -1,5 +1,6 @@
 import { Form, Link } from "react-router";
 import { useMemo, useState } from "react";
+import Icon from "~/components/Icon";
 
 type AppShellUser = {
   username: string;
@@ -20,15 +21,15 @@ export function AppShell(props: {
     const items: Array<{
       to: string;
       label: string;
-      abbrev: string;
+      icon: "heart" | "months" | "invite" | "admin-users";
       visible: boolean;
     }> = [
-      { to: "/months", label: "Meses", abbrev: "M", visible: true },
-      { to: "/invite", label: "Convite", abbrev: "C", visible: true },
+      { to: "/months", label: "Meses", icon: "months", visible: true },
+      { to: "/invite", label: "Convite", icon: "invite", visible: true },
       {
         to: "/admin/users",
         label: "Admin: usuários",
-        abbrev: "A",
+        icon: "admin-users",
         visible: props.user.isAdmin,
       },
     ];
@@ -65,7 +66,7 @@ export function AppShell(props: {
             {isSidebarCollapsed ? null : (
               <div className="leading-tight">
                 <div className="font-semibold">Financeiro</div>
-                <div className="text-xs opacity-70">Rateio mensal</div>
+                <div className="text-xs opacity-70">Rateio financeiro</div>
               </div>
             )}
           </Link>
@@ -92,7 +93,7 @@ export function AppShell(props: {
                       ].join(" ")}
                       aria-hidden={true}
                     >
-                      {item.abbrev}
+                      <Icon name={item.icon} size={16} />
                     </span>
                     {isSidebarCollapsed ? null : <span>{item.label}</span>}
                   </Link>
@@ -111,7 +112,13 @@ export function AppShell(props: {
                 ].join(" ")}
                 title="Sair"
               >
-                {isSidebarCollapsed ? "S" : "Sair"}
+                {isSidebarCollapsed ? (
+                  <Icon name="logout" size={16} />
+                ) : (
+                  <>
+                  <Icon name="logout" size={16} />
+                  <span>Sair</span></> 
+                )}
               </button>
             </Form>
           </div>
