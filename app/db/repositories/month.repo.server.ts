@@ -148,6 +148,7 @@ export const monthRepo: MonthRepo = {
 export async function getMonthDetailReadModel(params: {
   monthId: string;
   householdId: string;
+  expenseOrder?: "asc" | "desc";
 }) {
   const month = await db.query.months.findFirst({
     where: (t, { and, eq }) => and(eq(t.id, params.monthId), eq(t.householdId, params.householdId)),
@@ -160,7 +161,10 @@ export async function getMonthDetailReadModel(params: {
   const incomeRows = await monthRepo.listIncomes({ monthId: params.monthId, userIds: memberUserIds });
   const expenseRows = await db.query.expenses.findMany({
     where: (t, { eq }) => eq(t.monthId, params.monthId),
-    orderBy: (t, { desc }) => desc(t.createdAt),
+    orderBy: (t, order) =>
+      (params.expenseOrder ?? "desc") === "asc"
+        ? order.asc(t.createdAt)
+        : order.desc(t.createdAt),
   });
 
   const cats = await db.query.categories.findMany({

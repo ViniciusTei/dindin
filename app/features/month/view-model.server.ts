@@ -87,3 +87,25 @@ export async function getMonthDetailLoaderData(params: {
     })),
   };
 }
+
+export async function getMonthExportCsvModel(params: {
+  monthId: string;
+  householdId: string;
+}) {
+  const rm = await getMonthDetailReadModel({
+    monthId: params.monthId,
+    householdId: params.householdId,
+    expenseOrder: "asc",
+  });
+
+  if (!rm) throw new Response("Mês não encontrado", { status: 404 });
+
+  return {
+    month: rm.month,
+    members: rm.members,
+    incomes: rm.incomes,
+    categories: rm.categories,
+    expenses: rm.expenses,
+    transfers: rm.transfers,
+  };
+}
