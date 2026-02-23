@@ -1,0 +1,147 @@
+import { Form, Link } from "react-router";
+import { useMemo, useState } from "react";
+
+type AppShellUser = {
+  username: string;
+  isAdmin: boolean;
+};
+
+export function AppShell(props: {
+  user: AppShellUser;
+  children: React.ReactNode;
+}) {
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  const shellGridCols = isSidebarCollapsed
+    ? "grid-cols-[4rem_repeat(4,minmax(0,1fr))]"
+    : "grid-cols-[16rem_repeat(4,minmax(0,1fr))]";
+
+  const navItems = useMemo(() => {
+    const items: Array<{
+      to: string;
+      label: string;
+      abbrev: string;
+      visible: boolean;
+    }> = [
+      { to: "/months", label: "Meses", abbrev: "M", visible: true },
+      { to: "/invite", label: "Convite", abbrev: "C", visible: true },
+      {
+        to: "/admin/users",
+        label: "Admin: usuários",
+        abbrev: "A",
+        visible: props.user.isAdmin,
+      },
+    ];
+
+    return items.filter((i) => i.visible);
+  }, [props.user.isAdmin]);
+
+  return (
+    <div
+      className={[
+        "min-h-dvh",
+        "grid",
+        "grid-rows-[3.5rem_repeat(4,minmax(0,1fr))]",
+        shellGridCols,
+      ].join(" ")}
+    >
+      {/* Sidebar */}
+      <aside className="row-start-1 row-end-6 col-start-1 col-end-2 border-r border-base-300 bg-base-200">
+        <div className="flex h-full flex-col p-2">
+          <Link
+            to="/"
+            className={[
+              "flex items-center gap-3 rounded-box p-2",
+              isSidebarCollapsed ? "justify-center" : "justify-start",
+              "hover:bg-base-300",
+            ].join(" ")}
+          >
+            <div className="avatar">
+              <div className="w-10 rounded">
+                <img src="/site-icon.png" alt="Financeiro" />
+              </div>
+            </div>
+
+            {isSidebarCollapsed ? null : (
+              <div className="leading-tight">
+                <div className="font-semibold">Financeiro</div>
+                <div className="text-xs opacity-70">Rateio mensal</div>
+              </div>
+            )}
+          </Link>
+
+          <nav className="mt-4 flex-1">
+            <ul className="menu w-full p-0">
+              {navItems.map((item) => (
+                <li key={item.to}>
+                  <Link
+                    to={item.to}
+                    title={item.label}
+                    className={[
+                      "flex items-center",
+                      isSidebarCollapsed ? "justify-center" : "justify-start",
+                      "gap-3",
+                    ].join(" ")}
+                    aria-label={item.label}
+                  >
+                    <span
+                      className={[
+                        "inline-flex h-8 w-8 items-center justify-center rounded-box",
+                        "bg-base-300",
+                        "text-sm font-semibold",
+                      ].join(" ")}
+                      aria-hidden={true}
+                    >
+                      {item.abbrev}
+                    </span>
+                    {isSidebarCollapsed ? null : <span>{item.label}</span>}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div className="mt-2">
+            <Form method="post" action="/logout">
+              <button
+                type="submit"
+                className={[
+                  "btn btn-ghost w-full",
+                  isSidebarCollapsed ? "btn-square mx-auto" : "justify-start",
+                ].join(" ")}
+                title="Sair"
+              >
+                {isSidebarCollapsed ? "S" : "Sair"}
+              </button>
+            </Form>
+          </div>
+        </div>
+      </aside>
+
+      {/* Header */}
+      <header className="row-start-1 row-end-2 col-start-2 col-end-6 border-b border-base-300 bg-base-100">
+        <div className="flex h-full items-center justify-between px-4">
+          <button
+            type="button"
+            className="btn btn-ghost btn-square"
+            onClick={() => setIsSidebarCollapsed((v) => !v)}
+            aria-label={isSidebarCollapsed ? "Expandir menu" : "Recolher menu"}
+            title={isSidebarCollapsed ? "Expandir menu" : "Recolher menu"}
+          >
+            {isSidebarCollapsed ? "»" : "«"}
+          </button>
+
+          <div className="text-sm">
+            <span className="opacity-70">Usuário: </span>
+            <span className="font-medium">{props.user.username}</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Main */}
+      <main className="row-start-2 row-end-6 col-start-2 col-end-6 min-h-0 overflow-y-auto">
+        {props.children}
+      </main>
+    </div>
+  );
+}
