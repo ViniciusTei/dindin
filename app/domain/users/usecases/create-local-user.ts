@@ -1,7 +1,7 @@
 import type { PasswordHasher, UsersRepo } from "../ports";
 
 export type CreateLocalUserResult =
-  | { ok: true }
+  | { ok: true; id: string }
   | { ok: false; error: "INVALID_INPUT" | "ALREADY_EXISTS" };
 
 export async function createLocalUser(params: {
@@ -22,13 +22,14 @@ export async function createLocalUser(params: {
   const exists = await params.usersRepo.existsByUsername(username);
   if (exists) return { ok: false, error: "ALREADY_EXISTS" };
 
+  const id = params.idFactory();
   const passwordHash = await params.passwordHasher.hash(password);
   await params.usersRepo.create({
-    id: params.idFactory(),
+    id,
     username,
     passwordHash,
     isAdmin: params.isAdmin,
   });
 
-  return { ok: true };
+  return { ok: true, id };
 }
