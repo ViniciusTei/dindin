@@ -1,7 +1,7 @@
 import type { Route } from "./+types/month.$monthId";
 import crypto from "node:crypto";
 
-import { toCents } from "~/domain/money";
+import { toCents } from "~/lib/money";
 
 import { requireUserId } from "~/auth/session.server";
 import { requireHouseholdId } from "~/auth/household.server";

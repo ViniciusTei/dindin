@@ -1,6 +1,6 @@
 import { Form, Link } from "react-router";
 
-import { formatBRL } from "~/domain/money";
+import { formatBRL } from "~/lib/money";
 
 import type {
   MonthDetailCategory,

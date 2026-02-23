@@ -1,4 +1,4 @@
-import { computeDueByIncome } from "~/domain/calc";
+import { computeDueByIncome } from "~/lib/calc";
 import { getMonthDetailReadModel } from "~/db/repositories/month.repo.server";
 
 export type MonthDetailMember = { userId: string; role: string; username: string };

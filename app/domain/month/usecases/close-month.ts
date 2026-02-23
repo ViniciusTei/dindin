@@ -1,4 +1,4 @@
-import { computeDueByIncome, suggestTransfersToAdmin } from "~/domain/calc";
+import { computeDueByIncome, suggestTransfersToAdmin } from "~/lib/calc";
 
 import type { MonthRepo } from "../ports";
 
