@@ -1,0 +1,16 @@
+import { test, expect } from "./fixtures";
+import { login, logout } from "./helpers";
+
+test("login e logout", async ({ page, seed }) => {
+  await login(page, {
+    username: seed.users.admin.username,
+    password: seed.users.admin.password,
+  });
+
+  await expect(page.getByText(`Olá, ${seed.users.admin.username}.`)).toBeVisible();
+  await expect(page.getByLabel("Meses")).toBeVisible();
+
+  await logout(page);
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole("heading", { name: "Entrar" })).toBeVisible();
+});
