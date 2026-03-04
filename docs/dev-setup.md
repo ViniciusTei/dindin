@@ -3,32 +3,50 @@
 ## Pré-requisitos
 
 - Node.js (recomendado LTS)
-- Postgres local rodando
+- Docker (recomendado Docker Desktop)
 
 ## Variáveis de ambiente
 
-Crie um arquivo `.env` na raiz (há um exemplo em `.env.example`):
+Crie um arquivo `.env` na raiz (há um exemplo em `.env.example` / `.env.dev.example`):
 
 - `DATABASE_URL`
 - `SESSION_SECRET`
+- `COOKIE_SECURE` (em dev, use `false`)
 
 ## Banco (dev)
 
-1. Crie o banco (exemplo):
-   - database: `financeiro`
-   - user: `postgres`
+O jeito mais simples é rodar o Postgres via Docker:
 
-2. Gere migrações (já existe uma inicial):
+- `npm run stack:up:dev`
 
-- `npm run db:generate`
+Isso sobe:
 
-3. Aplique migrações:
+- `db` (Postgres) exposto em `localhost:${DB_PORT:-5432}`
+- `web` (build de produção) em `http://localhost:${APP_PORT:-3000}`
+
+Se você preferir rodar o app no host com HMR, suba só o banco e rode `npm run dev`.
+
+### Migrações
+
+Já existe uma migração inicial. Para aplicar no banco de dev:
 
 - `npm run db:migrate`
 
+Se você estiver usando o `web` via Compose, ele já roda migrações automaticamente via serviço `migrate`.
+
+### Gerar novas migrações
+
+- `npm run db:generate`
+
 ## Rodar
 
-- `npm run dev`
+Opção A (recomendado para desenvolvimento):
+
+- Suba só o banco (via stack) e rode o app no host com HMR: `npm run dev`
+
+Opção B (produção-like):
+
+- Suba a stack completa: `npm run stack:up:dev`
 
 ## Testes
 

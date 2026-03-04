@@ -2,13 +2,13 @@ import { expect, test as base } from "@playwright/test";
 
 import { cleanupWorker, seedWorker, type SeedData } from "./db";
 
-type Fixtures = {
+type WorkerFixtures = {
   seed: SeedData;
 };
 
 const runId = process.env.E2E_RUN_ID ?? `${Date.now()}`;
 
-export const test = base.extend<Fixtures>({
+export const test = base.extend<{}, WorkerFixtures>({
   seed: [
     async ({}, use, workerInfo) => {
       const seed = await seedWorker({ runId, workerIndex: workerInfo.workerIndex });

@@ -1,5 +1,8 @@
 # Deploy on-prem (Linux + Postgres + PM2)
 
+> Este documento descreve uma alternativa de deploy.
+> O caminho **padrão oficial** do projeto está no `README.md` via **Docker Compose** (dev/homolog/prod).
+
 Objetivo: rodar o app na sua rede interna com Postgres local e Node gerenciado por PM2.
 
 ## 1) Pré-requisitos

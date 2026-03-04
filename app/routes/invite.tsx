@@ -5,10 +5,10 @@ import { requireHouseholdId } from "~/auth/household.server";
 import { invitesRepo } from "~/db/repositories/invites.repo.server";
 import { createInviteLink } from "~/domain/invites/usecases/create-invite-link";
 import { InvitePage } from "~/features/invites/ui/InvitePage";
+import { getRequestOrigin } from "~/lib/request.server";
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const url = new URL(request.url);
-  return { origin: url.origin };
+  return { origin: getRequestOrigin(request) };
 }
 
 export async function action({ request }: Route.ActionArgs) {

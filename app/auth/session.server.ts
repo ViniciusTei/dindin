@@ -11,7 +11,7 @@ const sessionCookie = createCookie("session", {
   httpOnly: true,
   sameSite: "lax",
   path: "/",
-  secure: false,
+  secure: env.COOKIE_SECURE,
   secrets: [env.SESSION_SECRET],
   maxAge: 60 * 60 * 24 * 30,
 });
