@@ -1,6 +1,7 @@
 import { Form } from "react-router";
 
 import type { Account } from "~/domain/accounts/entity";
+import type { Category } from "~/domain/categories/entity";
 import type { Transaction } from "~/domain/transactions/entity";
 import { formatBRL } from "~/lib/money";
 
@@ -15,6 +16,7 @@ function toDateInputValue(date: Date): string {
 
 export function TransactionsPage(props: {
   accounts: Account[];
+  categories: Category[];
   transactions: Array<Transaction & { accountName?: string }>;
   error?: string;
   ok?: boolean;
@@ -31,10 +33,10 @@ export function TransactionsPage(props: {
           <div className="card-body gap-4">
             <h2 className="card-title">Criar transação</h2>
 
-            <Form method="post" className="grid grid-cols-1 gap-3 md:grid-cols-6">
+            <Form method="post" className="grid grid-cols-1 gap-3 md:grid-cols-12">
               <input type="hidden" name="intent" value="create" />
 
-              <div className="form-control md:col-span-1">
+              <div className="form-control md:col-span-2">
                 <label className="label" htmlFor="occurredAt">
                   <span className="label-text">Data</span>
                 </label>
@@ -47,7 +49,7 @@ export function TransactionsPage(props: {
                 />
               </div>
 
-              <div className="form-control md:col-span-1">
+              <div className="form-control md:col-span-2">
                 <label className="label" htmlFor="type">
                   <span className="label-text">Tipo</span>
                 </label>
@@ -57,7 +59,7 @@ export function TransactionsPage(props: {
                 </select>
               </div>
 
-              <div className="form-control md:col-span-2">
+              <div className="form-control md:col-span-3">
                 <label className="label" htmlFor="accountId">
                   <span className="label-text">Conta</span>
                 </label>
@@ -71,14 +73,28 @@ export function TransactionsPage(props: {
                 </select>
               </div>
 
-              <div className="form-control md:col-span-1">
+              <div className="form-control md:col-span-3">
+                <label className="label" htmlFor="categoryId">
+                  <span className="label-text">Categoria</span>
+                </label>
+                <select id="categoryId" name="categoryId" className="select select-bordered w-full" defaultValue="">
+                  <option value="">Sem categoria</option>
+                  {props.categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-control md:col-span-2">
                 <label className="label" htmlFor="amount">
                   <span className="label-text">Valor</span>
                 </label>
                 <input id="amount" name="amount" placeholder="0,00" className="input input-bordered w-full" />
               </div>
 
-              <div className="form-control md:col-span-6">
+              <div className="form-control md:col-span-12">
                 <label className="label" htmlFor="description">
                   <span className="label-text">Descrição</span>
                 </label>
@@ -91,18 +107,18 @@ export function TransactionsPage(props: {
               </div>
 
               {props.error ? (
-                <div role="alert" className="alert alert-error md:col-span-6">
+                <div role="alert" className="alert alert-error md:col-span-12">
                   <span>{props.error}</span>
                 </div>
               ) : null}
 
               {props.ok ? (
-                <div role="status" className="alert alert-success md:col-span-6">
+                <div role="status" className="alert alert-success md:col-span-12">
                   <span>Salvo.</span>
                 </div>
               ) : null}
 
-              <div className="md:col-span-6">
+              <div className="md:col-span-12">
                 <button type="submit" className="btn btn-primary">
                   Criar
                 </button>
@@ -176,6 +192,25 @@ export function TransactionsPage(props: {
                           </div>
 
                           <div className="form-control md:col-span-3">
+                            <label className="label" htmlFor={`categoryId-${t.id}`}>
+                              <span className="label-text">Categoria</span>
+                            </label>
+                            <select
+                              id={`categoryId-${t.id}`}
+                              name="categoryId"
+                              className="select select-bordered select-sm w-full"
+                              defaultValue={t.categoryId ?? ""}
+                            >
+                              <option value="">Sem categoria</option>
+                              {props.categories.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                  {c.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="form-control md:col-span-12">
                             <label className="label" htmlFor={`description-${t.id}`}>
                               <span className="label-text">Descrição</span>
                             </label>

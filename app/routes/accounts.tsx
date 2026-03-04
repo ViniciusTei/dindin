@@ -18,7 +18,22 @@ export async function loader({ request }: Route.LoaderArgs) {
   const userId = await requireUserId(request);
 
   const accounts = await listAccounts({ accountsRepo, userId });
-  return { accounts };
+  const sumsById = await accountsRepo.sumSignedTransactionsByAccountIds({
+    userId,
+    accountIds: accounts.map((a) => a.id),
+  });
+
+  const accountsWithBalance = accounts.map((a) => ({
+    ...a,
+    currentBalanceCents: a.initialBalanceCents + (sumsById[a.id] ?? 0),
+  }));
+
+  const totalCurrentBalanceCents = accountsWithBalance.reduce(
+    (acc, a) => acc + a.currentBalanceCents,
+    0
+  );
+
+  return { accounts: accountsWithBalance, totalCurrentBalanceCents };
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -97,6 +112,7 @@ export default function Accounts({ loaderData, actionData }: Route.ComponentProp
   return (
     <AccountsPage
       accounts={loaderData.accounts}
+      totalCurrentBalanceCents={loaderData.totalCurrentBalanceCents}
       error={actionData?.error}
       ok={actionData?.ok}
     />

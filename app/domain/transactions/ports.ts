@@ -7,6 +7,7 @@ export interface TransactionsRepo {
     id: string;
     userId: string;
     accountId: string;
+    categoryId: string | null;
     type: TransactionType;
     description: string;
     amountCents: number;
@@ -17,6 +18,7 @@ export interface TransactionsRepo {
     userId: string;
     transactionId: string;
     accountId: string;
+    categoryId: string | null;
     type: TransactionType;
     description: string;
     amountCents: number;

@@ -23,6 +23,7 @@ describe("deleteTransaction", () => {
         {
           id: "t1",
           accountId: "a1",
+          categoryId: null,
           type: "expense",
           description: "Mercado",
           amountCents: 100,

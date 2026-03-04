@@ -4,6 +4,7 @@ export type Transaction = {
   id: string;
   userId: string;
   accountId: string;
+  categoryId: string | null;
   type: TransactionType;
   description: string;
   amountCents: number;

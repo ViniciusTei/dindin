@@ -15,4 +15,9 @@ export interface AccountsRepo {
   delete(params: { userId: string; accountId: string }): Promise<void>;
 
   countTransactionsByAccount(params: { userId: string; accountId: string }): Promise<number>;
+
+  sumSignedTransactionsByAccountIds(params: {
+    userId: string;
+    accountIds: string[];
+  }): Promise<Record<string, number>>;
 }

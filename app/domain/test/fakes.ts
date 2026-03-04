@@ -11,6 +11,7 @@ import type { Transaction, TransactionType } from "~/domain/transactions/entity"
 import type { TransactionsRepo } from "~/domain/transactions/ports";
 import {
   TransactionAccountNotFoundError,
+  TransactionCategoryNotFoundError,
   TransactionNotFoundError,
 } from "~/domain/transactions/errors";
 import type { PasswordHasher, UsersEraseRepo, UsersRepo } from "~/domain/users/ports";
@@ -178,6 +179,7 @@ export function makeAccountsRepo(seed?: {
   userId?: string;
   accounts?: Array<{ id: string; name: string; initialBalanceCents?: number }>;
   txCountsByAccountId?: Record<string, number>;
+  signedTxSumsByAccountId?: Record<string, number>;
 }) {
   const userId = seed?.userId ?? "user-1";
   const accounts = (seed?.accounts ?? []).map((a) => ({
@@ -188,6 +190,7 @@ export function makeAccountsRepo(seed?: {
     createdAt: new Date(),
   }));
   const txCountsByAccountId = { ...(seed?.txCountsByAccountId ?? {}) };
+  const signedTxSumsByAccountId = { ...(seed?.signedTxSumsByAccountId ?? {}) };
 
   const repo: AccountsRepo = {
     async listByUser(uId) {
@@ -232,17 +235,30 @@ export function makeAccountsRepo(seed?: {
       if (params.userId !== userId) return 0;
       return txCountsByAccountId[params.accountId] ?? 0;
     },
+
+    async sumSignedTransactionsByAccountIds(params) {
+      if (params.userId !== userId) return {};
+      const out: Record<string, number> = {};
+      for (const accountId of params.accountIds) {
+        if (signedTxSumsByAccountId[accountId] != null) {
+          out[accountId] = signedTxSumsByAccountId[accountId]!;
+        }
+      }
+      return out;
+    },
   };
 
-  return { repo, accounts, userId, txCountsByAccountId };
+  return { repo, accounts, userId, txCountsByAccountId, signedTxSumsByAccountId };
 }
 
 export function makeTransactionsRepo(seed?: {
   userId?: string;
   accounts?: Array<{ id: string }>;
+  categories?: Array<{ id: string }>;
   transactions?: Array<{
     id: string;
     accountId: string;
+    categoryId?: string | null;
     type: TransactionType;
     description: string;
     amountCents: number;
@@ -251,11 +267,13 @@ export function makeTransactionsRepo(seed?: {
 }) {
   const userId = seed?.userId ?? "user-1";
   const accountIds = new Set((seed?.accounts ?? []).map((a) => a.id));
+  const categoryIds = new Set((seed?.categories ?? []).map((c) => c.id));
 
   const transactions: Transaction[] = (seed?.transactions ?? []).map((t) => ({
     id: t.id,
     userId,
     accountId: t.accountId,
+    categoryId: t.categoryId ?? null,
     type: t.type,
     description: t.description,
     amountCents: t.amountCents,
@@ -273,10 +291,12 @@ export function makeTransactionsRepo(seed?: {
     async create(params) {
       if (params.userId !== userId) throw new TransactionAccountNotFoundError();
       if (!accountIds.has(params.accountId)) throw new TransactionAccountNotFoundError();
+      if (params.categoryId && !categoryIds.has(params.categoryId)) throw new TransactionCategoryNotFoundError();
       transactions.push({
         id: params.id,
         userId: params.userId,
         accountId: params.accountId,
+        categoryId: params.categoryId,
         type: params.type,
         description: params.description,
         amountCents: params.amountCents,
@@ -287,11 +307,13 @@ export function makeTransactionsRepo(seed?: {
     async update(params) {
       if (params.userId !== userId) throw new TransactionNotFoundError();
       if (!accountIds.has(params.accountId)) throw new TransactionAccountNotFoundError();
+      if (params.categoryId && !categoryIds.has(params.categoryId)) throw new TransactionCategoryNotFoundError();
       const idx = transactions.findIndex((t) => t.userId === params.userId && t.id === params.transactionId);
       if (idx === -1) throw new TransactionNotFoundError();
       transactions[idx] = {
         ...transactions[idx],
         accountId: params.accountId,
+        categoryId: params.categoryId,
         type: params.type,
         description: params.description,
         amountCents: params.amountCents,
@@ -306,5 +328,5 @@ export function makeTransactionsRepo(seed?: {
     },
   };
 
-  return { repo, transactions, userId, accountIds };
+  return { repo, transactions, userId, accountIds, categoryIds };
 }

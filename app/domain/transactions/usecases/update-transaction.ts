@@ -1,5 +1,9 @@
 import type { TransactionType } from "~/domain/transactions/entity";
-import { TransactionAccountNotFoundError, TransactionNotFoundError } from "~/domain/transactions/errors";
+import {
+  TransactionAccountNotFoundError,
+  TransactionCategoryNotFoundError,
+  TransactionNotFoundError,
+} from "~/domain/transactions/errors";
 import type { TransactionsRepo } from "~/domain/transactions/ports";
 
 export async function updateTransaction(params: {
@@ -7,6 +11,7 @@ export async function updateTransaction(params: {
   userId: string;
   transactionId: string;
   accountId: string;
+  categoryId: string | null;
   type: TransactionType;
   description: string;
   amountCents: number;
@@ -22,7 +27,8 @@ export async function updateTransaction(params: {
         | "DESCRIPTION_REQUIRED"
         | "AMOUNT_INVALID"
         | "DATE_REQUIRED"
-        | "ACCOUNT_NOT_FOUND";
+        | "ACCOUNT_NOT_FOUND"
+        | "CATEGORY_NOT_FOUND";
     }
 > {
   const description = params.description.trim();
@@ -43,6 +49,7 @@ export async function updateTransaction(params: {
       userId: params.userId,
       transactionId: params.transactionId,
       accountId: params.accountId,
+      categoryId: params.categoryId,
       type: params.type,
       description,
       amountCents: params.amountCents,
@@ -52,6 +59,7 @@ export async function updateTransaction(params: {
   } catch (err) {
     if (err instanceof TransactionNotFoundError) return { ok: false, error: "NOT_FOUND" };
     if (err instanceof TransactionAccountNotFoundError) return { ok: false, error: "ACCOUNT_NOT_FOUND" };
+    if (err instanceof TransactionCategoryNotFoundError) return { ok: false, error: "CATEGORY_NOT_FOUND" };
     throw err;
   }
 }

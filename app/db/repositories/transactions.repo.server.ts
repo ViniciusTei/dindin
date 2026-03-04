@@ -1,9 +1,10 @@
 import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "~/db/db.server";
-import { accounts, transactions } from "~/db/schema";
+import { accounts, categories, transactions } from "~/db/schema";
 import {
   TransactionAccountNotFoundError,
+  TransactionCategoryNotFoundError,
   TransactionNotFoundError,
 } from "~/domain/transactions/errors";
 import type { TransactionsRepo } from "~/domain/transactions/ports";
@@ -32,6 +33,7 @@ export const transactionsRepo: TransactionsRepo = {
       id: t.id,
       userId: t.userId,
       accountId: t.accountId,
+      categoryId: t.categoryId,
       type: t.type as "income" | "expense",
       description: t.description,
       amountCents: t.amountCents,
@@ -43,10 +45,22 @@ export const transactionsRepo: TransactionsRepo = {
   async create(params) {
     await assertAccountBelongsToUser({ userId: params.userId, accountId: params.accountId });
 
+    if (params.categoryId) {
+      // Categoria é household-scoped hoje; validação do household deve ser feita pela rota.
+      // Aqui, por falta de householdId no port, apenas garante que existe.
+      const exists = await db
+        .select({ id: categories.id })
+        .from(categories)
+        .where(eq(categories.id, params.categoryId))
+        .limit(1);
+      if (exists.length === 0) throw new TransactionCategoryNotFoundError();
+    }
+
     await db.insert(transactions).values({
       id: params.id,
       userId: params.userId,
       accountId: params.accountId,
+      categoryId: params.categoryId,
       type: params.type,
       description: params.description,
       amountCents: params.amountCents,
@@ -57,10 +71,20 @@ export const transactionsRepo: TransactionsRepo = {
   async update(params) {
     await assertAccountBelongsToUser({ userId: params.userId, accountId: params.accountId });
 
+    if (params.categoryId) {
+      const exists = await db
+        .select({ id: categories.id })
+        .from(categories)
+        .where(eq(categories.id, params.categoryId))
+        .limit(1);
+      if (exists.length === 0) throw new TransactionCategoryNotFoundError();
+    }
+
     const updated = await db
       .update(transactions)
       .set({
         accountId: params.accountId,
+        categoryId: params.categoryId,
         type: params.type,
         description: params.description,
         amountCents: params.amountCents,

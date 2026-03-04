@@ -2,9 +2,12 @@ import type { Route } from "./+types/transactions";
 import crypto from "node:crypto";
 
 import { requireUserId } from "~/auth/session.server";
+import { requireHouseholdId } from "~/auth/household.server";
 import { accountsRepo } from "~/db/repositories/accounts.repo.server";
+import { categoriesRepo } from "~/db/repositories/categories.repo.server";
 import { transactionsRepo } from "~/db/repositories/transactions.repo.server";
 import { listAccounts } from "~/domain/accounts/usecases/list-accounts";
+import { listCategories } from "~/domain/categories/usecases/list-categories";
 import { createTransaction } from "~/domain/transactions/usecases/create-transaction";
 import { deleteTransaction } from "~/domain/transactions/usecases/delete-transaction";
 import { listTransactions } from "~/domain/transactions/usecases/list-transactions";
@@ -31,36 +34,53 @@ function todayISODate(): string {
 
 export async function loader({ request }: Route.LoaderArgs) {
   const userId = await requireUserId(request);
+  const householdId = await requireHouseholdId(userId);
 
-  const [accounts, transactions] = await Promise.all([
+  const [accounts, categories, transactions] = await Promise.all([
     listAccounts({ accountsRepo, userId }),
+    listCategories({ categoriesRepo, householdId }),
     listTransactions({ transactionsRepo, userId }),
   ]);
 
   const accountNameById = new Map(accounts.map((a) => [a.id, a.name] as const));
   const txWithNames = transactions.map((t) => ({ ...t, accountName: accountNameById.get(t.accountId) }));
 
-  return { accounts, transactions: txWithNames, today: todayISODate() };
+  return {
+    accounts,
+    categories,
+    transactions: txWithNames,
+    today: todayISODate(),
+  };
 }
 
 export async function action({ request }: Route.ActionArgs) {
   const userId = await requireUserId(request);
+  const householdId = await requireHouseholdId(userId);
+  const categories = await listCategories({ categoriesRepo, householdId });
+  const validCategoryIds = new Set(categories.map((c) => c.id));
 
   const form = await request.formData();
   const intent = String(form.get("intent") ?? "");
 
   if (intent === "create") {
     const accountId = String(form.get("accountId") ?? "");
+    const categoryIdRaw = String(form.get("categoryId") ?? "").trim();
+    const categoryId = categoryIdRaw ? categoryIdRaw : null;
     const type = String(form.get("type") ?? "");
     const description = String(form.get("description") ?? "");
     const amountCents = toCents(form.get("amount"));
     const occurredAt = parseDateInput(form.get("occurredAt"));
+
+    if (categoryId && !validCategoryIds.has(categoryId)) {
+      return { error: "Categoria não encontrada." };
+    }
 
     const result = await createTransaction({
       transactionsRepo,
       idFactory: createId,
       userId,
       accountId,
+      categoryId,
       type: type as any,
       description,
       amountCents: amountCents ?? NaN,
@@ -81,6 +101,8 @@ export async function action({ request }: Route.ActionArgs) {
           return { error: "Data é obrigatória." };
         case "ACCOUNT_NOT_FOUND":
           return { error: "Conta não encontrada." };
+        case "CATEGORY_NOT_FOUND":
+          return { error: "Categoria não encontrada." };
       }
     }
 
@@ -90,16 +112,23 @@ export async function action({ request }: Route.ActionArgs) {
   if (intent === "update") {
     const transactionId = String(form.get("transactionId") ?? "");
     const accountId = String(form.get("accountId") ?? "");
+    const categoryIdRaw = String(form.get("categoryId") ?? "").trim();
+    const categoryId = categoryIdRaw ? categoryIdRaw : null;
     const type = String(form.get("type") ?? "");
     const description = String(form.get("description") ?? "");
     const amountCents = toCents(form.get("amount"));
     const occurredAt = parseDateInput(form.get("occurredAt"));
+
+    if (categoryId && !validCategoryIds.has(categoryId)) {
+      return { error: "Categoria não encontrada." };
+    }
 
     const result = await updateTransaction({
       transactionsRepo,
       userId,
       transactionId,
       accountId,
+      categoryId,
       type: type as any,
       description,
       amountCents: amountCents ?? NaN,
@@ -122,6 +151,8 @@ export async function action({ request }: Route.ActionArgs) {
           return { error: "Data é obrigatória." };
         case "ACCOUNT_NOT_FOUND":
           return { error: "Conta não encontrada." };
+        case "CATEGORY_NOT_FOUND":
+          return { error: "Categoria não encontrada." };
       }
     }
 
@@ -150,6 +181,7 @@ export default function Transactions({ loaderData, actionData }: Route.Component
   return (
     <TransactionsPage
       accounts={loaderData.accounts}
+      categories={loaderData.categories}
       transactions={loaderData.transactions}
       today={loaderData.today}
       error={actionData?.error}

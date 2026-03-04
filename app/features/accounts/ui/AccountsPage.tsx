@@ -4,7 +4,8 @@ import type { Account } from "~/domain/accounts/entity";
 import { formatBRL } from "~/lib/money";
 
 export function AccountsPage(props: {
-  accounts: Account[];
+  accounts: Array<Account & { currentBalanceCents: number }>;
+  totalCurrentBalanceCents: number;
   error?: string;
   ok?: boolean;
 }) {
@@ -80,6 +81,7 @@ export function AccountsPage(props: {
                     <tr>
                       <th>Nome</th>
                       <th>Saldo inicial</th>
+                      <th>Saldo atual</th>
                       <th className="text-right">Ações</th>
                     </tr>
                   </thead>
@@ -101,6 +103,7 @@ export function AccountsPage(props: {
                           </Form>
                         </td>
                         <td>{formatBRL(a.initialBalanceCents)}</td>
+                        <td>{formatBRL(a.currentBalanceCents)}</td>
                         <td className="text-right">
                           <Form
                             method="post"
@@ -123,6 +126,11 @@ export function AccountsPage(props: {
                 </table>
               </div>
             )}
+
+            <div className="flex items-center justify-between border-t border-base-300 pt-3">
+              <div className="text-sm opacity-70">Total (saldo atual)</div>
+              <div className="font-semibold">{formatBRL(props.totalCurrentBalanceCents)}</div>
+            </div>
           </div>
         </section>
       </div>

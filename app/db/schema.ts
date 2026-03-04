@@ -244,6 +244,9 @@ export const transactions = pgTable(
     accountId: text("account_id")
       .notNull()
       .references(() => accounts.id),
+    categoryId: text("category_id").references(() => categories.id, {
+      onDelete: "set null",
+    }),
     type: text("type").notNull(), // income | expense
     description: text("description").notNull(),
     amountCents: integer("amount_cents").notNull(),
@@ -257,6 +260,7 @@ export const transactions = pgTable(
   (table) => ({
     userIdx: index("transactions_user_id_idx").on(table.userId),
     accountIdx: index("transactions_account_id_idx").on(table.accountId),
+    categoryIdx: index("transactions_category_id_idx").on(table.categoryId),
     occurredAtIdx: index("transactions_occurred_at_idx").on(table.occurredAt),
   })
 );

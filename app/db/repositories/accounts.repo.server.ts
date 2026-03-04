@@ -69,4 +69,22 @@ export const accountsRepo: AccountsRepo = {
 
     return Number(rows[0]?.count ?? 0);
   },
+
+  async sumSignedTransactionsByAccountIds(params) {
+    if (params.accountIds.length === 0) return {};
+
+    const sumExpr = sql<number>`sum(case when ${transactions.type} = 'income' then ${transactions.amountCents} else -${transactions.amountCents} end)`;
+
+    const rows = await db
+      .select({ accountId: transactions.accountId, sum: sumExpr })
+      .from(transactions)
+      .where(and(eq(transactions.userId, params.userId), sql`${transactions.accountId} = any(${params.accountIds})`))
+      .groupBy(transactions.accountId);
+
+    const byId: Record<string, number> = {};
+    for (const r of rows) {
+      byId[String(r.accountId)] = Number(r.sum ?? 0);
+    }
+    return byId;
+  },
 };

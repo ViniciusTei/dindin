@@ -9,3 +9,9 @@ export class TransactionAccountNotFoundError extends Error {
     super("Account not found");
   }
 }
+
+export class TransactionCategoryNotFoundError extends Error {
+  constructor() {
+    super("Category not found");
+  }
+}
