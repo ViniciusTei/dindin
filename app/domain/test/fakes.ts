@@ -3,7 +3,11 @@ import { MonthAlreadyExistsError } from "~/domain/months/errors";
 import type { AuthUsersRepo, PasswordVerifier } from "~/domain/auth/ports";
 import type { InvitesRepo } from "~/domain/invites/ports";
 import type { Month, MonthsRepo } from "~/domain/months/ports";
-import type { PasswordHasher, UsersRepo } from "~/domain/users/ports";
+import type { CategoriesRepo } from "~/domain/categories/ports";
+import { CategoryAlreadyExistsError, CategoryNotFoundError } from "~/domain/categories/errors";
+import type { AccountsRepo } from "~/domain/accounts/ports";
+import { AccountAlreadyExistsError, AccountNotFoundError } from "~/domain/accounts/errors";
+import type { PasswordHasher, UsersEraseRepo, UsersRepo } from "~/domain/users/ports";
 import type { UserSummary } from "~/domain/users/entity";
 
 export function makeIdFactory(prefix = "id") {
@@ -49,6 +53,15 @@ export function makePasswordHasher(hashPrefix = "hash") {
     },
   };
   return hasher;
+}
+
+export function makeUsersEraseRepo(seed?: { deleted?: boolean }) {
+  const repo: UsersEraseRepo = {
+    async eraseUserData() {
+      return { deleted: seed?.deleted ?? true };
+    },
+  };
+  return repo;
 }
 
 export function makeAuthUsersRepo(seed: { users: Array<{ id: string; username: string; passwordHash: string }> }) {
@@ -112,4 +125,108 @@ export function makeInvitesRepo(seed?: {
   };
 
   return repo;
+}
+
+export function makeCategoriesRepo(seed?: { householdId?: string; categories?: Array<{ id: string; name: string }> }) {
+  const householdId = seed?.householdId ?? "household-1";
+  const categories = (seed?.categories ?? []).map((c) => ({
+    id: c.id,
+    householdId,
+    name: c.name,
+    createdAt: new Date(),
+  }));
+
+  const repo: CategoriesRepo = {
+    async listByHousehold(hId) {
+      return categories.filter((c) => c.householdId === hId).slice();
+    },
+    async create(params) {
+      const exists = categories.some(
+        (c) => c.householdId === params.householdId && c.name.toLowerCase() === params.name.toLowerCase()
+      );
+      if (exists) throw new CategoryAlreadyExistsError();
+      categories.push({ id: params.id, householdId: params.householdId, name: params.name, createdAt: new Date() });
+    },
+    async rename(params) {
+      const idx = categories.findIndex((c) => c.householdId === params.householdId && c.id === params.categoryId);
+      if (idx === -1) throw new CategoryNotFoundError();
+
+      const exists = categories.some(
+        (c) => c.householdId === params.householdId && c.id !== params.categoryId && c.name.toLowerCase() === params.name.toLowerCase()
+      );
+      if (exists) throw new CategoryAlreadyExistsError();
+
+      categories[idx] = { ...categories[idx], name: params.name };
+    },
+    async delete(params) {
+      const idx = categories.findIndex((c) => c.householdId === params.householdId && c.id === params.categoryId);
+      if (idx === -1) throw new CategoryNotFoundError();
+      categories.splice(idx, 1);
+    },
+  };
+
+  return { repo, categories, householdId };
+}
+
+export function makeAccountsRepo(seed?: {
+  userId?: string;
+  accounts?: Array<{ id: string; name: string; initialBalanceCents?: number }>;
+  txCountsByAccountId?: Record<string, number>;
+}) {
+  const userId = seed?.userId ?? "user-1";
+  const accounts = (seed?.accounts ?? []).map((a) => ({
+    id: a.id,
+    userId,
+    name: a.name,
+    initialBalanceCents: a.initialBalanceCents ?? 0,
+    createdAt: new Date(),
+  }));
+  const txCountsByAccountId = { ...(seed?.txCountsByAccountId ?? {}) };
+
+  const repo: AccountsRepo = {
+    async listByUser(uId) {
+      return accounts
+        .filter((a) => a.userId === uId)
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name));
+    },
+    async create(params) {
+      const exists = accounts.some(
+        (a) => a.userId === params.userId && a.name.toLowerCase() === params.name.toLowerCase()
+      );
+      if (exists) throw new AccountAlreadyExistsError();
+      accounts.push({
+        id: params.id,
+        userId: params.userId,
+        name: params.name,
+        initialBalanceCents: params.initialBalanceCents,
+        createdAt: new Date(),
+      });
+    },
+    async rename(params) {
+      const idx = accounts.findIndex((a) => a.userId === params.userId && a.id === params.accountId);
+      if (idx === -1) throw new AccountNotFoundError();
+
+      const exists = accounts.some(
+        (a) =>
+          a.userId === params.userId &&
+          a.id !== params.accountId &&
+          a.name.toLowerCase() === params.name.toLowerCase()
+      );
+      if (exists) throw new AccountAlreadyExistsError();
+
+      accounts[idx] = { ...accounts[idx], name: params.name };
+    },
+    async delete(params) {
+      const idx = accounts.findIndex((a) => a.userId === params.userId && a.id === params.accountId);
+      if (idx === -1) throw new AccountNotFoundError();
+      accounts.splice(idx, 1);
+    },
+    async countTransactionsByAccount(params) {
+      if (params.userId !== userId) return 0;
+      return txCountsByAccountId[params.accountId] ?? 0;
+    },
+  };
+
+  return { repo, accounts, userId, txCountsByAccountId };
 }

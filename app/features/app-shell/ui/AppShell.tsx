@@ -1,5 +1,5 @@
 import { Form, Link } from "react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Icon from "~/components/Icon";
 
 type AppShellUser = {
@@ -12,6 +12,25 @@ export function AppShell(props: {
   children: React.ReactNode;
 }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
+
+  useEffect(() => {
+    setIsOnline(navigator.onLine);
+
+    function onOnline() {
+      setIsOnline(true);
+    }
+    function onOffline() {
+      setIsOnline(false);
+    }
+
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+    return () => {
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
+    };
+  }, []);
 
   const shellGridCols = isSidebarCollapsed
     ? "grid-cols-[4rem_repeat(4,minmax(0,1fr))]"
@@ -26,6 +45,9 @@ export function AppShell(props: {
     }> = [
       { to: "/months", label: "Meses", icon: "months", visible: true },
       { to: "/invite", label: "Convite", icon: "invite", visible: true },
+      { to: "/accounts", label: "Contas", icon: "months", visible: true },
+      { to: "/account", label: "Conta", icon: "heart", visible: true },
+      { to: "/categories", label: "Categorias", icon: "heart", visible: true },
       {
         to: "/admin/users",
         label: "Admin: usuários",
@@ -138,7 +160,12 @@ export function AppShell(props: {
             {isSidebarCollapsed ? "»" : "«"}
           </button>
 
-          <div className="text-sm">
+          <div className="flex items-center gap-3 text-sm">
+            {isOnline ? null : (
+              <span className="badge badge-warning" title="Offline (somente leitura)">
+                Offline — somente leitura
+              </span>
+            )}
             <span className="opacity-70">Usuário: </span>
             <span className="font-medium">{props.user.username}</span>
           </div>

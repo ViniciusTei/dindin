@@ -14,3 +14,7 @@ export interface UsersRepo {
 export interface PasswordHasher {
   hash(password: string): Promise<string>;
 }
+
+export interface UsersEraseRepo {
+  eraseUserData(params: { userId: string }): Promise<{ deleted: boolean }>;
+}

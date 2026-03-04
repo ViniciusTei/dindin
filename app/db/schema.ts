@@ -43,6 +43,25 @@ export const sessions = pgTable(
   })
 );
 
+export const accounts = pgTable(
+  "accounts",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    initialBalanceCents: integer("initial_balance_cents").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("accounts_user_id_idx").on(table.userId),
+    userNameUq: uniqueIndex("accounts_user_name_uq").on(table.userId, table.name),
+  })
+);
+
 export const households = pgTable(
   "households",
   {
@@ -215,8 +234,37 @@ export const transfers = pgTable(
   })
 );
 
+export const transactions = pgTable(
+  "transactions",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    accountId: text("account_id")
+      .notNull()
+      .references(() => accounts.id),
+    type: text("type").notNull(), // income | expense
+    description: text("description").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    occurredAt: timestamp("occurred_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    userIdx: index("transactions_user_id_idx").on(table.userId),
+    accountIdx: index("transactions_account_id_idx").on(table.accountId),
+    occurredAtIdx: index("transactions_occurred_at_idx").on(table.occurredAt),
+  })
+);
+
 export type User = typeof users.$inferSelect;
 export type Household = typeof households.$inferSelect;
 export type Month = typeof months.$inferSelect;
 export type Category = typeof categories.$inferSelect;
 export type Expense = typeof expenses.$inferSelect;
+export type Account = typeof accounts.$inferSelect;
+export type Transaction = typeof transactions.$inferSelect;

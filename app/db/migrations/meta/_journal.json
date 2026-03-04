@@ -8,6 +8,13 @@
       "when": 1771535213086,
       "tag": "0000_futuristic_silver_centurion",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772656514444,
+      "tag": "0001_tiny_sauron",
+      "breakpoints": true
     }
   ]
 }

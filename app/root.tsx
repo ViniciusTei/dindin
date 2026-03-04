@@ -30,7 +30,7 @@ export const links: Route.LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="dracula">
+    <html lang="pt-BR" data-theme="dracula">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -39,6 +39,35 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        {import.meta.env.PROD ? (
+          <script
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{
+              __html: `(() => {
+  if (typeof window === 'undefined') return;
+  // Service Worker (PWA/offline read-only)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
+
+  // Offline guard: escrita não é suportada offline no MVP
+  document.addEventListener('submit', (event) => {
+    if (navigator.onLine) return;
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement)) return;
+    const method = (form.getAttribute('method') || 'get').toLowerCase();
+    if (method === 'get') return;
+
+    event.preventDefault();
+    // UX mínima: sem toast/infra extra
+    window.alert('Você está offline. No MVP, ações de cadastro/edição/exclusão exigem conexão.');
+  }, true);
+})();`,
+            }}
+          />
+        ) : null}
         <ScrollRestoration />
         <Scripts />
       </body>

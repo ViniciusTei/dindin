@@ -10,6 +10,9 @@ export default [
 	layout("routes/_app.tsx", [
 		route("admin/users", "routes/admin.users.tsx"),
 		route("invite", "routes/invite.tsx"),
+		route("account", "routes/account.tsx"),
+		route("accounts", "routes/accounts.tsx"),
+		route("categories", "routes/categories.tsx"),
 		route("months", "routes/months.tsx"),
 		route("months/:monthId", "routes/month.$monthId.tsx"),
 		index("routes/home.tsx"),
