@@ -9,5 +9,18 @@ export default defineConfig({
     restoreMocks: true,
     clearMocks: true,
     mockReset: true,
+    coverage: {
+      provider: "v8",
+      reportsDirectory: "coverage",
+      reporter: ["text-summary", "html", "json"],
+      all: true,
+      include: ["app/**/*.{ts,tsx}"],
+      exclude: [
+        "**/*.d.ts",
+        "**/*.test.ts",
+        "app/domain/test/**",
+        "app/db/migrations/**",
+      ],
+    },
   },
 });

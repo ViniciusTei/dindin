@@ -59,6 +59,10 @@ Este projeto usa:
 
 - `npm run test:unit`
 
+Cobertura (gera `coverage/index.html` e `coverage/coverage-final.json`):
+
+- `npm run test:unit:coverage`
+
 ### E2E (Playwright)
 
 1. Instale os browsers do Playwright (1x por máquina):
