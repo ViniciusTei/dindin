@@ -1,4 +1,4 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 
 import { db } from "~/db/db.server";
 import { accounts, transactions } from "~/db/schema";
@@ -78,7 +78,12 @@ export const accountsRepo: AccountsRepo = {
     const rows = await db
       .select({ accountId: transactions.accountId, sum: sumExpr })
       .from(transactions)
-      .where(and(eq(transactions.userId, params.userId), sql`${transactions.accountId} = any(${params.accountIds})`))
+      .where(
+        and(
+          eq(transactions.userId, params.userId),
+          inArray(transactions.accountId, params.accountIds)
+        )
+      )
       .groupBy(transactions.accountId);
 
     const byId: Record<string, number> = {};

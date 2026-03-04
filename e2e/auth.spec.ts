@@ -7,7 +7,7 @@ test("login e logout", async ({ page, seed }) => {
     password: seed.users.admin.password,
   });
 
-  await expect(page.getByText(`Olá, ${seed.users.admin.username}.`)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
   await expect(page.getByLabel("Meses")).toBeVisible();
 
   await logout(page);

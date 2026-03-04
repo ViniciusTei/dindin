@@ -15,8 +15,6 @@ export function AppShell(props: {
   const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
-    setIsOnline(navigator.onLine);
-
     function onOnline() {
       setIsOnline(true);
     }
@@ -43,6 +41,7 @@ export function AppShell(props: {
       icon: "heart" | "months" | "invite" | "admin-users";
       visible: boolean;
     }> = [
+      { to: "/", label: "Dashboard", icon: "heart", visible: true },
       { to: "/months", label: "Meses", icon: "months", visible: true },
       { to: "/invite", label: "Convite", icon: "invite", visible: true },
       { to: "/accounts", label: "Contas", icon: "months", visible: true },

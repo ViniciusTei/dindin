@@ -24,7 +24,7 @@ test("criar mês, adicionar despesa e fechar com transferência sugerida", async
 
   // Adiciona despesa
   await page.getByLabel("Descrição").fill("Mercado");
-  await page.getByLabel("Categoria").selectOption({ label: seed.categoryName });
+  await page.locator("select#categoryId").selectOption({ label: seed.categoryName });
   await page.getByLabel("Valor").fill("10,00");
   await page.getByRole("button", { name: "Adicionar" }).click();
 
