@@ -1,11 +1,10 @@
-import { RiHeartFill, RiCalendar2Fill, RiInbox2Fill, RiUser2Fill, RiLogoutBoxFill, RiDashboardFill, RiSquareFill, RiAccountBoxLine, RiBookShelfLine, RiWalletLine } from "@remixicon/react";
+import { RiHeartFill, RiInbox2Fill, RiUser2Fill, RiLogoutBoxFill, RiDashboardFill, RiSquareFill, RiAccountBoxLine, RiBookShelfLine, RiWalletLine } from "@remixicon/react";
 import type { RemixiconComponentType } from "@remixicon/react";
 
 export type IconName = keyof typeof availableIcons
 
 const availableIcons = {
   'heart': RiHeartFill,
-  'months': RiCalendar2Fill,
   'invite': RiInbox2Fill,
   'admin-users': RiUser2Fill,
   'logout': RiLogoutBoxFill,

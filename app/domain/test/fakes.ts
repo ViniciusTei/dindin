@@ -1,8 +1,5 @@
-import { MonthAlreadyExistsError } from "~/domain/months/errors";
-
 import type { AuthUsersRepo, PasswordVerifier } from "~/domain/auth/ports";
 import type { InvitesRepo } from "~/domain/invites/ports";
-import type { Month, MonthsRepo } from "~/domain/months/ports";
 import type { CategoriesRepo } from "~/domain/categories/ports";
 import { CategoryAlreadyExistsError, CategoryNotFoundError } from "~/domain/categories/errors";
 import type { AccountsRepo } from "~/domain/accounts/ports";
@@ -88,32 +85,6 @@ export function makePasswordVerifier(verifyFn: (params: { hash: string; password
     },
   };
   return verifier;
-}
-
-export function makeMonthsRepo() {
-  const monthsByHousehold = new Map<string, Month[]>();
-
-  const repo: MonthsRepo = {
-    async listByHousehold(householdId: string) {
-      return [...(monthsByHousehold.get(householdId) ?? [])];
-    },
-    async create(params) {
-      const list = monthsByHousehold.get(params.householdId) ?? [];
-      if (list.some((m) => m.ym === params.ym)) throw new MonthAlreadyExistsError();
-      list.push({
-        id: params.id,
-        householdId: params.householdId,
-        ym: params.ym,
-        status: "open",
-      });
-      monthsByHousehold.set(params.householdId, list);
-    },
-  };
-
-  return {
-    repo,
-    monthsByHousehold,
-  };
 }
 
 export function makeInvitesRepo(seed?: {

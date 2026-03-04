@@ -19,16 +19,6 @@ export async function logout(page: Page) {
   ]);
 }
 
-export async function createMonthViaUi(page: Page, params: { year: string; month: string }) {
-  await page.goto("/months");
-  await page.locator("#ym").fill(params.year);
-  await page.locator("#mm").selectOption(params.month);
-  await Promise.all([
-    page.waitForURL(/\/months\/.+$/),
-    page.getByRole("button", { name: "Criar" }).click(),
-  ]);
-}
-
 export async function ensureMemberJoined(seed: SeedData, params: { adminPage: Page; memberPage: Page }) {
   const existing = await seed.pool.query(
     "select 1 from memberships where household_id = $1 and user_id = $2 limit 1",

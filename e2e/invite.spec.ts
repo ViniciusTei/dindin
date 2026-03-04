@@ -12,6 +12,6 @@ test("gerar convite e entrar no household", async ({ page, browser, seed }) => {
 
   await ensureMemberJoined(seed, { adminPage: page, memberPage });
 
-  await expect(memberPage.getByLabel("Meses")).toBeVisible();
+  await expect(memberPage.getByLabel("Transações")).toBeVisible();
   await memberContext.close();
 });

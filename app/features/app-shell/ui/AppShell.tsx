@@ -42,10 +42,9 @@ export function AppShell(props: {
       visible: boolean;
     }> = [
       { to: "/", label: "Dashboard", icon: "dashboard", visible: true },
-      { to: "/months", label: "Meses", icon: "months", visible: true },
       { to: "/invite", label: "Convite", icon: "invite", visible: true },
       { to: "/accounts", label: "Contas", icon: "wallet", visible: true },
-      { to: "/transactions", label: "Transações", icon: "months", visible: true },
+      { to: "/transactions", label: "Transações", icon: "wallet", visible: true },
       { to: "/account", label: "Conta", icon: "account", visible: true },
       { to: "/categories", label: "Categorias", icon: "categories", visible: true },
       {
@@ -115,7 +114,7 @@ export function AppShell(props: {
                       ].join(" ")}
                       aria-hidden={true}
                     >
-                      <Icon name={item.icon} size={16} />
+                      <Icon name={item.icon} className="h-4 w-4" />
                     </span>
                     {isSidebarCollapsed ? null : <span>{item.label}</span>}
                   </Link>
@@ -135,10 +134,10 @@ export function AppShell(props: {
                 title="Sair"
               >
                 {isSidebarCollapsed ? (
-                  <Icon name="logout" size={16} />
+                  <Icon name="logout" className="h-4 w-4" />
                 ) : (
                   <>
-                  <Icon name="logout" size={16} />
+                  <Icon name="logout" className="h-4 w-4" />
                   <span>Sair</span></> 
                 )}
               </button>

@@ -8,7 +8,7 @@ test("login e logout", async ({ page, seed }) => {
   });
 
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
-  await expect(page.getByLabel("Meses")).toBeVisible();
+  await expect(page.getByLabel("Transações")).toBeVisible();
 
   await logout(page);
   await expect(page).toHaveURL(/\/login$/);
