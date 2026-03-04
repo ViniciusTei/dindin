@@ -29,7 +29,7 @@ export function LoginPage(props: { error?: string }) {
                 name="password"
                 type="password"
                 autoComplete="current-password"
-                aria-invalid={props.error ? true : undefined}
+                aria-invalid={props.error ? "true" : undefined}
                 aria-describedby={props.error ? "login-error" : undefined}
                 className="input input-bordered w-full"
               />

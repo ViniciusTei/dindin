@@ -32,7 +32,7 @@ export function AccountsPage(props: {
                   name="name"
                   placeholder="Ex.: Banco, Carteira, Nubank"
                   className="input input-bordered w-full"
-                  aria-invalid={props.error ? true : undefined}
+                  aria-invalid={props.error ? "true" : undefined}
                   aria-describedby={props.error ? "accounts-error" : undefined}
                 />
               </div>

@@ -30,7 +30,7 @@ export function SetupPage(props: { error?: string }) {
                 name="password"
                 type="password"
                 autoComplete="new-password"
-                aria-invalid={props.error ? true : undefined}
+                aria-invalid={props.error ? "true" : undefined}
                 aria-describedby={props.error ? "setup-error" : undefined}
                 className="input input-bordered w-full"
               />
