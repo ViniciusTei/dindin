@@ -1,6 +1,6 @@
 import { Form, Link } from "react-router";
 import { useEffect, useMemo, useState } from "react";
-import Icon from "~/components/Icon";
+import Icon, { type IconName } from "~/components/Icon";
 
 type AppShellUser = {
   username: string;
@@ -38,16 +38,16 @@ export function AppShell(props: {
     const items: Array<{
       to: string;
       label: string;
-      icon: "heart" | "months" | "invite" | "admin-users";
+      icon: IconName;
       visible: boolean;
     }> = [
-      { to: "/", label: "Dashboard", icon: "heart", visible: true },
+      { to: "/", label: "Dashboard", icon: "dashboard", visible: true },
       { to: "/months", label: "Meses", icon: "months", visible: true },
       { to: "/invite", label: "Convite", icon: "invite", visible: true },
-      { to: "/accounts", label: "Contas", icon: "months", visible: true },
+      { to: "/accounts", label: "Contas", icon: "wallet", visible: true },
       { to: "/transactions", label: "Transações", icon: "months", visible: true },
-      { to: "/account", label: "Conta", icon: "heart", visible: true },
-      { to: "/categories", label: "Categorias", icon: "heart", visible: true },
+      { to: "/account", label: "Conta", icon: "account", visible: true },
+      { to: "/categories", label: "Categorias", icon: "categories", visible: true },
       {
         to: "/admin/users",
         label: "Admin: usuários",
