@@ -7,6 +7,12 @@ import type { CategoriesRepo } from "~/domain/categories/ports";
 import { CategoryAlreadyExistsError, CategoryNotFoundError } from "~/domain/categories/errors";
 import type { AccountsRepo } from "~/domain/accounts/ports";
 import { AccountAlreadyExistsError, AccountNotFoundError } from "~/domain/accounts/errors";
+import type { Transaction, TransactionType } from "~/domain/transactions/entity";
+import type { TransactionsRepo } from "~/domain/transactions/ports";
+import {
+  TransactionAccountNotFoundError,
+  TransactionNotFoundError,
+} from "~/domain/transactions/errors";
 import type { PasswordHasher, UsersEraseRepo, UsersRepo } from "~/domain/users/ports";
 import type { UserSummary } from "~/domain/users/entity";
 
@@ -229,4 +235,76 @@ export function makeAccountsRepo(seed?: {
   };
 
   return { repo, accounts, userId, txCountsByAccountId };
+}
+
+export function makeTransactionsRepo(seed?: {
+  userId?: string;
+  accounts?: Array<{ id: string }>;
+  transactions?: Array<{
+    id: string;
+    accountId: string;
+    type: TransactionType;
+    description: string;
+    amountCents: number;
+    occurredAt?: Date;
+  }>;
+}) {
+  const userId = seed?.userId ?? "user-1";
+  const accountIds = new Set((seed?.accounts ?? []).map((a) => a.id));
+
+  const transactions: Transaction[] = (seed?.transactions ?? []).map((t) => ({
+    id: t.id,
+    userId,
+    accountId: t.accountId,
+    type: t.type,
+    description: t.description,
+    amountCents: t.amountCents,
+    occurredAt: t.occurredAt ?? new Date("2026-03-04T00:00:00.000Z"),
+    createdAt: new Date(),
+  }));
+
+  const repo: TransactionsRepo = {
+    async listByUser(uId) {
+      return transactions
+        .filter((t) => t.userId === uId)
+        .slice()
+        .sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime());
+    },
+    async create(params) {
+      if (params.userId !== userId) throw new TransactionAccountNotFoundError();
+      if (!accountIds.has(params.accountId)) throw new TransactionAccountNotFoundError();
+      transactions.push({
+        id: params.id,
+        userId: params.userId,
+        accountId: params.accountId,
+        type: params.type,
+        description: params.description,
+        amountCents: params.amountCents,
+        occurredAt: params.occurredAt,
+        createdAt: new Date(),
+      });
+    },
+    async update(params) {
+      if (params.userId !== userId) throw new TransactionNotFoundError();
+      if (!accountIds.has(params.accountId)) throw new TransactionAccountNotFoundError();
+      const idx = transactions.findIndex((t) => t.userId === params.userId && t.id === params.transactionId);
+      if (idx === -1) throw new TransactionNotFoundError();
+      transactions[idx] = {
+        ...transactions[idx],
+        accountId: params.accountId,
+        type: params.type,
+        description: params.description,
+        amountCents: params.amountCents,
+        occurredAt: params.occurredAt,
+      };
+    },
+    async delete(params) {
+      if (params.userId !== userId) throw new TransactionNotFoundError();
+      const idx = transactions.findIndex((t) => t.userId === params.userId && t.id === params.transactionId);
+      if (idx === -1) throw new TransactionNotFoundError();
+      transactions.splice(idx, 1);
+    },
+  };
+
+  return { repo, transactions, userId, accountIds };
 }

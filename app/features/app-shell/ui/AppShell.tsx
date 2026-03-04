@@ -46,6 +46,7 @@ export function AppShell(props: {
       { to: "/months", label: "Meses", icon: "months", visible: true },
       { to: "/invite", label: "Convite", icon: "invite", visible: true },
       { to: "/accounts", label: "Contas", icon: "months", visible: true },
+      { to: "/transactions", label: "Transações", icon: "months", visible: true },
       { to: "/account", label: "Conta", icon: "heart", visible: true },
       { to: "/categories", label: "Categorias", icon: "heart", visible: true },
       {

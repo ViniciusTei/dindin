@@ -12,6 +12,7 @@ export default [
 		route("invite", "routes/invite.tsx"),
 		route("account", "routes/account.tsx"),
 		route("accounts", "routes/accounts.tsx"),
+		route("transactions", "routes/transactions.tsx"),
 		route("categories", "routes/categories.tsx"),
 		route("months", "routes/months.tsx"),
 		route("months/:monthId", "routes/month.$monthId.tsx"),
