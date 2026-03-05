@@ -29,6 +29,7 @@ export function AccountsPage(props: {
                 </label>
                 <input
                   id="name"
+                  data-testid="account-name-input"
                   name="name"
                   placeholder="Ex.: Banco, Carteira, Nubank"
                   className="input input-bordered w-full"
@@ -43,6 +44,7 @@ export function AccountsPage(props: {
                 </label>
                 <input
                   id="initialBalance"
+                  data-testid="account-initialBalance-input"
                   name="initialBalance"
                   placeholder="0,00"
                   className="input input-bordered w-full"
@@ -61,7 +63,7 @@ export function AccountsPage(props: {
                 </div>
               ) : null}
 
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" data-testid="account-create-button">
                 Criar
               </button>
             </Form>
@@ -96,8 +98,9 @@ export function AccountsPage(props: {
                               name="name"
                               defaultValue={a.name}
                               className="input input-bordered input-sm w-full"
+                              data-testid={`account-name-${a.name}`}
                             />
-                            <button type="submit" className="btn btn-ghost btn-sm">
+                            <button type="submit" className="btn btn-ghost btn-sm" data-testid={`account-rename-button-${a.id}`}>
                               Renomear
                             </button>
                           </Form>
@@ -115,7 +118,7 @@ export function AccountsPage(props: {
                           >
                             <input type="hidden" name="intent" value="delete" />
                             <input type="hidden" name="accountId" value={a.id} />
-                            <button type="submit" className="btn btn-ghost btn-sm">
+                            <button type="submit" className="btn btn-ghost btn-sm" data-testid={`account-delete-button-${a.id}`}>
                               Excluir
                             </button>
                           </Form>

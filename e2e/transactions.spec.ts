@@ -1,18 +1,19 @@
+import type { Page } from "@playwright/test";
 import { test, expect } from "./fixtures";
 import { login } from "./helpers";
 
-async function ensureAccount(page: any) {
+async function ensureAccount(page: Page) {
   await page.goto("/accounts");
   await expect(page.getByRole("heading", { name: "Contas" })).toBeVisible();
 
   // Se já existe, não faz nada.
-  if ((await page.getByDisplayValue("Carteira").count()) > 0) return;
+  if ((await page.getByTestId("account-name-Carteira").count()) > 0) return;
 
-  await page.getByLabel("Nome").fill("Carteira");
-  await page.getByLabel("Saldo inicial").fill("0,00");
-  await page.getByRole("button", { name: "Criar" }).click();
+  await page.getByTestId("account-name-input").fill("Carteira");
+  await page.getByTestId("account-initialBalance-input").fill("0,00");
+  await page.getByTestId("account-create-button").click();
   await expect(page.getByRole("status")).toHaveText(/Salvo\./);
-  await expect(page.getByDisplayValue("Carteira")).toBeVisible();
+  await expect(page.getByTestId("account-name-Carteira")).toBeVisible();
 }
 
 test("transações: validar erro, criar, editar e excluir", async ({ page, seed }) => {
