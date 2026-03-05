@@ -1,4 +1,20 @@
 import type { AuthUsersRepo, PasswordVerifier } from "~/domain/auth/ports";
+import type {
+  CreditCardPrepaymentsRepo,
+  CreditCardPurchasesRepo,
+  CreditCardsRepo,
+  CardCrypto,
+} from "~/domain/credit-cards/ports";
+import type {
+  CreditCard,
+  CreditCardPurchase,
+  CreditCardPurchasePrepayment,
+} from "~/domain/credit-cards/entity";
+import {
+  CreditCardAccountNotFoundError,
+  CreditCardNotFoundError,
+  CreditCardPurchaseNotFoundError,
+} from "~/domain/credit-cards/errors";
 import type { InvitesRepo } from "~/domain/invites/ports";
 import type { CategoriesRepo } from "~/domain/categories/ports";
 import { CategoryAlreadyExistsError, CategoryNotFoundError } from "~/domain/categories/errors";
@@ -300,4 +316,169 @@ export function makeTransactionsRepo(seed?: {
   };
 
   return { repo, transactions, userId, accountIds, categoryIds };
+}
+
+export function makeCardCrypto(prefix = "enc") {
+  const crypto: CardCrypto = {
+    encrypt(plaintext) {
+      return `${prefix}:${plaintext}`;
+    },
+    decrypt(payload) {
+      const [pfx, ...rest] = payload.split(":");
+      if (pfx !== prefix) throw new Error("payload inválido");
+      return rest.join(":");
+    },
+  };
+
+  return crypto;
+}
+
+export function makeCreditCardsRepo(seed?: {
+  userId?: string;
+  accountIds?: string[];
+  cards?: Array<
+    Omit<CreditCard, "createdAt"> & { createdAt?: Date }
+  >;
+}) {
+  const userId = seed?.userId ?? "user-1";
+  const accountIds = new Set(seed?.accountIds ?? []);
+
+  const cards: CreditCard[] = (seed?.cards ?? []).map((c) => ({
+    ...c,
+    createdAt: c.createdAt ?? new Date(),
+  }));
+
+  const repo: CreditCardsRepo = {
+    async listByUser(uId) {
+      return cards.filter((c) => c.userId === uId).slice();
+    },
+    async findById(params) {
+      return (
+        cards.find((c) => c.userId === params.userId && c.id === params.creditCardId) ??
+        null
+      );
+    },
+    async create(params) {
+      if (params.userId !== userId) throw new CreditCardAccountNotFoundError();
+      if (params.accountId && !accountIds.has(params.accountId)) {
+        throw new CreditCardAccountNotFoundError();
+      }
+
+      cards.push({
+        id: params.id,
+        userId: params.userId,
+        accountId: params.accountId,
+        numberEnc: params.numberEnc,
+        expirationEnc: params.expirationEnc,
+        cvvEnc: params.cvvEnc,
+        brand: params.brand as any,
+        limitCents: params.limitCents,
+        closingDay: params.closingDay,
+        dueDay: params.dueDay,
+        createdAt: new Date(),
+      });
+    },
+    async update(params) {
+      const idx = cards.findIndex((c) => c.userId === params.userId && c.id === params.creditCardId);
+      if (idx === -1) throw new CreditCardNotFoundError();
+      if (params.accountId && !accountIds.has(params.accountId)) {
+        throw new CreditCardAccountNotFoundError();
+      }
+      cards[idx] = {
+        ...cards[idx],
+        accountId: params.accountId,
+        limitCents: params.limitCents,
+        closingDay: params.closingDay,
+        dueDay: params.dueDay,
+      };
+    },
+    async delete(params) {
+      const idx = cards.findIndex((c) => c.userId === params.userId && c.id === params.creditCardId);
+      if (idx === -1) throw new CreditCardNotFoundError();
+      cards.splice(idx, 1);
+    },
+  };
+
+  return { repo, cards, userId, accountIds };
+}
+
+export function makeCreditCardPurchasesRepo(seed?: {
+  userId?: string;
+  cardIds?: string[];
+  purchases?: Array<Omit<CreditCardPurchase, "createdAt"> & { createdAt?: Date }>;
+}) {
+  const userId = seed?.userId ?? "user-1";
+  const cardIds = new Set(seed?.cardIds ?? []);
+
+  const purchases: CreditCardPurchase[] = (seed?.purchases ?? []).map((p) => ({
+    ...p,
+    createdAt: p.createdAt ?? new Date(),
+  }));
+
+  const repo: CreditCardPurchasesRepo = {
+    async listByCard(params) {
+      return purchases
+        .filter((p) => p.userId === params.userId && p.creditCardId === params.creditCardId)
+        .slice();
+    },
+    async findById(params) {
+      return purchases.find((p) => p.userId === params.userId && p.id === params.purchaseId) ?? null;
+    },
+    async create(params) {
+      if (params.userId !== userId) throw new CreditCardNotFoundError();
+      if (!cardIds.has(params.creditCardId)) throw new CreditCardNotFoundError();
+      purchases.push({
+        id: params.id,
+        userId: params.userId,
+        creditCardId: params.creditCardId,
+        categoryId: params.categoryId,
+        description: params.description,
+        amountCents: params.amountCents,
+        occurredAt: params.occurredAt,
+        installmentsTotal: params.installmentsTotal,
+        firstInvoiceYm: params.firstInvoiceYm,
+        createdAt: new Date(),
+      });
+    },
+  };
+
+  return { repo, purchases, userId, cardIds };
+}
+
+export function makeCreditCardPrepaymentsRepo(seed?: {
+  userId?: string;
+  purchaseToCardId?: Record<string, string>;
+  prepayments?: Array<Omit<CreditCardPurchasePrepayment, "createdAt"> & { createdAt?: Date }>;
+}) {
+  const userId = seed?.userId ?? "user-1";
+  const purchaseToCardId = { ...(seed?.purchaseToCardId ?? {}) };
+
+  const prepayments: CreditCardPurchasePrepayment[] = (seed?.prepayments ?? []).map((p) => ({
+    ...p,
+    createdAt: p.createdAt ?? new Date(),
+  }));
+
+  const repo: CreditCardPrepaymentsRepo = {
+    async listByCard(params) {
+      return prepayments
+        .filter((p) => p.userId === params.userId)
+        .filter((p) => purchaseToCardId[p.purchaseId] === params.creditCardId)
+        .slice();
+    },
+    async create(params) {
+      if (params.userId !== userId) throw new CreditCardPurchaseNotFoundError();
+      if (!purchaseToCardId[params.purchaseId]) throw new CreditCardPurchaseNotFoundError();
+
+      prepayments.push({
+        id: params.id,
+        userId: params.userId,
+        purchaseId: params.purchaseId,
+        ym: params.ym,
+        installmentsCount: params.installmentsCount,
+        createdAt: params.createdAt,
+      });
+    },
+  };
+
+  return { repo, prepayments, userId, purchaseToCardId };
 }

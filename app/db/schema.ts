@@ -265,6 +265,85 @@ export const transactions = pgTable(
   })
 );
 
+export const creditCards = pgTable(
+  "credit_cards",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    accountId: text("account_id").references(() => accounts.id),
+    numberEnc: text("number_enc").notNull(),
+    expirationEnc: text("expiration_enc").notNull(),
+    cvvEnc: text("cvv_enc"),
+    brand: text("brand").notNull(),
+    limitCents: integer("limit_cents"),
+    closingDay: integer("closing_day").notNull(),
+    dueDay: integer("due_day").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    userIdx: index("credit_cards_user_id_idx").on(table.userId),
+    accountIdx: index("credit_cards_account_id_idx").on(table.accountId),
+  })
+);
+
+export const creditCardPurchases = pgTable(
+  "credit_card_purchases",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    creditCardId: text("credit_card_id")
+      .notNull()
+      .references(() => creditCards.id, { onDelete: "cascade" }),
+    categoryId: text("category_id").references(() => categories.id, {
+      onDelete: "set null",
+    }),
+    description: text("description").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
+    installmentsTotal: integer("installments_total").notNull().default(1),
+    firstInvoiceYm: text("first_invoice_ym").notNull(), // YYYY-MM
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    userIdx: index("credit_card_purchases_user_id_idx").on(table.userId),
+    cardIdx: index("credit_card_purchases_card_id_idx").on(table.creditCardId),
+    occurredAtIdx: index("credit_card_purchases_occurred_at_idx").on(table.occurredAt),
+    categoryIdx: index("credit_card_purchases_category_id_idx").on(table.categoryId),
+    firstInvoiceYmIdx: index("credit_card_purchases_first_invoice_ym_idx").on(table.firstInvoiceYm),
+  })
+);
+
+export const creditCardPurchasePrepayments = pgTable(
+  "credit_card_purchase_prepayments",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    purchaseId: text("purchase_id")
+      .notNull()
+      .references(() => creditCardPurchases.id, { onDelete: "cascade" }),
+    ym: text("ym").notNull(), // YYYY-MM (mês em que antecipou)
+    installmentsCount: integer("installments_count").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    userIdx: index("credit_card_purchase_prepayments_user_id_idx").on(table.userId),
+    purchaseIdx: index("credit_card_purchase_prepayments_purchase_id_idx").on(table.purchaseId),
+    ymIdx: index("credit_card_purchase_prepayments_ym_idx").on(table.ym),
+  })
+);
+
 export type User = typeof users.$inferSelect;
 export type Household = typeof households.$inferSelect;
 export type Month = typeof months.$inferSelect;
@@ -272,3 +351,7 @@ export type Category = typeof categories.$inferSelect;
 export type Expense = typeof expenses.$inferSelect;
 export type Account = typeof accounts.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
+export type CreditCard = typeof creditCards.$inferSelect;
+export type CreditCardPurchase = typeof creditCardPurchases.$inferSelect;
+export type CreditCardPurchasePrepayment =
+  typeof creditCardPurchasePrepayments.$inferSelect;

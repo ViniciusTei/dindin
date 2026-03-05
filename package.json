@@ -17,17 +17,14 @@
     "stack:down:prod": "docker compose --env-file .env.prod -p financeiro-prod down",
     "start": "react-router-serve ./build/server/index.js",
     "test": "npm run test:unit && npm run test:e2e",
-
     "test:domain": "vitest run -c vitest.domain.config.ts",
     "test:domain:watch": "vitest -c vitest.domain.config.ts",
     "test:domain:coverage": "vitest run --coverage -c vitest.domain.config.ts",
     "test:domain:coverage:watch": "vitest --coverage -c vitest.domain.config.ts",
-
     "test:ui": "vitest run -c vitest.ui.config.ts",
     "test:ui:watch": "vitest -c vitest.ui.config.ts",
     "test:ui:coverage": "vitest run --coverage -c vitest.ui.config.ts",
     "test:ui:coverage:watch": "vitest --coverage -c vitest.ui.config.ts",
-
     "test:unit": "npm run test:domain",
     "test:unit:watch": "npm run test:domain:watch",
     "test:unit:coverage": "npm run test:domain:coverage",
@@ -41,6 +38,7 @@
     "@react-router/serve": "7.12.0",
     "@remixicon/react": "^4.9.0",
     "argon2": "^0.44.0",
+    "credit-card-type": "^10.1.2",
     "daisyui": "^5.5.19",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
@@ -52,12 +50,12 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@react-router/dev": "7.12.0",
     "@playwright/test": "^1.55.0",
+    "@react-router/dev": "7.12.0",
+    "@tailwindcss/vite": "^4.1.13",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
-    "@tailwindcss/vite": "^4.1.13",
     "@types/node": "^22",
     "@types/pg": "^8.16.0",
     "@types/react": "^19.2.7",
@@ -67,8 +65,8 @@
     "jsdom": "^26.1.0",
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2",
-    "vitest": "^3.2.4",
     "vite": "^7.1.7",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
   }
 }

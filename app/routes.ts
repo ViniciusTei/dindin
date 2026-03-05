@@ -11,6 +11,8 @@ export default [
 		route("invite", "routes/invite.tsx"),
 		route("account", "routes/account.tsx"),
 		route("accounts", "routes/accounts.tsx"),
+		route("cards", "routes/cards.tsx"),
+		route("card/:creditCardId", "routes/card.$creditCardId.tsx"),
 		route("transactions", "routes/transactions.tsx"),
 		route("categories", "routes/categories.tsx"),
 		index("routes/home.tsx"),

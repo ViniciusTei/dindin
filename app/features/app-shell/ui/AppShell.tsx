@@ -44,6 +44,7 @@ export function AppShell(props: {
       { to: "/", label: "Dashboard", icon: "dashboard", visible: true },
       { to: "/invite", label: "Convite", icon: "invite", visible: true },
       { to: "/accounts", label: "Contas", icon: "wallet", visible: true },
+      { to: "/cards", label: "Cartões", icon: "wallet", visible: true },
       { to: "/transactions", label: "Transações", icon: "wallet", visible: true },
       { to: "/account", label: "Conta", icon: "account", visible: true },
       { to: "/categories", label: "Categorias", icon: "categories", visible: true },

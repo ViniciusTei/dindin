@@ -23,6 +23,9 @@ function toBool(input: string | undefined): boolean | undefined {
 export const env = {
   DATABASE_URL: requireEnv("DATABASE_URL"),
   SESSION_SECRET: requireEnv("SESSION_SECRET"),
+  // Base64 de 32 bytes (AES-256-GCM). Opcional para não quebrar ambientes;
+  // a feature de cartão deve falhar explicitamente se estiver ausente.
+  CARD_ENCRYPTION_KEY: optionalEnv("CARD_ENCRYPTION_KEY"),
   COOKIE_SECURE:
     toBool(optionalEnv("COOKIE_SECURE")) ?? process.env.NODE_ENV === "production",
 };
