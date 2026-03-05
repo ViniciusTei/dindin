@@ -1,24 +1,9 @@
 import type { CreditCardBrand } from "~/domain/credit-cards/entity";
-import creditCardType from "credit-card-type";
 
 import { CreditCardAccountNotFoundError } from "~/domain/credit-cards/errors";
 import type { CardCrypto, CreditCardsRepo } from "~/domain/credit-cards/ports";
 
-function inferBrand(number: string): CreditCardBrand {
-  const candidates = creditCardType(number);
-  const type = candidates[0]?.type;
-
-  switch (type) {
-    case "visa":
-      return "visa";
-    case "mastercard":
-      return "mastercard";
-    case "american-express":
-      return "amex";
-    default:
-      return "unknown";
-  }
-}
+export type DetectCreditCardBrand = (number: string) => CreditCardBrand;
 
 function isDigits(value: string): boolean {
   return /^\d+$/.test(value);
@@ -35,6 +20,7 @@ function normalizeExpiration(exp: string): string {
 export async function createCreditCard(params: {
   creditCardsRepo: CreditCardsRepo;
   crypto: CardCrypto;
+  detectBrand: DetectCreditCardBrand;
   idFactory: () => string;
   userId: string;
   accountId: string | null;
@@ -92,7 +78,7 @@ export async function createCreditCard(params: {
   }
 
   const id = params.idFactory();
-  const brand = inferBrand(number);
+  const brand = params.detectBrand(number);
 
   try {
     await params.creditCardsRepo.create({

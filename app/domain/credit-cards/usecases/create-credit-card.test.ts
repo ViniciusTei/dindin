@@ -10,6 +10,7 @@ describe("createCreditCard", () => {
     const result = await createCreditCard({
       creditCardsRepo: repo,
       crypto: makeCardCrypto(),
+      detectBrand: () => "unknown",
       idFactory: makeIdFactory("cc"),
       userId: "user-1",
       accountId: null,
@@ -30,6 +31,7 @@ describe("createCreditCard", () => {
     const result = await createCreditCard({
       creditCardsRepo: repo,
       crypto: makeCardCrypto(),
+      detectBrand: () => "unknown",
       idFactory: makeIdFactory("cc"),
       userId: "user-1",
       accountId: null,
@@ -50,6 +52,7 @@ describe("createCreditCard", () => {
     const result = await createCreditCard({
       creditCardsRepo: repo,
       crypto: makeCardCrypto(),
+      detectBrand: () => "unknown",
       idFactory: makeIdFactory("cc"),
       userId: "user-1",
       accountId: "acc-999",
@@ -70,6 +73,7 @@ describe("createCreditCard", () => {
     const result = await createCreditCard({
       creditCardsRepo: repo,
       crypto: makeCardCrypto("enc"),
+      detectBrand: () => "visa",
       idFactory: makeIdFactory("cc"),
       userId: "user-1",
       accountId: "acc-1",
@@ -88,16 +92,17 @@ describe("createCreditCard", () => {
     expect(cards[0]?.cvvEnc?.startsWith("enc:")).toBe(true);
   });
 
-  it("infere bandeira com credit-card-type", async () => {
+  it("salva a bandeira retornada pelo detector", async () => {
     const { repo, cards } = makeCreditCardsRepo();
 
     const result = await createCreditCard({
       creditCardsRepo: repo,
       crypto: makeCardCrypto("enc"),
+      detectBrand: () => "amex",
       idFactory: makeIdFactory("cc"),
       userId: "user-1",
       accountId: null,
-      number: "378282246310005", // american-express
+      number: "378282246310005",
       expiration: "03/26",
       cvv: null,
       limitCents: null,

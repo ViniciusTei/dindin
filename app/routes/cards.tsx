@@ -8,6 +8,7 @@ import { createCreditCard } from "~/domain/credit-cards/usecases/create-credit-c
 import { listCreditCards } from "~/domain/credit-cards/usecases/list-credit-cards";
 import { listAccounts } from "~/domain/accounts/usecases/list-accounts";
 import { CreditCardsPage } from "~/features/credit-cards/ui/CreditCardsPage";
+import { detectCreditCardBrand } from "~/lib/credit-card-brand.server";
 import { decryptString, encryptString } from "~/lib/crypto.server";
 import { toCents } from "~/lib/money";
 
@@ -73,6 +74,7 @@ export async function action({ request }: Route.ActionArgs) {
     const result = await createCreditCard({
       creditCardsRepo,
       crypto: { encrypt: encryptString, decrypt: decryptString },
+      detectBrand: detectCreditCardBrand,
       idFactory: createId,
       userId,
       accountId,
