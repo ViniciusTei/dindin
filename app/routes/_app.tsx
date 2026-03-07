@@ -4,7 +4,7 @@ import { Outlet, redirect } from "react-router";
 
 import { requireUser } from "~/auth/session.server";
 import { usersStatsRepo } from "~/db/repositories/users-stats.repo.server";
-import { AppShell } from "~/components/AppShell";
+import { AppShell } from "~/ui/AppShell";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const anyUser = await usersStatsRepo.hasAnyUsers();
