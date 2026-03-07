@@ -8,6 +8,7 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
+import { ThemeProvider } from "~/components/ThemeContext";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -30,11 +31,28 @@ export const links: Route.LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" data-theme="dracula">
+    <html lang="pt-BR" data-theme="nord" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
+        <script
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html: `(() => {
+  try {
+    const key = 'financeiro.theme';
+    const stored = localStorage.getItem(key);
+    const isValid = stored === 'nord' || stored === 'sunset';
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = isValid ? stored : (prefersDark ? 'sunset' : 'nord');
+    document.documentElement.setAttribute('data-theme', theme);
+  } catch {
+    // ignore
+  }
+})();`,
+          }}
+        />
         <Links />
       </head>
       <body>
@@ -76,7 +94,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <ThemeProvider>
+      <Outlet />
+    </ThemeProvider>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

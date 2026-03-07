@@ -1,6 +1,7 @@
 import { Form, Link } from "react-router";
 import { useEffect, useMemo, useState } from "react";
 import Icon, { type IconName } from "~/ui/Icon";
+import { useTheme } from "~/components/ThemeContext";
 
 type AppShellUser = {
   username: string;
@@ -13,6 +14,7 @@ export function AppShell(props: {
 }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     function onOnline() {
@@ -161,6 +163,15 @@ export function AppShell(props: {
           </button>
 
           <div className="flex items-center gap-3 text-sm">
+            <button
+              type="button"
+              className="btn btn-ghost btn-square"
+              onClick={toggleTheme}
+              aria-label={theme === "sunset" ? "Ativar tema claro" : "Ativar tema escuro"}
+              title={theme === "sunset" ? "Ativar tema claro" : "Ativar tema escuro"}
+            >
+              <Icon name={theme === "sunset" ? ("sun" as IconName) : ("moon" as IconName)} className="h-4 w-4" />
+            </button>
             {isOnline ? null : (
               <span className="badge badge-warning" title="Offline (somente leitura)">
                 Offline — somente leitura

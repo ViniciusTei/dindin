@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
     environment: "jsdom",
-    include: ["app/domain/**/ui/*.test.{ts,tsx}", "app/ui/**/*.test.{ts,tsx}"],
+    include: ["app/**/*.test.tsx"],
     setupFiles: ["app/test/vitest.ui.setup.ts"],
     restoreMocks: true,
     clearMocks: true,
@@ -15,7 +15,11 @@ export default defineConfig({
       reportsDirectory: "coverage/ui",
       reporter: ["text-summary", "html", "json"],
       all: false,
-      include: ["app/domain/**/ui/*.{ts,tsx}", "app/ui/**/*.{ts,tsx}"],
+      include: [
+        "app/components/**/*.{ts,tsx}",
+        "app/ui/**/*.{ts,tsx}",
+        "app/domain/**/ui/**/*.{ts,tsx}",
+      ],
       exclude: ["**/*.d.ts", "**/*.test.ts", "**/*.test.tsx", "app/test/**"],
     },
   },

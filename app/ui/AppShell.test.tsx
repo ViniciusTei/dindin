@@ -1,12 +1,18 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import type { ReactNode } from "react";
 
 import { AppShell } from "./AppShell";
+import { ThemeProvider } from "~/components/ThemeContext";
+
+function renderShell(ui: ReactNode) {
+  return render(<ThemeProvider>{ui}</ThemeProvider>);
+}
 
 describe("AppShell", () => {
   it("não mostra item de admin para usuário não-admin", () => {
-    render(
+    renderShell(
       <AppShell user={{ username: "maria", isAdmin: false }}>
         <div>Conteúdo</div>
       </AppShell>
@@ -16,7 +22,7 @@ describe("AppShell", () => {
   });
 
   it("mostra item de admin para admin", () => {
-    render(
+    renderShell(
       <AppShell user={{ username: "admin", isAdmin: true }}>
         <div>Conteúdo</div>
       </AppShell>
@@ -28,7 +34,7 @@ describe("AppShell", () => {
   it("toggle do menu alterna entre recolher/expandir", async () => {
     const user = userEvent.setup();
 
-    const view = render(
+    const view = renderShell(
       <AppShell user={{ username: "maria", isAdmin: false }}>
         <div>Conteúdo</div>
       </AppShell>
@@ -45,7 +51,7 @@ describe("AppShell", () => {
   });
 
   it("mostra badge de offline ao disparar evento", async () => {
-    render(
+    renderShell(
       <AppShell user={{ username: "maria", isAdmin: false }}>
         <div>Conteúdo</div>
       </AppShell>
