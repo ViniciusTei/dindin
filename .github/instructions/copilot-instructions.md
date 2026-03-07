@@ -39,11 +39,9 @@ Uma estrutura típica (mantendo o `domain` global) fica assim:
       - `ports.ts` (interfaces: repositórios/serviços)
       - `usecases/` (regras orquestradas do domínio: criar/listar/etc.)
       - `errors.ts` (erros do domínio, se necessário)
-  - `features/`
-    - `months/`
       - `ui/`
         - componentes React (tabela, formulário, cards)
-      - `view-model.ts` (opcional: adaptação para UI)
+      - `view-model.ts` (opcional: adaptação para UI)      
   - `db/`
     - `repositories/`
       - `months.repo.server.ts` (implementa `ports.ts` com Drizzle)
@@ -70,7 +68,7 @@ Este é o “mapa de dependências” que mantém o projeto saudável:
 **Pode importar:** Drizzle, schema, driver, e tipos do domínio.  
 **Não deve importar:** UI.
 
-### `app/features/*/ui/*` (apresentação)
+### `app/domain/*/ui/*` (apresentação)
 **Pode importar:** React, componentes, CSS/daisyUI, tipos/helpers do domínio (formatadores, tipos).  
 **Não deve importar:** Drizzle nem repositórios server-side diretamente.
 
@@ -127,7 +125,7 @@ Ao criar uma nova rota, o checklist mental fica estável:
    → cria `app/domain/<feature>/ports.ts` + implementação em `app/db/repositories/*`.
 
 3. **Existe UI reutilizável?**  
-   → vai para `app/features/<feature>/ui/*`.
+   → vai para `app/domain/<feature>/ui/*`.
 
 4. **A rota só coordena** (auth + parsing + chamar usecase + render).  
    → fica em `app/routes/<feature>.tsx`.
