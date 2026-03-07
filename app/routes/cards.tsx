@@ -7,7 +7,7 @@ import { creditCardsRepo } from "~/db/repositories/credit-cards.repo.server";
 import { createCreditCard } from "~/domain/credit-cards/usecases/create-credit-card";
 import { listCreditCards } from "~/domain/credit-cards/usecases/list-credit-cards";
 import { listAccounts } from "~/domain/accounts/usecases/list-accounts";
-import { CreditCardsPage } from "~/features/credit-cards/ui/CreditCardsPage";
+import { CreditCardsPage } from "~/domain/credit-cards/ui/CreditCardsPage";
 import { detectCreditCardBrand } from "~/lib/credit-card-brand.server";
 import { decryptString, encryptString } from "~/lib/crypto.server";
 import { toCents } from "~/lib/money";

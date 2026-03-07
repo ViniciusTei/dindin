@@ -7,7 +7,7 @@ import { createAccount } from "~/domain/accounts/usecases/create-account";
 import { deleteAccount } from "~/domain/accounts/usecases/delete-account";
 import { listAccounts } from "~/domain/accounts/usecases/list-accounts";
 import { renameAccount } from "~/domain/accounts/usecases/rename-account";
-import { AccountsPage } from "~/features/accounts/ui/AccountsPage";
+import { AccountsPage } from "~/domain/accounts/ui/AccountsPage";
 import { toCents } from "~/lib/money";
 
 function createId(): string {

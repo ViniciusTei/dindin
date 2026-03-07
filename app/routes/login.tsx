@@ -5,7 +5,7 @@ import { createUserSession, getUserId } from "~/auth/session.server";
 import { passwordVerifier } from "~/auth/password-verifier.server";
 import { authUsersRepo } from "~/db/repositories/users-auth.repo.server";
 import { loginLocal } from "~/domain/auth/usecases/login-local";
-import { LoginPage } from "~/features/auth/ui/LoginPage";
+import { LoginPage } from "~/domain/auth/ui/LoginPage";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const userId = await getUserId(request);

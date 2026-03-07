@@ -8,7 +8,7 @@ import { householdsRepo } from "~/db/repositories/households.repo.server";
 import { usersStatsRepo } from "~/db/repositories/users-stats.repo.server";
 import { usersRepo } from "~/db/repositories/users.repo.server";
 import { runSetup } from "~/domain/setup/usecases/run-setup";
-import { SetupPage } from "~/features/setup/ui/SetupPage";
+import { SetupPage } from "~/domain/setup/ui/SetupPage";
 
 function createId(): string {
   return crypto.randomUUID();

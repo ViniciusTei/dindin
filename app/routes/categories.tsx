@@ -8,7 +8,7 @@ import { createCategory } from "~/domain/categories/usecases/create-category";
 import { deleteCategory } from "~/domain/categories/usecases/delete-category";
 import { listCategories } from "~/domain/categories/usecases/list-categories";
 import { renameCategory } from "~/domain/categories/usecases/rename-category";
-import { CategoriesPage } from "~/features/categories/ui/CategoriesPage";
+import { CategoriesPage } from "~/domain/categories/ui/CategoriesPage";
 
 function createId(): string {
   return crypto.randomUUID();

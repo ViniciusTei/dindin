@@ -12,7 +12,7 @@ import { createTransaction } from "~/domain/transactions/usecases/create-transac
 import { deleteTransaction } from "~/domain/transactions/usecases/delete-transaction";
 import { listTransactions } from "~/domain/transactions/usecases/list-transactions";
 import { updateTransaction } from "~/domain/transactions/usecases/update-transaction";
-import { TransactionsPage } from "~/features/transactions/ui/TransactionsPage";
+import { TransactionsPage } from "~/domain/transactions/ui/TransactionsPage";
 import { toCents } from "~/lib/money";
 
 function createId(): string {

@@ -11,7 +11,7 @@ import { anticipateInstallments } from "~/domain/credit-cards/usecases/anticipat
 import { getCreditCardInvoice } from "~/domain/credit-cards/usecases/get-invoice";
 import { computeInvoiceYmForDate } from "~/domain/credit-cards/invoice";
 import { listAccounts } from "~/domain/accounts/usecases/list-accounts";
-import { CreditCardPage } from "~/features/credit-cards/ui/CreditCardPage";
+import { CreditCardPage } from "~/domain/credit-cards/ui/CreditCardPage";
 import { decryptString } from "~/lib/crypto.server";
 import { toCents } from "~/lib/money";
 

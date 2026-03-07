@@ -6,7 +6,7 @@ import { passwordHasher } from "~/auth/password-hasher.server";
 import { usersRepo } from "~/db/repositories/users.repo.server";
 import { createLocalUser } from "~/domain/users/usecases/create-local-user";
 import { listUsers } from "~/domain/users/usecases/list-users";
-import { AdminUsersPage } from "~/features/admin-users/ui/AdminUsersPage";
+import { AdminUsersPage } from "~/domain/users/ui/AdminUsersPage";
 
 function createId(): string {
   return crypto.randomUUID();
