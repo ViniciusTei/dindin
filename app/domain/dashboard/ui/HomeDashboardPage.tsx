@@ -7,10 +7,25 @@ import type { HomeDashboardData } from "~/domain/dashboard/entity";
 import { formatDate } from "~/lib/datetime";
 import { formatBRL } from "~/lib/money";
 
-type ExpenseCategoryDatum = {
-  index: number;
+const EXPENSE_PIE_COLORS = [
+  "#3b82f6",
+  "#06b6d4",
+  "#8b5cf6",
+  "#f59e0b",
+  "#10b981",
+  "#ef4444",
+  "#f97316",
+  "#22c55e",
+];
+
+type ExpensePieSlice = {
+  id: string;
   category: string;
   value: number;
+  percentage: number;
+  color: string;
+  startDeg: number;
+  endDeg: number;
 };
 
 type IncomeExpenseDatum = {
@@ -22,56 +37,54 @@ type IncomeExpenseDatum = {
 export function HomeDashboardPage(props: HomeDashboardData) {
   const { theme } = useTheme();
   const isDark = theme === "sunset";
-
-  const expenseRows = useMemo(
+  const percentageFormatter = useMemo(
     () =>
-      props.expenseByCategory.slice(0, 8).map((row, index) => ({
-        index,
-        category: row.categoryName,
-        value: row.expenseCents,
-      })),
-    [props.expenseByCategory],
-  );
-
-  const hasExpenseChartData = expenseRows.length > 0;
-
-  const expenseData = useMemo(
-    () => [
-      {
-        label: "Despesas",
-        data: expenseRows,
-      },
-    ],
-    [expenseRows],
-  );
-
-  const expensePrimaryAxis = useMemo<AxisOptions<ExpenseCategoryDatum>>(
-    () => ({
-      getValue: (datum) => datum.index,
-      scaleType: "linear",
-      hardMin: -0.5,
-      hardMax: Math.max(expenseRows.length - 0.5, 0.5),
-      tickCount: expenseRows.length,
-      formatters: {
-        scale: (value) => {
-          const row = expenseRows[Math.round(value)];
-          return row?.category ?? "";
-        },
-      },
-    }),
-    [expenseRows],
-  );
-
-  const expenseSecondaryAxes = useMemo<Array<AxisOptions<ExpenseCategoryDatum>>>(
-    () => [
-      {
-        getValue: (datum) => datum.value,
-        scaleType: "linear",
-        elementType: "bar",
-      },
-    ],
+      new Intl.NumberFormat("pt-BR", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }),
     [],
   );
+
+  const expensePie = useMemo(() => {
+    const rows = props.expenseByCategory.slice(0, 8).map((row, index) => ({
+      id: `${index}-${row.categoryName}`,
+      category: row.categoryName,
+      value: row.expenseCents,
+    }));
+    const totalCents = rows.reduce((acc, row) => acc + row.value, 0);
+    if (totalCents <= 0) return null;
+
+    let currentDeg = 0;
+    const slices: ExpensePieSlice[] = rows.map((row, index) => {
+      const startDeg = currentDeg;
+      const angle = (row.value / totalCents) * 360;
+      currentDeg += angle;
+
+      return {
+        ...row,
+        percentage: (row.value / totalCents) * 100,
+        color: EXPENSE_PIE_COLORS[index % EXPENSE_PIE_COLORS.length]!,
+        startDeg,
+        endDeg: index === rows.length - 1 ? 360 : currentDeg,
+      };
+    });
+
+    const gradient = `conic-gradient(${slices
+      .map(
+        (slice) =>
+          `${slice.color} ${slice.startDeg.toFixed(4)}deg ${slice.endDeg.toFixed(4)}deg`,
+      )
+      .join(", ")})`;
+
+    return {
+      slices,
+      totalCents,
+      gradient,
+    };
+  }, [props.expenseByCategory]);
+
+  const hasExpenseChartData = expensePie !== null;
 
   const incomeRows = useMemo(
     () =>
@@ -200,30 +213,40 @@ export function HomeDashboardPage(props: HomeDashboardData) {
               <p className="opacity-70">Sem dados suficientes para gerar o gráfico.</p>
             ) : (
               <div>
-                <div className="h-72 w-full rounded-lg border border-base-300 p-3">
-                  <Chart
-                    options={{
-                      data: expenseData,
-                      primaryAxis: expensePrimaryAxis,
-                      secondaryAxes: expenseSecondaryAxes,
-                      interactionMode: "closest",
-                      initialHeight: 280,
-                      initialWidth: 520,
-                      dark: isDark,
-                      tooltip: false,
-                    }}
-                  />
+                <div className="flex justify-center">
+                  <div
+                    data-testid="expense-pie-chart"
+                    aria-label="Gráfico de pizza de despesas por categoria"
+                    className="relative h-64 w-64 rounded-full border border-base-300"
+                    style={{ backgroundImage: expensePie.gradient }}
+                  >
+                    <div className="absolute inset-[24%] flex flex-col items-center justify-center rounded-full bg-base-100 text-center">
+                      <span className="text-xs opacity-70">Total de despesas</span>
+                      <span className="text-sm font-semibold">
+                        {formatBRL(-expensePie.totalCents)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-3 space-y-2">
-                  {props.expenseByCategory.slice(0, 8).map((row) => (
+                <div className="mt-4 space-y-2">
+                  {expensePie.slices.map((slice) => (
                     <div
-                      key={row.categoryName}
+                      key={slice.id}
                       className="flex items-center justify-between gap-3 text-sm"
                     >
-                      <span className="truncate">{row.categoryName}</span>
-                      <span className="font-semibold">
-                        {formatBRL(-row.expenseCents)}
-                      </span>
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span
+                          className="h-3 w-3 shrink-0 rounded-full"
+                          style={{ backgroundColor: slice.color }}
+                        />
+                        <span className="truncate">{slice.category}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold">{formatBRL(-slice.value)}</div>
+                        <div className="text-xs opacity-70">
+                          {percentageFormatter.format(slice.percentage)}%
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
