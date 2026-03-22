@@ -2,6 +2,7 @@
   "name": "financeiro-remix",
   "private": true,
   "type": "module",
+  "version": "1.0.0",
   "scripts": {
     "build": "react-router build",
     "db:generate": "drizzle-kit generate",
