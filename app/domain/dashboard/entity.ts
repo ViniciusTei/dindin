@@ -11,6 +11,8 @@ export type DashboardIncomeExpenseMonth = {
 
 export type HomeDashboardData = {
   monthLabel: string;
+  previousMonthLabel: string;
+  nextMonthLabel: string;
   totalBalanceCents: number;
   monthIncomeCents: number;
   monthExpenseCents: number;

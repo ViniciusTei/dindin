@@ -11,6 +11,15 @@ describe("lib/datetime", () => {
     expect(formatDate("2026-03-22", { format: "long", exclude: ["day"] })).toBe("março de 2026");
   });
 
+  it("formata labels yyyy-mm sem escorregar de mês por timezone", () => {
+    expect(formatDate("2026-03", { format: "long", exclude: ["day"] })).toBe("março de 2026");
+    expect(dateFormatter("2026-03").withoutDay().build()).toBe("03/2026");
+  });
+
+  it("preserva datas yyyy-mm-dd sem escorregar de dia por timezone", () => {
+    expect(formatDate("2026-03-01")).toBe("01/03/2026");
+  });
+
   it("builder permite composição encadeável", () => {
     const value = dateFormatter("2026-03-22").long().withoutDay().build();
     expect(value).toBe("março de 2026");

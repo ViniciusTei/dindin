@@ -13,7 +13,24 @@ const DEFAULT_STATE: DateFormatState = {
 };
 
 function toDate(input: string | Date): Date {
-  return input instanceof Date ? input : new Date(input);
+  if (input instanceof Date) return input;
+
+  const monthMatch = /^(\d{4})-(\d{2})$/.exec(input);
+  if (monthMatch) {
+    const year = Number(monthMatch[1]);
+    const month = Number(monthMatch[2]);
+    return new Date(year, month - 1, 1, 12, 0, 0, 0);
+  }
+
+  const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(input);
+  if (dateMatch) {
+    const year = Number(dateMatch[1]);
+    const month = Number(dateMatch[2]);
+    const day = Number(dateMatch[3]);
+    return new Date(year, month - 1, day, 12, 0, 0, 0);
+  }
+
+  return new Date(input);
 }
 
 function toIntlOptions(state: DateFormatState): Intl.DateTimeFormatOptions {

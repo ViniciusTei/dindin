@@ -1,4 +1,6 @@
 import {
+  RiArrowLeftFill,
+  RiArrowRightFill,
   RiBankCardFill,
   RiBankFill,
   RiHeartFill,
@@ -29,6 +31,8 @@ const availableIcons = {
   wallet: RiWalletLine,
   "credit-card": RiBankCardFill,
   bank: RiBankFill,
+  "arrow-left": RiArrowLeftFill,
+  "arrow-right": RiArrowRightFill,
 };
 
 type Props = Omit<RemixiconComponentType, "name" | "className"> & {

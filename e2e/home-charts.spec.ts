@@ -92,3 +92,47 @@ test("dashboard: gráficos renderizam sem NaN no console", async ({ page, seed }
     `Mensagens de console com NaN: ${nanMessages.join("\n")}`,
   ).toHaveLength(0);
 });
+
+test("dashboard: navega entre meses e mostra histórico e faturas futuras", async ({ page, seed }) => {
+  await login(page, {
+    username: seed.users.admin.username,
+    password: seed.users.admin.password,
+  });
+
+  await ensureAccount(page);
+  await ensureCreditCard(page);
+
+  await page.goto("/cards");
+  const cardLink = page.getByRole("link", { name: "Abrir" }).first();
+  const cardHref = await cardLink.getAttribute("href");
+  if (!cardHref) throw new Error("Link de cartão não encontrado");
+
+  await page.goto(cardHref);
+  await page.locator("#description").fill("Parcela futura");
+  await page.locator("#categoryId").selectOption({ label: "Mercado" });
+  await page.locator("#amount").fill("90,00");
+  await page.locator("#occurredAt").fill("2026-03-20");
+  await page.locator("#installmentsTotal").fill("3");
+  await page.getByRole("button", { name: "Adicionar" }).click();
+  await expect(page.getByRole("status")).toHaveText(/Salvo\./);
+
+  await page.goto("/");
+  await expect(page.getByText(/março/i)).toBeVisible();
+  await expect(page.getByText("Mercado")).toBeVisible();
+  await expect(page.getByText("-R$ 30,00").first()).toBeVisible();
+
+  await page.getByRole("link", { name: "Próximo mês" }).click();
+  await expect(page).toHaveURL(/month=2026-04/);
+  await expect(page.getByText(/abril/i)).toBeVisible();
+  await expect(page.getByText("Mercado")).toBeVisible();
+  await expect(page.getByText("-R$ 30,00").first()).toBeVisible();
+
+  await page.getByRole("link", { name: "Mês anterior" }).click();
+  await expect(page).toHaveURL(/month=2026-03/);
+  await expect(page.getByText(/março/i)).toBeVisible();
+
+  await page.getByRole("link", { name: "Mês anterior" }).click();
+  await expect(page).toHaveURL(/month=2026-02/);
+  await expect(page.getByText(/fevereiro/i)).toBeVisible();
+  await expect(page.getByText("Nenhuma despesa no mês.")).toBeVisible();
+});

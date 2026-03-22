@@ -28,6 +28,7 @@ export interface DashboardRepo {
     start: Date;
     end: Date;
     now?: Date;
+    selectedMonthLabel?: string;
   }): Promise<Array<{ monthLabel: string; expenseCents: number }>>;
 
   getCreditCardExpenseByCategory(params: {
@@ -36,5 +37,6 @@ export interface DashboardRepo {
     start: Date;
     end: Date;
     now?: Date;
+    selectedMonthLabel?: string;
   }): Promise<Array<{ categoryName: string; expenseCents: number }>>;
 }

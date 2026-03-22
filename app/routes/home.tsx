@@ -5,6 +5,7 @@ import { requireUser } from "~/auth/session.server";
 import { requireHouseholdId } from "~/auth/household.server";
 import { accountsRepo } from "~/db/repositories/accounts.repo.server";
 import { dashboardRepo } from "~/db/repositories/dashboard.repo.server";
+import { resolveDashboardMonthLabel } from "~/domain/dashboard/month";
 import { usersStatsRepo } from "~/db/repositories/users-stats.repo.server";
 import { getHomeDashboard } from "~/domain/dashboard/usecases/get-home-dashboard";
 import { HomeDashboardPage } from "~/domain/dashboard/ui/HomeDashboardPage";
@@ -22,10 +23,15 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const user = await requireUser(request);
   const householdId = await requireHouseholdId(user.id);
+  const url = new URL(request.url);
+  const selectedMonthLabel = resolveDashboardMonthLabel({
+    requestedMonthLabel: url.searchParams.get("month"),
+  });
 
   const dashboard = await getHomeDashboard({
     userId: user.id,
     householdId,
+    selectedMonthLabel,
     dashboardRepo,
     accountsRepo,
     lookbackMonths: 6,

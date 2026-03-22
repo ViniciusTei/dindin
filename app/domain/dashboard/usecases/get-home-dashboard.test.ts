@@ -98,6 +98,8 @@ describe("domain/dashboard/getHomeDashboard", () => {
     });
 
     expect(result.monthLabel).toBe("2026-03");
+    expect(result.previousMonthLabel).toBe("2026-02");
+    expect(result.nextMonthLabel).toBe("2026-04");
     expect(result.totalBalanceCents).toBe(310_00);
     expect(result.monthIncomeCents).toBe(500_00);
     expect(result.monthExpenseCents).toBe(120_00);
@@ -292,6 +294,74 @@ describe("domain/dashboard/getHomeDashboard", () => {
     expect(result.expenseByCategory).toEqual([{ categoryName: "Crédito", expenseCents: 30_00 }]);
     expect(result.incomeExpenseSeries).toEqual([
       { monthLabel: "2026-03", incomeCents: 0, expenseCents: 30_00 },
+    ]);
+  });
+
+  it("usa o mês selecionado para resumo e navegação", async () => {
+    const { repo: dashboardRepo } = makeDashboardRepo({
+      monthlyTotals: [
+        { monthLabel: "2026-01", incomeCents: 50_00, expenseCents: 10_00 },
+        { monthLabel: "2026-02", incomeCents: 80_00, expenseCents: 20_00 },
+        { monthLabel: "2026-03", incomeCents: 90_00, expenseCents: 30_00 },
+      ],
+      expenseByCategory: [{ categoryName: "Moradia", expenseCents: 20_00 }],
+      creditCardMonthlyExpenses: [{ monthLabel: "2026-02", expenseCents: 15_00 }],
+      creditCardExpenseByCategory: [{ categoryName: "Crédito", expenseCents: 15_00 }],
+    });
+    const { repo: accountsRepo } = makeDashboardAccountsRepo();
+
+    const result = await getHomeDashboard({
+      userId: "user-1",
+      householdId: "household-1",
+      now: new Date("2026-03-22T00:00:00.000Z"),
+      selectedMonthLabel: "2026-02",
+      dashboardRepo,
+      accountsRepo,
+      lookbackMonths: 2,
+    });
+
+    expect(result.monthLabel).toBe("2026-02");
+    expect(result.previousMonthLabel).toBe("2026-01");
+    expect(result.nextMonthLabel).toBe("2026-03");
+    expect(result.monthIncomeCents).toBe(80_00);
+    expect(result.monthExpenseCents).toBe(35_00);
+    expect(result.monthNetCents).toBe(45_00);
+    expect(result.expenseByCategory).toEqual([
+      { categoryName: "Moradia", expenseCents: 20_00 },
+      { categoryName: "Crédito", expenseCents: 15_00 },
+    ]);
+    expect(result.incomeExpenseSeries).toEqual([
+      { monthLabel: "2026-01", incomeCents: 50_00, expenseCents: 10_00 },
+      { monthLabel: "2026-02", incomeCents: 80_00, expenseCents: 35_00 },
+    ]);
+  });
+
+  it("permite ver meses futuros com despesas previstas de cartão", async () => {
+    const { repo: dashboardRepo } = makeDashboardRepo({
+      monthlyTotals: [{ monthLabel: "2026-04", incomeCents: 0, expenseCents: 0 }],
+      expenseByCategory: [],
+      creditCardMonthlyExpenses: [{ monthLabel: "2026-04", expenseCents: 500_00 }],
+      creditCardExpenseByCategory: [{ categoryName: "Crédito", expenseCents: 500_00 }],
+    });
+    const { repo: accountsRepo } = makeDashboardAccountsRepo();
+
+    const result = await getHomeDashboard({
+      userId: "user-1",
+      householdId: "household-1",
+      now: new Date("2026-03-22T00:00:00.000Z"),
+      selectedMonthLabel: "2026-04",
+      dashboardRepo,
+      accountsRepo,
+      lookbackMonths: 1,
+    });
+
+    expect(result.monthLabel).toBe("2026-04");
+    expect(result.previousMonthLabel).toBe("2026-03");
+    expect(result.nextMonthLabel).toBe("2026-05");
+    expect(result.monthExpenseCents).toBe(500_00);
+    expect(result.expenseByCategory).toEqual([{ categoryName: "Crédito", expenseCents: 500_00 }]);
+    expect(result.incomeExpenseSeries).toEqual([
+      { monthLabel: "2026-04", incomeCents: 0, expenseCents: 500_00 },
     ]);
   });
 });

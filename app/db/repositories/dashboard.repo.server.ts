@@ -13,23 +13,13 @@ import {
   buildInvoice,
   computeInvoiceYmForDate,
 } from "~/domain/credit-cards/invoice";
+import {
+  addMonthsUTC,
+  monthLabelUTC,
+  monthStartUTC,
+  resolveDashboardMonthLabel,
+} from "~/domain/dashboard/month";
 import type { DashboardRepo } from "~/domain/dashboard/ports";
-
-function monthLabelUTC(date: Date): string {
-  return `${String(date.getUTCFullYear())}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
-}
-
-function monthStartUTC(date: Date): Date {
-  return new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1, 0, 0, 0),
-  );
-}
-
-function addMonthsUTC(date: Date, months: number): Date {
-  return new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + months, 1, 0, 0, 0),
-  );
-}
 
 function createMonthLabels(start: Date, endExclusive: Date): string[] {
   const labels: string[] = [];
@@ -45,11 +35,15 @@ function createMonthLabels(start: Date, endExclusive: Date): string[] {
 
 function resolveInvoiceYmForDashboardMonth(params: {
   dashboardMonthLabel: string;
+  selectedMonthLabel: string;
   currentDashboardMonthLabel: string;
   now: Date;
   closingDay: number;
 }) {
-  if (params.dashboardMonthLabel !== params.currentDashboardMonthLabel) {
+  if (
+    params.dashboardMonthLabel !== params.selectedMonthLabel ||
+    params.selectedMonthLabel !== params.currentDashboardMonthLabel
+  ) {
     return params.dashboardMonthLabel;
   }
   return computeInvoiceYmForDate({
@@ -274,8 +268,13 @@ export async function getCreditCardMonthlyExpenses(params: {
   start: Date;
   end: Date;
   now?: Date;
+  selectedMonthLabel?: string;
 }): Promise<Array<{ monthLabel: string; expenseCents: number }>> {
   const now = params.now ?? new Date();
+  const selectedMonthLabel = resolveDashboardMonthLabel({
+    requestedMonthLabel: params.selectedMonthLabel,
+    now,
+  });
   const monthLabels = createMonthLabels(params.start, params.end);
   if (monthLabels.length === 0) return [];
 
@@ -336,6 +335,7 @@ export async function getCreditCardMonthlyExpenses(params: {
     for (const dashboardMonthLabel of monthLabels) {
       const invoiceYm = resolveInvoiceYmForDashboardMonth({
         dashboardMonthLabel,
+        selectedMonthLabel,
         currentDashboardMonthLabel,
         now,
         closingDay: card.closingDay,
@@ -365,8 +365,13 @@ export async function getCreditCardExpenseByCategory(params: {
   start: Date;
   end: Date;
   now?: Date;
+  selectedMonthLabel?: string;
 }): Promise<Array<{ categoryName: string; expenseCents: number }>> {
   const now = params.now ?? new Date();
+  const selectedMonthLabel = resolveDashboardMonthLabel({
+    requestedMonthLabel: params.selectedMonthLabel,
+    now,
+  });
   const monthLabels = createMonthLabels(params.start, params.end);
   if (monthLabels.length === 0) return [];
 
@@ -449,6 +454,7 @@ export async function getCreditCardExpenseByCategory(params: {
     for (const dashboardMonthLabel of monthLabels) {
       const invoiceYm = resolveInvoiceYmForDashboardMonth({
         dashboardMonthLabel,
+        selectedMonthLabel,
         currentDashboardMonthLabel,
         now,
         closingDay: card.closingDay,

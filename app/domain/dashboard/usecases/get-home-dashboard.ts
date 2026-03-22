@@ -1,33 +1,32 @@
 import type { HomeDashboardData } from "~/domain/dashboard/entity";
+import {
+  addMonthsUTC,
+  monthLabelUTC,
+  monthStartFromLabel,
+  monthStartUTC,
+  resolveDashboardMonthLabel,
+  shiftDashboardMonthLabel,
+} from "~/domain/dashboard/month";
 import type { DashboardAccountsRepo, DashboardRepo } from "~/domain/dashboard/ports";
-
-function monthStartUTC(date: Date): Date {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1, 0, 0, 0));
-}
-
-function addMonthsUTC(date: Date, months: number): Date {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + months, 1, 0, 0, 0));
-}
-
-function monthLabelUTC(date: Date): string {
-  return `${String(date.getUTCFullYear())}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
-}
 
 export async function getHomeDashboard(params: {
   userId: string;
   householdId: string;
   now?: Date;
   lookbackMonths?: number;
+  selectedMonthLabel?: string;
   dashboardRepo: DashboardRepo;
   accountsRepo: DashboardAccountsRepo;
 }): Promise<HomeDashboardData> {
   const now = params.now ?? new Date();
   const lookbackMonths = Math.max(1, Math.floor(params.lookbackMonths ?? 6));
-
-  const currentMonthStart = monthStartUTC(now);
-  const currentMonthLabel = monthLabelUTC(currentMonthStart);
-  const historyStart = addMonthsUTC(currentMonthStart, -(lookbackMonths - 1));
-  const nextMonthStart = addMonthsUTC(currentMonthStart, 1);
+  const selectedMonthLabel = resolveDashboardMonthLabel({
+    requestedMonthLabel: params.selectedMonthLabel,
+    now,
+  });
+  const selectedMonthStart = monthStartFromLabel(selectedMonthLabel);
+  const historyStart = addMonthsUTC(selectedMonthStart, -(lookbackMonths - 1));
+  const nextMonthStart = addMonthsUTC(selectedMonthStart, 1);
 
   const [accounts, monthlyTotals, expenseByCategory, creditCardMonthlyExpenses, creditCardExpenseByCategory] =
     await Promise.all([
@@ -40,7 +39,7 @@ export async function getHomeDashboard(params: {
     params.dashboardRepo.getExpenseByCategory({
       userId: params.userId,
       householdId: params.householdId,
-      start: currentMonthStart,
+      start: selectedMonthStart,
       end: nextMonthStart,
     }),
     params.dashboardRepo.getCreditCardMonthlyExpenses({
@@ -48,13 +47,15 @@ export async function getHomeDashboard(params: {
       start: historyStart,
       end: nextMonthStart,
       now,
+      selectedMonthLabel,
     }),
     params.dashboardRepo.getCreditCardExpenseByCategory({
       userId: params.userId,
       householdId: params.householdId,
-      start: currentMonthStart,
+      start: selectedMonthStart,
       end: nextMonthStart,
       now,
+      selectedMonthLabel,
     }),
   ]);
 
@@ -119,13 +120,15 @@ export async function getHomeDashboard(params: {
     };
   });
 
-  const thisMonth = monthlyByLabel.get(currentMonthLabel) ?? { incomeCents: 0, expenseCents: 0 };
+  const thisMonth = monthlyByLabel.get(selectedMonthLabel) ?? { incomeCents: 0, expenseCents: 0 };
 
   const monthIncomeCents = thisMonth.incomeCents;
   const monthExpenseCents = thisMonth.expenseCents;
 
   return {
-    monthLabel: currentMonthLabel,
+    monthLabel: selectedMonthLabel,
+    previousMonthLabel: shiftDashboardMonthLabel(selectedMonthLabel, -1),
+    nextMonthLabel: shiftDashboardMonthLabel(selectedMonthLabel, 1),
     totalBalanceCents,
     monthIncomeCents,
     monthExpenseCents,
