@@ -6,7 +6,7 @@ import { HomeDashboardPage } from "~/domain/dashboard/ui/HomeDashboardPage";
 
 vi.mock("react-charts", () => {
   return {
-    Chart: ({ options }: { options: { data: unknown[] } }) => (
+    Chart: ({ options }: { options: { data: unknown[]; primaryAxis: { scaleType?: string } } }) => (
       <div data-testid="chart-mock">chart:{options.data.length}</div>
     ),
   };
@@ -57,6 +57,26 @@ describe("HomeDashboardPage", () => {
     );
 
     expect(screen.getByText("Nenhuma despesa no mês.")).toBeInTheDocument();
+    expect(screen.queryByTestId("chart-mock")).not.toBeInTheDocument();
+    expect(screen.getByText("Sem dados suficientes para gerar o gráfico.")).toBeInTheDocument();
+  });
+
+  it("não renderiza gráfico de receitas x despesas quando toda série é zero", () => {
+    render(
+      <ThemeProvider>
+        <HomeDashboardPage
+          monthLabel="2026-03"
+          totalBalanceCents={0}
+          monthIncomeCents={0}
+          monthExpenseCents={0}
+          monthNetCents={0}
+          expenseByCategory={[{ categoryName: "Mercado", expenseCents: 10_00 }]}
+          incomeExpenseSeries={[{ monthLabel: "2026-03", incomeCents: 0, expenseCents: 0 }]}
+        />
+      </ThemeProvider>
+    );
+
+    expect(screen.getByText("Sem dados suficientes para gerar o gráfico.")).toBeInTheDocument();
     expect(screen.getAllByTestId("chart-mock")).toHaveLength(1);
   });
 });

@@ -1,0 +1,61 @@
+import type { Page } from "@playwright/test";
+
+import { test, expect } from "./fixtures";
+import { login } from "./helpers";
+
+async function ensureAccount(page: Page) {
+  await page.goto("/accounts");
+  await expect(page.getByRole("heading", { name: "Contas" })).toBeVisible();
+
+  if ((await page.getByTestId("account-name-Carteira").count()) > 0) return;
+
+  await page.getByTestId("account-name-input").fill("Carteira");
+  await page.getByTestId("account-initialBalance-input").fill("0,00");
+  await page.getByTestId("account-create-button").click();
+  await expect(page.getByRole("status")).toHaveText(/Salvo\./);
+  await expect(page.getByTestId("account-name-Carteira")).toBeVisible();
+}
+
+test("dashboard: gráficos renderizam sem NaN no console", async ({ page, seed }) => {
+  const consoleMessages: string[] = [];
+  page.on("console", (msg) => {
+    if (msg.type() === "error" || msg.type() === "warning") {
+      consoleMessages.push(msg.text());
+    }
+  });
+
+  await login(page, {
+    username: seed.users.admin.username,
+    password: seed.users.admin.password,
+  });
+
+  await ensureAccount(page);
+
+  await page.goto("/transactions");
+  await expect(page.getByRole("heading", { name: "Transações" })).toBeVisible();
+
+  await page.locator("#accountId").selectOption({ label: "Carteira" });
+  await page.locator("#type").selectOption("expense");
+  await page.locator("#amount").fill("120,00");
+  await page.locator("#description").fill("Mercado");
+  await page.getByRole("button", { name: "Criar" }).click();
+  await expect(page.getByRole("status")).toHaveText(/Salvo\./);
+
+  await page.locator("#accountId").selectOption({ label: "Carteira" });
+  await page.locator("#type").selectOption("income");
+  await page.locator("#amount").fill("300,00");
+  await page.locator("#description").fill("Salário");
+  await page.getByRole("button", { name: "Criar" }).click();
+  await expect(page.getByRole("status")).toHaveText(/Salvo\./);
+
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await expect(page.locator(".ReactChart")).toHaveCount(2);
+  await expect(page.getByText("Sem dados suficientes para gerar o gráfico.")).toHaveCount(0);
+
+  const nanMessages = consoleMessages.filter((message) => /NaN/i.test(message));
+  expect(
+    nanMessages,
+    `Mensagens de console com NaN: ${nanMessages.join("\n")}`,
+  ).toHaveLength(0);
+});
