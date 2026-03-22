@@ -12,5 +12,15 @@ services:
     volumes:
       - financeiro_pgdata:/var/lib/postgresql/data
 
+  pgadmin:
+   image: dpage/pgadmin4
+   environment:
+     PGADMIN_DEFAULT_EMAIL: viniciustei@admin.com.br
+     PGADMIN_DEFAULT_PASSWORD: admin_123
+   ports:
+     - "5433:80"
+   depends_on:
+     - db
+
 volumes:
   financeiro_pgdata:
