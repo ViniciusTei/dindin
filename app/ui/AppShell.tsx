@@ -45,11 +45,21 @@ export function AppShell(props: {
     }> = [
       { to: "/", label: "Dashboard", icon: "dashboard", visible: true },
       { to: "/invite", label: "Convite", icon: "invite", visible: true },
-      { to: "/accounts", label: "Contas", icon: "wallet", visible: true },
-      { to: "/cards", label: "Cartões", icon: "wallet", visible: true },
-      { to: "/transactions", label: "Transações", icon: "wallet", visible: true },
+      { to: "/accounts", label: "Contas", icon: "bank", visible: true },
+      { to: "/cards", label: "Cartões", icon: "credit-card", visible: true },
+      {
+        to: "/transactions",
+        label: "Transações",
+        icon: "wallet",
+        visible: true,
+      },
       { to: "/account", label: "Conta", icon: "account", visible: true },
-      { to: "/categories", label: "Categorias", icon: "categories", visible: true },
+      {
+        to: "/categories",
+        label: "Categorias",
+        icon: "categories",
+        visible: true,
+      },
       {
         to: "/admin/users",
         label: "Admin: usuários",
@@ -140,8 +150,9 @@ export function AppShell(props: {
                   <Icon name="logout" className="h-4 w-4" />
                 ) : (
                   <>
-                  <Icon name="logout" className="h-4 w-4" />
-                  <span>Sair</span></> 
+                    <Icon name="logout" className="h-4 w-4" />
+                    <span>Sair</span>
+                  </>
                 )}
               </button>
             </Form>
@@ -167,13 +178,27 @@ export function AppShell(props: {
               type="button"
               className="btn btn-ghost btn-square"
               onClick={toggleTheme}
-              aria-label={theme === "sunset" ? "Ativar tema claro" : "Ativar tema escuro"}
-              title={theme === "sunset" ? "Ativar tema claro" : "Ativar tema escuro"}
+              aria-label={
+                theme === "sunset" ? "Ativar tema claro" : "Ativar tema escuro"
+              }
+              title={
+                theme === "sunset" ? "Ativar tema claro" : "Ativar tema escuro"
+              }
             >
-              <Icon name={theme === "sunset" ? ("sun" as IconName) : ("moon" as IconName)} className="h-4 w-4" />
+              <Icon
+                name={
+                  theme === "sunset"
+                    ? ("sun" as IconName)
+                    : ("moon" as IconName)
+                }
+                className="h-4 w-4"
+              />
             </button>
             {isOnline ? null : (
-              <span className="badge badge-warning" title="Offline (somente leitura)">
+              <span
+                className="badge badge-warning"
+                title="Offline (somente leitura)"
+              >
                 Offline — somente leitura
               </span>
             )}
