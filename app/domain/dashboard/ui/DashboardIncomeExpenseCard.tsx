@@ -32,7 +32,9 @@ export function DashboardIncomeExpenseCard(props: {
     [props.incomeExpenseSeries],
   );
 
-  const hasIncomeExpenseChartData = incomeRows.some((row) => row.income > 0 || row.expense > 0);
+  const hasIncomeExpenseChartData = incomeRows.some(
+    (row) => row.income > 0 || row.expense > 0,
+  );
 
   const incomeExpenseData = useMemo(
     () => [
@@ -73,12 +75,18 @@ export function DashboardIncomeExpenseCard(props: {
     [incomeRows],
   );
 
-  const incomeExpenseSecondaryAxes = useMemo<Array<AxisOptions<IncomeExpenseDatum>>>(
+  const incomeExpenseSecondaryAxes = useMemo<
+    Array<AxisOptions<IncomeExpenseDatum>>
+  >(
     () => [
       {
         getValue: (datum) => datum.value,
         scaleType: "linear",
         elementType: "bar",
+        formatters: {
+          tooltip: (value) => formatBRL(value),
+          scale: (value) => formatBRL(value),
+        },
       },
     ],
     [],
@@ -89,7 +97,9 @@ export function DashboardIncomeExpenseCard(props: {
       <div className="card-body gap-4">
         <h2 className="card-title">Receitas vs despesas</h2>
         {!hasIncomeExpenseChartData ? (
-          <p className="opacity-70">Sem dados suficientes para gerar o gráfico.</p>
+          <p className="opacity-70">
+            Sem dados suficientes para gerar o gráfico.
+          </p>
         ) : (
           <div className="h-72 w-full rounded-lg border border-base-300 p-3">
             <Chart
@@ -109,11 +119,15 @@ export function DashboardIncomeExpenseCard(props: {
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div className="rounded-md bg-base-200 p-3">
             <div className="opacity-70">Receitas (mês exibido)</div>
-            <div className="font-semibold">{formatBRL(props.monthIncomeCents)}</div>
+            <div className="font-semibold">
+              {formatBRL(props.monthIncomeCents)}
+            </div>
           </div>
           <div className="rounded-md bg-base-200 p-3">
             <div className="opacity-70">Despesas (mês exibido)</div>
-            <div className="font-semibold">{formatBRL(-props.monthExpenseCents)}</div>
+            <div className="font-semibold">
+              {formatBRL(-props.monthExpenseCents)}
+            </div>
           </div>
         </div>
       </div>
