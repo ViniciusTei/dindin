@@ -6,7 +6,7 @@ function getKey(): Buffer {
   const raw = env.CARD_ENCRYPTION_KEY;
   if (!raw) {
     throw new Error(
-      "CARD_ENCRYPTION_KEY não definido (necessário para criptografia de cartão de crédito)"
+      "CARD_ENCRYPTION_KEY não definido (necessário para criptografia de cartão de crédito)",
     );
   }
 
@@ -19,7 +19,7 @@ function getKey(): Buffer {
 
   if (key.length !== 32) {
     throw new Error(
-      `CARD_ENCRYPTION_KEY inválido: esperado 32 bytes, recebido ${key.length}`
+      `CARD_ENCRYPTION_KEY inválido: esperado 32 bytes, recebido ${key.length}`,
     );
   }
 
@@ -60,6 +60,9 @@ export function decryptString(payload: string): string {
   const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
   decipher.setAuthTag(tag);
 
-  const plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+  const plaintext = Buffer.concat([
+    decipher.update(ciphertext),
+    decipher.final(),
+  ]);
   return plaintext.toString("utf8");
 }
