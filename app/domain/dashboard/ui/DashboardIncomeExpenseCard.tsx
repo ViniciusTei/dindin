@@ -8,7 +8,6 @@ import { formatDate } from "~/lib/datetime";
 import { formatBRL } from "~/lib/money";
 
 type IncomeExpenseDatum = {
-  index: number;
   month: string;
   value: number;
 };
@@ -23,8 +22,7 @@ export function DashboardIncomeExpenseCard(props: {
 
   const incomeRows = useMemo(
     () =>
-      props.incomeExpenseSeries.map((row, index) => ({
-        index,
+      props.incomeExpenseSeries.map((row) => ({
         month: row.monthLabel,
         income: row.incomeCents,
         expense: row.expenseCents,
@@ -41,7 +39,6 @@ export function DashboardIncomeExpenseCard(props: {
       {
         label: "Receitas",
         data: incomeRows.map((row) => ({
-          index: row.index,
           month: row.month,
           value: row.income,
         })),
@@ -49,7 +46,6 @@ export function DashboardIncomeExpenseCard(props: {
       {
         label: "Despesas",
         data: incomeRows.map((row) => ({
-          index: row.index,
           month: row.month,
           value: row.expense,
         })),
@@ -60,19 +56,24 @@ export function DashboardIncomeExpenseCard(props: {
 
   const incomeExpensePrimaryAxis = useMemo<AxisOptions<IncomeExpenseDatum>>(
     () => ({
-      getValue: (datum) => datum.index,
-      scaleType: "linear",
-      hardMin: -0.5,
-      hardMax: Math.max(incomeRows.length - 0.5, 0.5),
-      tickCount: incomeRows.length,
+      getValue: (datum) => datum.month,
+      scaleType: "band",
+      innerBandPadding: 0.45,
+      outerBandPadding: 0.2,
+      innerSeriesBandPadding: 0.3,
+      outerSeriesBandPadding: 0.15,
+      maxBandSize: 40,
       formatters: {
         scale: (value) => {
-          const row = incomeRows[Math.round(value)];
-          return row ? formatDate(row.month, { exclude: ["day"] }) : "";
+          if (typeof value !== "string") {
+            return "";
+          }
+
+          return formatDate(value, { exclude: ["day"] });
         },
       },
     }),
-    [incomeRows],
+    [],
   );
 
   const incomeExpenseSecondaryAxes = useMemo<
