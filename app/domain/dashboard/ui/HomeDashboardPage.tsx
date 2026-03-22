@@ -4,45 +4,67 @@ import type { AxisOptions } from "react-charts";
 
 import { useTheme } from "~/components/ThemeContext";
 import type { HomeDashboardData } from "~/domain/dashboard/entity";
-import { formatBRL } from "~/lib/money";
 import { formatDate } from "~/lib/datetime";
+import { formatBRL } from "~/lib/money";
 
-type ExpenseCategoryDatum = { category: string; value: number };
-type IncomeExpenseDatum = { month: string; income: number; expense: number };
+type ExpenseCategoryDatum = {
+  index: number;
+  category: string;
+  value: number;
+};
+
+type IncomeExpenseDatum = {
+  index: number;
+  month: string;
+  value: number;
+};
 
 export function HomeDashboardPage(props: HomeDashboardData) {
   const { theme } = useTheme();
   const isDark = theme === "sunset";
 
+  const expenseRows = useMemo(
+    () =>
+      props.expenseByCategory.slice(0, 8).map((row, index) => ({
+        index,
+        category: row.categoryName,
+        value: row.expenseCents,
+      })),
+    [props.expenseByCategory],
+  );
+
+  const hasExpenseChartData = expenseRows.length > 0;
+
   const expenseData = useMemo(
     () => [
       {
         label: "Despesas",
-        id: "expenses",
-        secondaryAxisId: "expense",
-        data: props.expenseByCategory.slice(0, 8).map((row) => ({
-          category: row.categoryName,
-          value: row.expenseCents,
-        })),
+        data: expenseRows,
       },
     ],
-    [props.expenseByCategory],
+    [expenseRows],
   );
 
   const expensePrimaryAxis = useMemo<AxisOptions<ExpenseCategoryDatum>>(
     () => ({
-      getValue: (datum) => datum.category,
-      scaleType: "band",
+      getValue: (datum) => datum.index,
+      scaleType: "linear",
+      hardMin: -0.5,
+      hardMax: Math.max(expenseRows.length - 0.5, 0.5),
+      tickCount: expenseRows.length,
+      formatters: {
+        scale: (value) => {
+          const row = expenseRows[Math.round(value)];
+          return row?.category ?? "";
+        },
+      },
     }),
-    [],
+    [expenseRows],
   );
 
-  const expenseSecondaryAxes = useMemo<
-    Array<AxisOptions<ExpenseCategoryDatum>>
-  >(
+  const expenseSecondaryAxes = useMemo<Array<AxisOptions<ExpenseCategoryDatum>>>(
     () => [
       {
-        id: "expense",
         getValue: (datum) => datum.value,
         scaleType: "linear",
         elementType: "bar",
@@ -51,52 +73,65 @@ export function HomeDashboardPage(props: HomeDashboardData) {
     [],
   );
 
+  const incomeRows = useMemo(
+    () =>
+      props.incomeExpenseSeries.map((row, index) => ({
+        index,
+        month: row.monthLabel,
+        income: row.incomeCents,
+        expense: row.expenseCents,
+      })),
+    [props.incomeExpenseSeries],
+  );
+
+  const hasIncomeExpenseChartData = incomeRows.some(
+    (row) => row.income > 0 || row.expense > 0,
+  );
+
   const incomeExpenseData = useMemo(
     () => [
       {
         label: "Receitas",
-        id: "income-series",
-        secondaryAxisId: "income",
-        data: props.incomeExpenseSeries.map((row) => ({
-          month: row.monthLabel,
-          income: row.incomeCents,
-          expense: row.expenseCents,
+        data: incomeRows.map((row) => ({
+          index: row.index,
+          month: row.month,
+          value: row.income,
         })),
       },
       {
         label: "Despesas",
-        id: "expense-series",
-        secondaryAxisId: "expense",
-        data: props.incomeExpenseSeries.map((row) => ({
-          month: row.monthLabel,
-          income: row.incomeCents,
-          expense: row.expenseCents,
+        data: incomeRows.map((row) => ({
+          index: row.index,
+          month: row.month,
+          value: row.expense,
         })),
       },
     ],
-    [props.incomeExpenseSeries],
+    [incomeRows],
   );
 
   const incomeExpensePrimaryAxis = useMemo<AxisOptions<IncomeExpenseDatum>>(
     () => ({
-      getValue: (datum) => datum.month,
-      scaleType: "band",
+      getValue: (datum) => datum.index,
+      scaleType: "linear",
+      hardMin: -0.5,
+      hardMax: Math.max(incomeRows.length - 0.5, 0.5),
+      tickCount: incomeRows.length,
+      formatters: {
+        scale: (value) => {
+          const row = incomeRows[Math.round(value)];
+          return row ? formatDate(row.month, { exclude: ["day"] }) : "";
+        },
+      },
     }),
-    [],
+    [incomeRows],
   );
 
-  const incomeExpenseSecondaryAxes = useMemo<
-    Array<AxisOptions<IncomeExpenseDatum>>
-  >(
+  const incomeExpenseSecondaryAxes = useMemo<Array<AxisOptions<IncomeExpenseDatum>>>(
     () => [
       {
-        id: "income",
-        getValue: (datum) => datum.income,
-        elementType: "bar",
-      },
-      {
-        id: "expense",
-        getValue: (datum) => datum.expense,
+        getValue: (datum) => datum.value,
+        scaleType: "linear",
         elementType: "bar",
       },
     ],
@@ -161,6 +196,8 @@ export function HomeDashboardPage(props: HomeDashboardData) {
 
             {props.expenseByCategory.length === 0 ? (
               <p className="opacity-70">Nenhuma despesa no mês.</p>
+            ) : !hasExpenseChartData ? (
+              <p className="opacity-70">Sem dados suficientes para gerar o gráfico.</p>
             ) : (
               <div>
                 <div className="h-72 w-full rounded-lg border border-base-300 p-3">
@@ -198,20 +235,23 @@ export function HomeDashboardPage(props: HomeDashboardData) {
         <section className="card bg-base-100 shadow">
           <div className="card-body gap-4">
             <h2 className="card-title">Receitas vs despesas</h2>
-
-            <div className="h-72 w-full rounded-lg border border-base-300 p-3">
-              <Chart
-                options={{
-                  data: incomeExpenseData,
-                  primaryAxis: incomeExpensePrimaryAxis,
-                  secondaryAxes: incomeExpenseSecondaryAxes,
-                  interactionMode: "closest",
-                  initialHeight: 280,
-                  initialWidth: 520,
-                  dark: isDark,
-                }}
-              />
-            </div>
+            {!hasIncomeExpenseChartData ? (
+              <p className="opacity-70">Sem dados suficientes para gerar o gráfico.</p>
+            ) : (
+              <div className="h-72 w-full rounded-lg border border-base-300 p-3">
+                <Chart
+                  options={{
+                    data: incomeExpenseData,
+                    primaryAxis: incomeExpensePrimaryAxis,
+                    secondaryAxes: incomeExpenseSecondaryAxes,
+                    interactionMode: "closest",
+                    initialHeight: 280,
+                    initialWidth: 520,
+                    dark: isDark,
+                  }}
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="rounded-md bg-base-200 p-3">
