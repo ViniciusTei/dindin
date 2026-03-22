@@ -22,7 +22,7 @@ export function DashboardMonthHeader(props: {
         >
           <Icon name="arrow-left" aria-label="Anterior" />
         </Link>
-        <div className="text-sm opacity-70">
+        <div className="text-sm opacity-70 capitalize">
           {formatDate(props.monthLabel, { format: "long", exclude: ["day"] })}
         </div>
         <Link
