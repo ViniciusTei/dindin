@@ -5,6 +5,7 @@ import type { AxisOptions } from "react-charts";
 import { useTheme } from "~/components/ThemeContext";
 import type { HomeDashboardData } from "~/domain/dashboard/entity";
 import { formatBRL } from "~/lib/money";
+import { formatDate } from "~/lib/datetime";
 
 type ExpenseCategoryDatum = { category: string; value: number };
 type IncomeExpenseDatum = { month: string; income: number; expense: number };
@@ -25,7 +26,7 @@ export function HomeDashboardPage(props: HomeDashboardData) {
         })),
       },
     ],
-    [props.expenseByCategory]
+    [props.expenseByCategory],
   );
 
   const expensePrimaryAxis = useMemo<AxisOptions<ExpenseCategoryDatum>>(
@@ -33,10 +34,12 @@ export function HomeDashboardPage(props: HomeDashboardData) {
       getValue: (datum) => datum.category,
       scaleType: "band",
     }),
-    []
+    [],
   );
 
-  const expenseSecondaryAxes = useMemo<Array<AxisOptions<ExpenseCategoryDatum>>>(
+  const expenseSecondaryAxes = useMemo<
+    Array<AxisOptions<ExpenseCategoryDatum>>
+  >(
     () => [
       {
         id: "expense",
@@ -45,7 +48,7 @@ export function HomeDashboardPage(props: HomeDashboardData) {
         elementType: "bar",
       },
     ],
-    []
+    [],
   );
 
   const incomeExpenseData = useMemo(
@@ -71,7 +74,7 @@ export function HomeDashboardPage(props: HomeDashboardData) {
         })),
       },
     ],
-    [props.incomeExpenseSeries]
+    [props.incomeExpenseSeries],
   );
 
   const incomeExpensePrimaryAxis = useMemo<AxisOptions<IncomeExpenseDatum>>(
@@ -79,10 +82,12 @@ export function HomeDashboardPage(props: HomeDashboardData) {
       getValue: (datum) => datum.month,
       scaleType: "band",
     }),
-    []
+    [],
   );
 
-  const incomeExpenseSecondaryAxes = useMemo<Array<AxisOptions<IncomeExpenseDatum>>>(
+  const incomeExpenseSecondaryAxes = useMemo<
+    Array<AxisOptions<IncomeExpenseDatum>>
+  >(
     () => [
       {
         id: "income",
@@ -95,7 +100,7 @@ export function HomeDashboardPage(props: HomeDashboardData) {
         elementType: "bar",
       },
     ],
-    []
+    [],
   );
 
   return (
@@ -103,7 +108,9 @@ export function HomeDashboardPage(props: HomeDashboardData) {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Dashboard</h1>
-          <div className="text-sm opacity-70">{props.monthLabel}</div>
+          <div className="text-sm opacity-70">
+            {formatDate(props.monthLabel, { format: "long", exclude: ["day"] })}
+          </div>
         </div>
       </div>
 
@@ -111,8 +118,12 @@ export function HomeDashboardPage(props: HomeDashboardData) {
         <section className="card bg-base-100 shadow">
           <div className="card-body gap-2">
             <div className="text-sm opacity-70">Saldo total</div>
-            <div className="text-2xl font-semibold">{formatBRL(props.totalBalanceCents)}</div>
-            <div className="text-xs opacity-70">Saldo inicial + receitas - despesas</div>
+            <div className="text-2xl font-semibold">
+              {formatBRL(props.totalBalanceCents)}
+            </div>
+            <div className="text-xs opacity-70">
+              Saldo inicial + receitas - despesas
+            </div>
           </div>
         </section>
 
@@ -122,15 +133,21 @@ export function HomeDashboardPage(props: HomeDashboardData) {
             <div className="grid grid-cols-3 gap-2">
               <div>
                 <div className="text-xs opacity-70">Receitas</div>
-                <div className="font-semibold">{formatBRL(props.monthIncomeCents)}</div>
+                <div className="font-semibold">
+                  {formatBRL(props.monthIncomeCents)}
+                </div>
               </div>
               <div>
                 <div className="text-xs opacity-70">Despesas</div>
-                <div className="font-semibold">{formatBRL(-props.monthExpenseCents)}</div>
+                <div className="font-semibold">
+                  {formatBRL(-props.monthExpenseCents)}
+                </div>
               </div>
               <div>
                 <div className="text-xs opacity-70">Resultado</div>
-                <div className="font-semibold">{formatBRL(props.monthNetCents)}</div>
+                <div className="font-semibold">
+                  {formatBRL(props.monthNetCents)}
+                </div>
               </div>
             </div>
           </div>
@@ -162,9 +179,14 @@ export function HomeDashboardPage(props: HomeDashboardData) {
                 </div>
                 <div className="mt-3 space-y-2">
                   {props.expenseByCategory.slice(0, 8).map((row) => (
-                    <div key={row.categoryName} className="flex items-center justify-between gap-3 text-sm">
+                    <div
+                      key={row.categoryName}
+                      className="flex items-center justify-between gap-3 text-sm"
+                    >
                       <span className="truncate">{row.categoryName}</span>
-                      <span className="font-semibold">{formatBRL(-row.expenseCents)}</span>
+                      <span className="font-semibold">
+                        {formatBRL(-row.expenseCents)}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -194,11 +216,15 @@ export function HomeDashboardPage(props: HomeDashboardData) {
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="rounded-md bg-base-200 p-3">
                 <div className="opacity-70">Receitas (mês atual)</div>
-                <div className="font-semibold">{formatBRL(props.monthIncomeCents)}</div>
+                <div className="font-semibold">
+                  {formatBRL(props.monthIncomeCents)}
+                </div>
               </div>
               <div className="rounded-md bg-base-200 p-3">
                 <div className="opacity-70">Despesas (mês atual)</div>
-                <div className="font-semibold">{formatBRL(-props.monthExpenseCents)}</div>
+                <div className="font-semibold">
+                  {formatBRL(-props.monthExpenseCents)}
+                </div>
               </div>
             </div>
           </div>
