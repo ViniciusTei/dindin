@@ -50,7 +50,8 @@ test("dashboard: gráficos renderizam sem NaN no console", async ({ page, seed }
 
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
-  await expect(page.locator(".ReactChart")).toHaveCount(2);
+  await expect(page.locator(".ReactChart")).toHaveCount(1);
+  await expect(page.getByTestId("expense-pie-chart")).toBeVisible();
   await expect(page.getByText("Sem dados suficientes para gerar o gráfico.")).toHaveCount(0);
 
   const nanMessages = consoleMessages.filter((message) => /NaN/i.test(message));

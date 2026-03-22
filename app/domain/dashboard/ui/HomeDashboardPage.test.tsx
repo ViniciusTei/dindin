@@ -37,7 +37,8 @@ describe("HomeDashboardPage", () => {
     expect(screen.getByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
     expect(screen.getByText("Despesas por categoria")).toBeInTheDocument();
     expect(screen.getByText("Receitas vs despesas")).toBeInTheDocument();
-    expect(screen.getAllByTestId("chart-mock")).toHaveLength(2);
+    expect(screen.getByTestId("expense-pie-chart")).toBeInTheDocument();
+    expect(screen.getAllByTestId("chart-mock")).toHaveLength(1);
     expect(screen.getByText("Mercado")).toBeInTheDocument();
   });
 
@@ -57,6 +58,7 @@ describe("HomeDashboardPage", () => {
     );
 
     expect(screen.getByText("Nenhuma despesa no mês.")).toBeInTheDocument();
+    expect(screen.queryByTestId("expense-pie-chart")).not.toBeInTheDocument();
     expect(screen.queryByTestId("chart-mock")).not.toBeInTheDocument();
     expect(screen.getByText("Sem dados suficientes para gerar o gráfico.")).toBeInTheDocument();
   });
@@ -77,6 +79,7 @@ describe("HomeDashboardPage", () => {
     );
 
     expect(screen.getByText("Sem dados suficientes para gerar o gráfico.")).toBeInTheDocument();
-    expect(screen.getAllByTestId("chart-mock")).toHaveLength(1);
+    expect(screen.queryByTestId("chart-mock")).not.toBeInTheDocument();
+    expect(screen.getByTestId("expense-pie-chart")).toBeInTheDocument();
   });
 });
