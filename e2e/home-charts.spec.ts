@@ -16,6 +16,21 @@ async function ensureAccount(page: Page) {
   await expect(page.getByTestId("account-name-Carteira")).toBeVisible();
 }
 
+async function ensureCreditCard(page: Page) {
+  await page.goto("/cards");
+  await expect(page.getByRole("heading", { name: "Cartões" })).toBeVisible();
+
+  if ((await page.getByRole("link", { name: "Abrir" }).count()) > 0) return;
+
+  await page.locator("#number").fill("4111 1111 1111 1111");
+  await page.locator("#expiration").fill("12/30");
+  await page.locator("#closingDay").fill("10");
+  await page.locator("#dueDay").fill("15");
+  await page.getByRole("button", { name: "Cadastrar" }).click();
+  await expect(page.getByRole("status")).toHaveText(/Salvo\./);
+  await expect(page.getByRole("link", { name: "Abrir" })).toBeVisible();
+}
+
 test("dashboard: gráficos renderizam sem NaN no console", async ({ page, seed }) => {
   const consoleMessages: string[] = [];
   page.on("console", (msg) => {
@@ -30,6 +45,21 @@ test("dashboard: gráficos renderizam sem NaN no console", async ({ page, seed }
   });
 
   await ensureAccount(page);
+  await ensureCreditCard(page);
+
+  await page.goto("/cards");
+  const cardLink = page.getByRole("link", { name: "Abrir" }).first();
+  const cardHref = await cardLink.getAttribute("href");
+  if (!cardHref) throw new Error("Link de cartão não encontrado");
+
+  await page.goto(cardHref);
+  await page.locator("#description").fill("Streaming");
+  await page.locator("#categoryId").selectOption({ label: "Mercado" });
+  await page.locator("#amount").fill("90,00");
+  await page.locator("#occurredAt").fill("2026-03-20");
+  await page.locator("#installmentsTotal").fill("3");
+  await page.getByRole("button", { name: "Adicionar" }).click();
+  await expect(page.getByRole("status")).toHaveText(/Salvo\./);
 
   await page.goto("/transactions");
   await expect(page.getByRole("heading", { name: "Transações" })).toBeVisible();
@@ -53,6 +83,8 @@ test("dashboard: gráficos renderizam sem NaN no console", async ({ page, seed }
   await expect(page.locator(".ReactChart")).toHaveCount(1);
   await expect(page.getByTestId("expense-pie-chart")).toBeVisible();
   await expect(page.getByText("Sem dados suficientes para gerar o gráfico.")).toHaveCount(0);
+  await expect(page.getByText("Mercado")).toBeVisible();
+  await expect(page.getByText("-R$ 150,00")).toHaveCount(3);
 
   const nanMessages = consoleMessages.filter((message) => /NaN/i.test(message));
   expect(

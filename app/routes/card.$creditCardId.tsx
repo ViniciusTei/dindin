@@ -2,7 +2,9 @@ import type { Route } from "./+types/card.$creditCardId";
 import crypto from "node:crypto";
 
 import { requireUserId } from "~/auth/session.server";
+import { requireHouseholdId } from "~/auth/household.server";
 import { accountsRepo } from "~/db/repositories/accounts.repo.server";
+import { categoriesRepo } from "~/db/repositories/categories.repo.server";
 import { creditCardsRepo } from "~/db/repositories/credit-cards.repo.server";
 import { creditCardPurchasesRepo } from "~/db/repositories/credit-card-purchases.repo.server";
 import { creditCardPrepaymentsRepo } from "~/db/repositories/credit-card-prepayments.repo.server";
@@ -11,6 +13,7 @@ import { anticipateInstallments } from "~/domain/credit-cards/usecases/anticipat
 import { getCreditCardInvoice } from "~/domain/credit-cards/usecases/get-invoice";
 import { computeInvoiceYmForDate } from "~/domain/credit-cards/invoice";
 import { listAccounts } from "~/domain/accounts/usecases/list-accounts";
+import { listCategories } from "~/domain/categories/usecases/list-categories";
 import { CreditCardPage } from "~/domain/credit-cards/ui/CreditCardPage";
 import { decryptString } from "~/lib/crypto.server";
 import { toCents } from "~/lib/money";
@@ -25,6 +28,7 @@ function toIsoDate(date: Date): string {
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const userId = await requireUserId(request);
+  const householdId = await requireHouseholdId(userId);
   const creditCardId = String(params.creditCardId ?? "");
 
   const card = await creditCardsRepo.findById({ userId, creditCardId });
@@ -39,8 +43,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       ? ymParam.trim()
       : computeInvoiceYmForDate({ occurredAt: new Date(), closingDay: card.closingDay });
 
-  const [accounts, purchases, invoiceResult] = await Promise.all([
+  const [accounts, categories, purchases, invoiceResult] = await Promise.all([
     listAccounts({ accountsRepo, userId }),
+    listCategories({ categoriesRepo, householdId }),
     creditCardPurchasesRepo.listByCard({ userId, creditCardId }),
     getCreditCardInvoice({
       purchasesRepo: creditCardPurchasesRepo,
@@ -76,6 +81,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   return {
     notFound: false as const,
     accounts,
+    categories,
     card: {
       id: card.id,
       brand: String(card.brand),
@@ -88,6 +94,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     invoice,
     purchases: purchases.map((p) => ({
       id: p.id,
+      categoryId: p.categoryId,
       description: p.description,
       amountCents: p.amountCents,
       occurredAtIso: toIsoDate(p.occurredAt),
@@ -143,6 +150,8 @@ export async function action({ request, params }: Route.ActionArgs) {
     const amountCents = toCents(form.get("amount"));
     const occurredAtRaw = String(form.get("occurredAt") ?? "");
     const installmentsTotal = Number(form.get("installmentsTotal"));
+    const categoryIdRaw = String(form.get("categoryId") ?? "").trim();
+    const categoryId = categoryIdRaw ? categoryIdRaw : null;
 
     const occurredAt = occurredAtRaw
       ? new Date(`${occurredAtRaw}T00:00:00.000Z`)
@@ -154,7 +163,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       idFactory: createId,
       userId,
       creditCardId,
-      categoryId: null,
+      categoryId,
       description,
       amountCents: amountCents ?? NaN,
       occurredAt,
@@ -266,6 +275,7 @@ export default function CardDetail({ loaderData, actionData }: Route.ComponentPr
   return (
     <CreditCardPage
       accounts={loaderData.accounts}
+      categories={loaderData.categories}
       card={loaderData.card}
       invoice={loaderData.invoice}
       purchases={loaderData.purchases}

@@ -29,7 +29,8 @@ export async function getHomeDashboard(params: {
   const historyStart = addMonthsUTC(currentMonthStart, -(lookbackMonths - 1));
   const nextMonthStart = addMonthsUTC(currentMonthStart, 1);
 
-  const [accounts, monthlyTotals, expenseByCategory] = await Promise.all([
+  const [accounts, monthlyTotals, expenseByCategory, creditCardMonthlyExpenses, creditCardExpenseByCategory] =
+    await Promise.all([
     params.accountsRepo.listByUser(params.userId),
     params.dashboardRepo.getMonthlyTotals({
       userId: params.userId,
@@ -41,6 +42,19 @@ export async function getHomeDashboard(params: {
       householdId: params.householdId,
       start: currentMonthStart,
       end: nextMonthStart,
+    }),
+    params.dashboardRepo.getCreditCardMonthlyExpenses({
+      userId: params.userId,
+      start: historyStart,
+      end: nextMonthStart,
+      now,
+    }),
+    params.dashboardRepo.getCreditCardExpenseByCategory({
+      userId: params.userId,
+      householdId: params.householdId,
+      start: currentMonthStart,
+      end: nextMonthStart,
+      now,
     }),
   ]);
 
@@ -54,12 +68,27 @@ export async function getHomeDashboard(params: {
     0
   );
 
-  const normalizedExpenseByCategory = expenseByCategory
-    .map((item) => ({
-      categoryName: item.categoryName,
-      expenseCents: Math.max(0, item.expenseCents),
+  const expenseByCategoryCombined = new Map<string, number>();
+  for (const item of expenseByCategory) {
+    expenseByCategoryCombined.set(
+      item.categoryName,
+      (expenseByCategoryCombined.get(item.categoryName) ?? 0) + item.expenseCents,
+    );
+  }
+  for (const item of creditCardExpenseByCategory) {
+    expenseByCategoryCombined.set(
+      item.categoryName,
+      (expenseByCategoryCombined.get(item.categoryName) ?? 0) + item.expenseCents,
+    );
+  }
+
+  const normalizedExpenseByCategory = Array.from(expenseByCategoryCombined.entries())
+    .map(([categoryName, expenseCents]) => ({
+      categoryName,
+      expenseCents: Math.max(0, expenseCents),
     }))
-    .filter((item) => item.expenseCents > 0);
+    .filter((item) => item.expenseCents > 0)
+    .sort((a, b) => b.expenseCents - a.expenseCents);
 
   const monthlyByLabel = new Map(
     monthlyTotals.map((item) => [
@@ -70,6 +99,13 @@ export async function getHomeDashboard(params: {
       },
     ])
   );
+  for (const item of creditCardMonthlyExpenses) {
+    const current = monthlyByLabel.get(item.monthLabel) ?? { incomeCents: 0, expenseCents: 0 };
+    monthlyByLabel.set(item.monthLabel, {
+      incomeCents: current.incomeCents,
+      expenseCents: current.expenseCents + item.expenseCents,
+    });
+  }
 
   const incomeExpenseSeries = Array.from({ length: lookbackMonths }, (_, index) => {
     const monthStart = addMonthsUTC(historyStart, index);

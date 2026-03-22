@@ -22,4 +22,19 @@ export interface DashboardRepo {
     start: Date;
     end: Date;
   }): Promise<Array<{ categoryName: string; expenseCents: number }>>;
+
+  getCreditCardMonthlyExpenses(params: {
+    userId: string;
+    start: Date;
+    end: Date;
+    now?: Date;
+  }): Promise<Array<{ monthLabel: string; expenseCents: number }>>;
+
+  getCreditCardExpenseByCategory(params: {
+    userId: string;
+    householdId: string;
+    start: Date;
+    end: Date;
+    now?: Date;
+  }): Promise<Array<{ categoryName: string; expenseCents: number }>>;
 }

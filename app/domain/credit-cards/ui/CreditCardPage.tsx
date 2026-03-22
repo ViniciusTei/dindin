@@ -1,6 +1,7 @@
 import { Form, Link } from "react-router";
 
 import type { Account } from "~/domain/accounts/entity";
+import type { Category } from "~/domain/categories/entity";
 import { formatBRL } from "~/lib/money";
 
 export type CreditCardDetail = {
@@ -15,6 +16,7 @@ export type CreditCardDetail = {
 
 export type CreditCardPurchaseListItem = {
   id: string;
+  categoryId: string | null;
   description: string;
   amountCents: number;
   occurredAtIso: string;
@@ -36,6 +38,7 @@ export type CreditCardInvoiceView = {
 
 export function CreditCardPage(props: {
   accounts: Account[];
+  categories: Category[];
   card: CreditCardDetail;
   invoice: CreditCardInvoiceView;
   purchases: CreditCardPurchaseListItem[];
@@ -206,6 +209,20 @@ export function CreditCardPage(props: {
                   <span className="label-text">Descrição</span>
                 </label>
                 <input id="description" name="description" className="input input-bordered w-full" />
+              </div>
+
+              <div className="form-control md:col-span-2">
+                <label className="label" htmlFor="categoryId">
+                  <span className="label-text">Categoria</span>
+                </label>
+                <select id="categoryId" name="categoryId" className="select select-bordered w-full">
+                  <option value="">Sem categoria</option>
+                  {props.categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="form-control">
