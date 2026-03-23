@@ -130,16 +130,36 @@ node ./scripts/release/resolve-deploy-version.mjs --sha
 
 ### Segredos necessários no Gitea
 
+Obrigatórios:
+
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `POSTGRES_DB`
+- `SESSION_SECRET`
+
+Opcionais:
+
+- `APP_PORT`
+- `COOKIE_SECURE`
+- `CARD_ENCRYPTION_KEY`
 - `PROD_APP_DIR`
 
 ### Pré-requisitos no servidor de produção
 
 - O runner do Gitea que executa `deploy-prod.yaml` deve estar instalado no mesmo servidor da produção.
 - Se você tiver múltiplos runners, ajuste o `runs-on` do workflow para apontar explicitamente para o runner de produção.
-- O diretório definido em `PROD_APP_DIR` deve conter um clone Git existente deste repositório.
-- O remoto `origin` desse clone deve ter acesso para `git fetch origin main`.
-- O arquivo `.env.prod` deve existir dentro de `PROD_APP_DIR`.
 - Docker e Docker Compose devem estar instalados e disponíveis no PATH do usuário usado pelo runner.
+
+#### Sobre `PROD_APP_DIR`
+
+- Se o runner executa direto no host e você quer manter um checkout persistente para deploy, defina `PROD_APP_DIR` apontando para um clone Git existente do repositório.
+- Se o runner executa em container (caso comum com `act_runner`), o caminho do host normalmente **não** fica visível dentro do job. Nesse caso, deixe `PROD_APP_DIR` vazio e o pipeline fará o deploy usando o checkout temporário do próprio job, enviando o build para o Docker do host.
+- Quando `PROD_APP_DIR` é usado, o remoto `origin` desse clone precisa ter acesso para `git fetch origin main`.
+
+#### Variáveis do deploy
+
+- O pipeline gera um `.env.prod` temporário dentro do workspace do job usando os segredos do Gitea.
+- O serviço `pgadmin` não sobe por padrão em produção; para usá-lo manualmente, rode o Compose com o profile `admin`.
 
 ### Migrações automáticas
 

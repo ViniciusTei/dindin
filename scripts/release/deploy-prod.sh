@@ -2,29 +2,47 @@
 
 set -eu
 
-: "${PROD_APP_DIR:?PROD_APP_DIR is required}"
-: "${DEPLOY_COMMIT:?DEPLOY_COMMIT is required}"
 : "${APP_VERSION:?APP_VERSION is required}"
 
-if [ ! -d "$PROD_APP_DIR" ]; then
-  echo "Production directory '$PROD_APP_DIR' does not exist." >&2
+SOURCE_DIR="${DEPLOY_SOURCE_DIR:-${GITHUB_WORKSPACE:-$(pwd)}}"
+TARGET_DIR="$SOURCE_DIR"
+USING_PERSISTENT_CHECKOUT="false"
+
+if [ -n "${PROD_APP_DIR:-}" ] && [ -d "$PROD_APP_DIR" ]; then
+  TARGET_DIR="$PROD_APP_DIR"
+  USING_PERSISTENT_CHECKOUT="true"
+elif [ -n "${PROD_APP_DIR:-}" ]; then
+  echo "Production directory '$PROD_APP_DIR' is not available in this runner. Falling back to '$SOURCE_DIR'." >&2
+fi
+
+if [ ! -d "$TARGET_DIR" ]; then
+  echo "Deployment directory '$TARGET_DIR' does not exist." >&2
   exit 1
 fi
 
-cd "$PROD_APP_DIR"
+cd "$TARGET_DIR"
 
-if [ ! -d .git ]; then
-  echo "PROD_APP_DIR must point to an existing git checkout of the application." >&2
+if [ ! -f docker-compose.yml ]; then
+  echo "Deployment directory '$TARGET_DIR' does not contain docker-compose.yml." >&2
   exit 1
 fi
 
 if [ ! -f .env.prod ]; then
-  echo "Missing .env.prod in '$PROD_APP_DIR'." >&2
+  echo "Missing .env.prod in '$TARGET_DIR'." >&2
   exit 1
 fi
 
-git fetch --force origin main
-git checkout --force "$DEPLOY_COMMIT"
+if [ "$USING_PERSISTENT_CHECKOUT" = "true" ]; then
+  : "${DEPLOY_COMMIT:?DEPLOY_COMMIT is required when PROD_APP_DIR is used}"
+
+  if [ ! -d .git ]; then
+    echo "PROD_APP_DIR must point to an existing git checkout of the application." >&2
+    exit 1
+  fi
+
+  git fetch --force origin main
+  git checkout --force "$DEPLOY_COMMIT"
+fi
 
 APP_VERSION="$APP_VERSION" docker compose \
   --env-file .env.prod \

@@ -59,10 +59,32 @@ jobs:
         shell: bash
         env:
           PROD_APP_DIR: ${{ secrets.PROD_APP_DIR }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          COOKIE_SECURE: ${{ secrets.COOKIE_SECURE }}
+          APP_PORT: ${{ secrets.APP_PORT }}
+          CARD_ENCRYPTION_KEY: ${{ secrets.CARD_ENCRYPTION_KEY }}
           DEPLOY_COMMIT: ${{ steps.deploy.outputs.commit }}
           APP_VERSION: ${{ steps.deploy.outputs.version }}
         run: |
-          : "${PROD_APP_DIR:?Missing PROD_APP_DIR secret}"
+          : "${POSTGRES_USER:?Missing POSTGRES_USER secret}"
+          : "${POSTGRES_PASSWORD:?Missing POSTGRES_PASSWORD secret}"
+          : "${POSTGRES_DB:?Missing POSTGRES_DB secret}"
+          : "${SESSION_SECRET:?Missing SESSION_SECRET secret}"
+
+          trap 'rm -f .env.prod' EXIT
+
+          cat > .env.prod <<EOF
+          POSTGRES_USER=${POSTGRES_USER}
+          POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+          POSTGRES_DB=${POSTGRES_DB}
+          SESSION_SECRET=${SESSION_SECRET}
+          COOKIE_SECURE=${COOKIE_SECURE:-true}
+          APP_PORT=${APP_PORT:-3000}
+          CARD_ENCRYPTION_KEY=${CARD_ENCRYPTION_KEY:-}
+          EOF
 
           chmod +x ./scripts/release/deploy-prod.sh
           ./scripts/release/deploy-prod.sh
