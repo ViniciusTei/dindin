@@ -19,8 +19,11 @@ services:
       context: .
       dockerfile: Dockerfile
       target: dev-deps
+      args:
+        APP_VERSION: ${APP_VERSION:-dev}
     working_dir: /app
     environment:
+      APP_VERSION: ${APP_VERSION:-dev}
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     command: ["npm", "run", "db:migrate"]
     depends_on:
@@ -33,7 +36,10 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner
+      args:
+        APP_VERSION: ${APP_VERSION:-dev}
     environment:
+      APP_VERSION: ${APP_VERSION:-dev}
       NODE_ENV: production
       PORT: 3000
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}

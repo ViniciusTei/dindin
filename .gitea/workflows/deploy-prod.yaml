@@ -1,0 +1,65 @@
+name: Deploy Produção
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-prod-main
+      cancel-in-progress: false
+    env:
+      CI: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Resolver metadados do deploy
+        id: deploy
+        shell: bash
+        run: |
+          DEPLOY_COMMIT="$(node ./scripts/release/resolve-deploy-version.mjs --sha)"
+          DEPLOY_VERSION="$(node ./scripts/release/resolve-deploy-version.mjs --version)"
+
+          echo "commit=$DEPLOY_COMMIT" >> "$GITHUB_OUTPUT"
+          echo "version=$DEPLOY_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Rodar testes de domínio
+        run: npm run test:domain
+
+      - name: Rodar testes de UI
+        run: npm run test:ui
+
+      - name: Rodar typecheck
+        run: npm run typecheck
+
+      - name: Gerar build
+        env:
+          APP_VERSION: ${{ steps.deploy.outputs.version }}
+        run: npm run build
+
+      - name: Deploy em produção
+        shell: bash
+        env:
+          PROD_APP_DIR: ${{ secrets.PROD_APP_DIR }}
+          DEPLOY_COMMIT: ${{ steps.deploy.outputs.commit }}
+          APP_VERSION: ${{ steps.deploy.outputs.version }}
+        run: |
+          : "${PROD_APP_DIR:?Missing PROD_APP_DIR secret}"
+
+          chmod +x ./scripts/release/deploy-prod.sh
+          ./scripts/release/deploy-prod.sh

@@ -27,6 +27,7 @@ Opcionais:
 - `COOKIE_SECURE` (`true`/`false`) — default: `true` em produção (`NODE_ENV=production`)
 - `APP_PORT` (Compose)
 - `DB_PORT` (apenas dev, via `docker-compose.dev.yml`)
+- `APP_VERSION` (metadado opcional do release/deploy; default: `dev`)
 
 Exemplos prontos:
 
@@ -98,6 +99,47 @@ npm run stack:up:prod
 ```
 
 3) Configure Nginx (ver `docs/nginx-financeiro.example.conf`).
+
+## Deploy contínuo com Gitea
+
+- O workflow de deploy fica em `.gitea/workflows/deploy-prod.yaml`.
+- O gatilho é qualquer `push` para `main`, incluindo merges.
+- O deploy sempre usa o commit exato que acabou de entrar em `main`.
+
+### O que o pipeline faz
+
+1) Faz checkout do código atualizado em `main`.
+
+2) Resolve a versão do deploy com `npm run deploy:version`.
+
+Exemplo manual:
+
+```bash
+npm run deploy:version
+node ./scripts/release/resolve-deploy-version.mjs --sha
+```
+
+3) Executa:
+
+- `npm run test:domain`
+- `npm run test:ui`
+- `npm run typecheck`
+- `npm run build`
+
+4) Atualiza o clone de produção para o commit publicado em `main` e executa o deploy localmente no próprio host do runner do Gitea com Docker Compose, reaproveitando o serviço `migrate` antes do `web`.
+
+### Segredos necessários no Gitea
+
+- `PROD_APP_DIR`
+
+### Pré-requisitos no servidor de produção
+
+- O runner do Gitea que executa `deploy-prod.yaml` deve estar instalado no mesmo servidor da produção.
+- Se você tiver múltiplos runners, ajuste o `runs-on` do workflow para apontar explicitamente para o runner de produção.
+- O diretório definido em `PROD_APP_DIR` deve conter um clone Git existente deste repositório.
+- O remoto `origin` desse clone deve ter acesso para `git fetch origin main`.
+- O arquivo `.env.prod` deve existir dentro de `PROD_APP_DIR`.
+- Docker e Docker Compose devem estar instalados e disponíveis no PATH do usuário usado pelo runner.
 
 ### Migrações automáticas
 
