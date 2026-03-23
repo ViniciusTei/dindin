@@ -21,10 +21,10 @@ O jeito mais simples é rodar o Postgres via Docker:
 
 Isso sobe:
 
-- `db` (Postgres) exposto em `localhost:${DB_PORT:-5432}`
+- `db` (Postgres) acessível apenas para os serviços da rede Docker Compose
 - `web` (build de produção) em `http://localhost:${APP_PORT:-3000}`
 
-Se você preferir rodar o app no host com HMR, suba só o banco e rode `npm run dev`.
+Se você preferir rodar o app no host com HMR, use um Postgres acessível pelo host no `DATABASE_URL` ou crie um override local só para publicar a porta do banco.
 
 ### Migrações
 
@@ -42,11 +42,11 @@ Se você estiver usando o `web` via Compose, ele já roda migrações automatica
 
 Opção A (recomendado para desenvolvimento):
 
-- Suba só o banco (via stack) e rode o app no host com HMR: `npm run dev`
+- Rode a stack completa via Docker Compose: `npm run stack:up:dev`
 
 Opção B (produção-like):
 
-- Suba a stack completa: `npm run stack:up:dev`
+- Igual à opção A neste momento: `npm run stack:up:dev`
 
 ## Testes
 

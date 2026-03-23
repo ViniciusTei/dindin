@@ -1,4 +1,10 @@
+<div align="center">
+
 # Financeiro (MVP)
+
+![deploy](http://git.viniserver.com.br/viniciustei/financeiro-remix/actions/workflows/deploy-prod.yaml/badge.svg?branch=main&style=flat)
+
+</div>
 
 Web app de controle financeiro pessoal (Remix/React Router full stack) com Postgres + Drizzle.
 
@@ -26,7 +32,6 @@ Opcionais:
 
 - `COOKIE_SECURE` (`true`/`false`) — default: `true` em produção (`NODE_ENV=production`)
 - `APP_PORT` (Compose)
-- `DB_PORT` (apenas dev, via `docker-compose.dev.yml`)
 - `APP_VERSION` (metadado opcional do release/deploy; default: `dev`)
 
 Exemplos prontos:

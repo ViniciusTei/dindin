@@ -26,10 +26,11 @@ FROM node:24-alpine AS runner
 ARG APP_VERSION
 ENV NODE_ENV=production
 ENV APP_VERSION=$APP_VERSION
+ENV PORT=3000
 LABEL org.opencontainers.image.version=$APP_VERSION
 COPY ./package.json package-lock.json /app/
 COPY --from=prod-deps /app/node_modules /app/node_modules
 COPY --from=build /app/build /app/build
 WORKDIR /app
-EXPOSE 3000
+EXPOSE ${PORT}
 CMD ["npm", "run", "start"]
