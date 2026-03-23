@@ -12,6 +12,7 @@ test("criar household, adicionar membro por username e configurar rateio", async
   });
 
   await page.goto("/households");
+  await page.getByRole("button", { name: "Criar household" }).click();
   await page.getByLabel("Nome").fill("Casa Nova E2E");
   await Promise.all([
     page.waitForURL(/\/households\/.*\/manage/),

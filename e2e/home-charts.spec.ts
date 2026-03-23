@@ -85,6 +85,11 @@ test("dashboard: gráficos renderizam sem NaN no console", async ({ page, seed }
   await expect(page.getByText("Mercado")).toBeVisible();
   await expect(page.getByText("-R$ 150,00")).toHaveCount(3);
 
+  await page.goto(`/households/${seed.householdId}`);
+  const householdExpenseCard = page.locator("section.card", { hasText: "Despesas do mês" }).first();
+  await expect(householdExpenseCard).toContainText(/0,00/);
+  await expect(householdExpenseCard).not.toContainText(/150,00/);
+
   const nanMessages = consoleMessages.filter((message) => /NaN/i.test(message));
   expect(
     nanMessages,

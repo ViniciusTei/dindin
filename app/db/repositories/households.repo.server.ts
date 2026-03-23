@@ -20,8 +20,6 @@ import {
 } from "~/domain/dashboard/month";
 import { resolveHouseholdPaymentShares } from "~/domain/households/share-resolution";
 
-import { getCreditCardExpenseByCategory } from "./dashboard.repo.server";
-
 function createId(): string {
   return crypto.randomUUID();
 }
@@ -81,18 +79,6 @@ async function mergeHouseholdExpenseByCategory(params: {
 
       for (const row of txRows) {
         totalByCategory.set(String(row.categoryName), (totalByCategory.get(String(row.categoryName)) ?? 0) + Number(row.expenseCents ?? 0));
-      }
-
-      const creditRows = await getCreditCardExpenseByCategory({
-        userId,
-        householdId: params.householdId,
-        start,
-        end,
-        selectedMonthLabel: params.monthLabel,
-      });
-
-      for (const row of creditRows) {
-        totalByCategory.set(row.categoryName, (totalByCategory.get(row.categoryName) ?? 0) + row.expenseCents);
       }
     }),
   );
