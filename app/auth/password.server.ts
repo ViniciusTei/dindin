@@ -1,7 +1,12 @@
 import argon2 from "argon2";
+import { env } from "~/lib/env.server";
+
+if (!env.SESSION_SECRET) {
+  throw new Error("SESSION_SECRET is not set");
+}
 
 export async function hashPassword(password: string): Promise<string> {
-  return argon2.hash(password);
+  return argon2.hash(password, { salt: Buffer.from(env.SESSION_SECRET) });
 }
 
 export async function verifyPassword(
@@ -9,7 +14,11 @@ export async function verifyPassword(
   password: string
 ): Promise<boolean> {
   try {
-    return await argon2.verify(hash, password);
+    const hashToCompare = await hashPassword(password);
+    if (hash === hashToCompare) {
+      return true;
+    }
+    return false;
   } catch {
     return false;
   }
