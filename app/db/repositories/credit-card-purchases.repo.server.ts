@@ -2,7 +2,7 @@ import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "~/db/db.server";
 import { creditCardPurchases, creditCards } from "~/db/schema";
-import { CreditCardNotFoundError, CreditCardPurchaseNotFoundError } from "~/domain/credit-cards/errors";
+import { CreditCardNotFoundError } from "~/domain/credit-cards/errors";
 import type { CreditCardPurchasesRepo } from "~/domain/credit-cards/ports";
 
 async function assertCardBelongsToUser(params: { userId: string; creditCardId: string }) {

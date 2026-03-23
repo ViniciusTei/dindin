@@ -14,6 +14,7 @@ import { listTransactions } from "~/domain/transactions/usecases/list-transactio
 import { updateTransaction } from "~/domain/transactions/usecases/update-transaction";
 import { TransactionsPage } from "~/domain/transactions/ui/TransactionsPage";
 import { toCents } from "~/lib/money";
+import type { TransactionType } from "~/domain/transactions/entity";
 
 function createId(): string {
   return crypto.randomUUID();
@@ -81,7 +82,7 @@ export async function action({ request }: Route.ActionArgs) {
       userId,
       accountId,
       categoryId,
-      type: type as any,
+      type: type as TransactionType,
       description,
       amountCents: amountCents ?? NaN,
       occurredAt: occurredAt ?? new Date("invalid"),
@@ -129,7 +130,7 @@ export async function action({ request }: Route.ActionArgs) {
       transactionId,
       accountId,
       categoryId,
-      type: type as any,
+      type: type as TransactionType,
       description,
       amountCents: amountCents ?? NaN,
       occurredAt: occurredAt ?? new Date("invalid"),

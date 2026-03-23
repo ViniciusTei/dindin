@@ -37,7 +37,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <script
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
             __html: `(() => {
   try {
@@ -59,7 +58,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {children}
         {import.meta.env.PROD ? (
           <script
-            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
               __html: `(() => {
   if (typeof window === 'undefined') return;

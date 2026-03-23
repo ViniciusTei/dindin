@@ -2,6 +2,7 @@ import { and, asc, eq } from "drizzle-orm";
 
 import { db } from "~/db/db.server";
 import { accounts, creditCards } from "~/db/schema";
+import type { CreditCardBrand } from "~/domain/credit-cards/entity";
 import {
   CreditCardAccountNotFoundError,
   CreditCardNotFoundError,
@@ -35,7 +36,7 @@ export const creditCardsRepo: CreditCardsRepo = {
       numberEnc: c.numberEnc,
       expirationEnc: c.expirationEnc,
       cvvEnc: c.cvvEnc,
-      brand: c.brand as any,
+      brand: c.brand as CreditCardBrand,
       limitCents: c.limitCents,
       closingDay: c.closingDay,
       dueDay: c.dueDay,
@@ -60,7 +61,7 @@ export const creditCardsRepo: CreditCardsRepo = {
       numberEnc: c.numberEnc,
       expirationEnc: c.expirationEnc,
       cvvEnc: c.cvvEnc,
-      brand: c.brand as any,
+      brand: c.brand as CreditCardBrand,
       limitCents: c.limitCents,
       closingDay: c.closingDay,
       dueDay: c.dueDay,

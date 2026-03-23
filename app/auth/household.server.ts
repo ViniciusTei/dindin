@@ -1,7 +1,5 @@
 import crypto from "node:crypto";
 
-import { and, eq } from "drizzle-orm";
-
 import { db } from "~/db/db.server";
 import { categories, households, memberships } from "~/db/schema";
 

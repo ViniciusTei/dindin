@@ -3,7 +3,6 @@ import { and, desc, eq, gte, inArray, lt, sql } from "drizzle-orm";
 import { db } from "~/db/db.server";
 import {
   categories,
-  creditCardPurchasePrepayments,
   creditCardPurchases,
   creditCards,
   transactions,

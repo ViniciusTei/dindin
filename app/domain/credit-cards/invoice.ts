@@ -114,7 +114,6 @@ export function buildInvoice(params: {
       // Aloca antecipações do fim para o começo.
       let tail = amounts.length - 1;
       const prepaidAmountByYm = new Map<string, number>();
-      let prepaidTotal = 0;
 
       for (const prep of preps) {
         const count = Math.max(0, Math.floor(prep.installmentsCount));
@@ -129,7 +128,6 @@ export function buildInvoice(params: {
         }
 
         tail -= toPay;
-        prepaidTotal += toPay;
 
         prepaidAmountByYm.set(prep.ym, (prepaidAmountByYm.get(prep.ym) ?? 0) + sum);
       }

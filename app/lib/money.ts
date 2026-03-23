@@ -18,7 +18,7 @@ export function toCents(input: FormDataEntryValue | null): number | null {
 
 /*
  * Formata um valor em centavos para o formato de moeda brasileira, por exemplo:
- * 123456 -> "R$ 1.234,56"
+ * 123456 -> "R$1.234,56"
  * @param cents O valor em centavos
  * @returns O valor formatado como moeda brasileira
  */

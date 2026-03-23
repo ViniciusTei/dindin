@@ -75,10 +75,8 @@ export function ThemeProvider(props: { children: React.ReactNode }) {
       return () => media.removeEventListener("change", onChange);
     } catch {
       // Safari < 14
-      // eslint-disable-next-line deprecation/deprecation
       media.addListener(onChange);
       return () => {
-        // eslint-disable-next-line deprecation/deprecation
         media.removeListener(onChange);
       };
     }

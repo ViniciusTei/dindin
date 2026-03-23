@@ -1,7 +1,5 @@
 import crypto from "node:crypto";
 
-import { eq } from "drizzle-orm";
-
 import { db } from "~/db/db.server";
 import { users } from "~/db/schema";
 import { hashPassword, verifyPassword } from "~/auth/password.server";
