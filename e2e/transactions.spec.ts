@@ -9,9 +9,11 @@ async function ensureAccount(page: Page) {
   // Se já existe, não faz nada.
   if ((await page.getByTestId("account-name-Carteira").count()) > 0) return;
 
-  await page.getByTestId("account-name-input").fill("Carteira");
-  await page.getByTestId("account-initialBalance-input").fill("0,00");
-  await page.getByTestId("account-create-button").click();
+  await page.getByRole("button", { name: "Criar conta" }).click();
+  const createDialog = page.getByRole("dialog", { name: "Criar conta" });
+  await createDialog.getByTestId("account-name-input").fill("Carteira");
+  await createDialog.getByTestId("account-initialBalance-input").fill("0,00");
+  await createDialog.getByTestId("account-create-button").click();
   await expect(page.getByRole("status")).toHaveText(/Salvo\./);
   await expect(page.getByTestId("account-name-Carteira")).toBeVisible();
 }
@@ -28,35 +30,41 @@ test("transações: validar erro, criar, editar e excluir", async ({ page, seed 
   await expect(page.getByRole("heading", { name: "Transações" })).toBeVisible();
 
   // Erro: conta obrigatória (deixa no default "Selecione…")
-  await page.locator("#amount").fill("12,34");
-  await page.locator("#description").fill("Mercado");
-  await page.getByRole("button", { name: "Criar" }).click();
-  await expect(page.getByRole("alert")).toHaveText(/Conta é obrigatória\./);
+  await page.getByTestId("transaction-create-open").click();
+  let createDialog = page.getByRole("dialog", { name: "Criar transação" });
+  await createDialog.getByLabel("Valor").fill("12,34");
+  await createDialog.getByLabel("Descrição").fill("Mercado");
+  await createDialog.getByTestId("transaction-create-submit").click();
+  await expect(page.locator("[role='alert']").last()).toHaveText(/Conta é obrigatória\./);
 
   // Criar (seleciona conta)
-  await page.locator("#accountId").selectOption({ label: "Carteira" });
-  await page.getByRole("button", { name: "Criar" }).click();
+  await page.getByTestId("transaction-create-open").click();
+  createDialog = page.getByRole("dialog", { name: "Criar transação" });
+  await createDialog.getByLabel("Conta").selectOption({ label: "Carteira" });
+  await createDialog.getByLabel("Descrição").fill("Mercado");
+  await createDialog.getByLabel("Valor").fill("12,34");
+  await createDialog.getByTestId("transaction-create-submit").click();
 
   await expect(page.getByRole("status")).toHaveText(/Salvo\./);
 
-  // Localiza card (após criar, existe 1 item) por presença do hidden transactionId
-  const txCard = page
-    .locator("div.rounded-box", { has: page.locator("input[name='transactionId']") })
-    .first();
+  const txCard = page.locator("[data-testid^='transaction-card-']").first();
 
-  await expect(txCard.locator("input[name='description']")).toHaveValue("Mercado");
+  await expect(txCard).toContainText("Mercado");
 
   // Editar descrição e valor
-  await txCard.locator("input[name='description']").fill("Mercado 2");
-  await txCard.locator("input[name='amount']").fill("20,00");
-  await txCard.getByRole("button", { name: "Salvar" }).click();
+  await txCard.getByRole("button", { name: "Editar" }).click();
+  const editDialog = page.getByRole("dialog", { name: "Editar transação" });
+  await editDialog.getByLabel("Descrição").fill("Mercado 2");
+  await editDialog.getByLabel("Valor").fill("20,00");
+  await editDialog.getByRole("button", { name: "Salvar" }).click();
 
   await expect(page.getByRole("status")).toHaveText(/Salvo\./);
-  await expect(txCard.locator("input[name='description']")).toHaveValue("Mercado 2");
+  await expect(txCard).toContainText("Mercado 2");
 
-  // Excluir (confirm)
-  page.once("dialog", (d) => d.accept());
+  // Excluir
   await txCard.getByRole("button", { name: "Excluir" }).click();
+  const deleteDialog = page.getByRole("dialog", { name: "Excluir transação" });
+  await deleteDialog.getByRole("button", { name: "Excluir transação" }).click();
 
   await expect(page.getByRole("status")).toHaveText(/Salvo\./);
   await expect(txCard).toHaveCount(0);
