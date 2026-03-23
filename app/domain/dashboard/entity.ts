@@ -9,6 +9,15 @@ export type DashboardIncomeExpenseMonth = {
   expenseCents: number;
 };
 
+export type DashboardHouseholdSummary = {
+  householdId: string;
+  name: string;
+  role: "admin" | "member";
+  memberCount: number;
+  currentMonthExpenseCents: number;
+  currentUserEffectiveShareBps: number;
+};
+
 export type HomeDashboardData = {
   monthLabel: string;
   previousMonthLabel: string;
@@ -19,4 +28,5 @@ export type HomeDashboardData = {
   monthNetCents: number;
   expenseByCategory: DashboardExpenseByCategory[];
   incomeExpenseSeries: DashboardIncomeExpenseMonth[];
+  householdSummaries?: DashboardHouseholdSummary[];
 };

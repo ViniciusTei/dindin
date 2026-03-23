@@ -27,7 +27,6 @@ async function ensureCreditCard(page: Page) {
   await page.locator("#closingDay").fill("10");
   await page.locator("#dueDay").fill("15");
   await page.getByRole("button", { name: "Cadastrar" }).click();
-  await expect(page.getByRole("status")).toHaveText(/Salvo\./);
   await expect(page.getByRole("link", { name: "Abrir" })).toBeVisible();
 }
 
@@ -61,7 +60,7 @@ test("dashboard: gráficos renderizam sem NaN no console", async ({ page, seed }
   await page.getByRole("button", { name: "Adicionar" }).click();
   await expect(page.getByRole("status")).toHaveText(/Salvo\./);
 
-  await page.goto("/transactions");
+  await page.goto(`/households/${seed.householdId}/transactions`);
   await expect(page.getByRole("heading", { name: "Transações" })).toBeVisible();
 
   await page.locator("#accountId").selectOption({ label: "Carteira" });

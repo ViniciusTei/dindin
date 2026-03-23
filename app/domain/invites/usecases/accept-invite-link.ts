@@ -11,6 +11,6 @@ export async function acceptInviteLink(
   return invitesRepo.acceptInviteLink({
     token: params.token,
     userId: params.userId,
-    maxMembers: params.maxMembers ?? 2,
+    maxMembers: params.maxMembers,
   });
 }

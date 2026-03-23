@@ -2,8 +2,9 @@ import "dotenv/config";
 
 import crypto from "node:crypto";
 
-import argon2 from "argon2";
 import { Pool } from "pg";
+
+import { hashPassword } from "../app/auth/password.server";
 
 const DEFAULT_CATEGORIES = [
   "Aluguel",
@@ -56,8 +57,8 @@ export async function seedWorker(params: {
   const memberPassword = "password123";
 
   const [adminHash, memberHash] = await Promise.all([
-    argon2.hash(adminPassword),
-    argon2.hash(memberPassword),
+    hashPassword(adminPassword),
+    hashPassword(memberPassword),
   ]);
 
   await pool.query(
@@ -104,8 +105,8 @@ export async function cleanupWorker(seed: SeedData): Promise<void> {
   try {
     // Ordem pensada para maximizar cascatas e reduzir conflitos.
     await seed.pool.query("delete from households where id = $1", [seed.householdId]);
-    await seed.pool.query("delete from users where id = any($1)", [
-      [seed.users.admin.id, seed.users.member.id],
+    await seed.pool.query("delete from users where username like $1", [
+      `e2e_${seed.runId}_w${seed.workerIndex}_%`,
     ]);
   } finally {
     await seed.pool.end();

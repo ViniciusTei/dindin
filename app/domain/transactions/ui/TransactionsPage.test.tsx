@@ -30,6 +30,7 @@ function makeTransaction(overrides: Partial<Transaction> = {}): Transaction {
   return {
     id: overrides.id ?? "tx_1",
     userId: overrides.userId ?? "user_1",
+    householdId: overrides.householdId ?? "hh_1",
     accountId: overrides.accountId ?? "acc_1",
     categoryId: overrides.categoryId ?? null,
     type: overrides.type ?? "expense",

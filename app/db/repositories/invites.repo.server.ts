@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 import { eq } from "drizzle-orm";
 
 import { db } from "~/db/db.server";
-import { inviteLinks, memberships } from "~/db/schema";
+import { inviteLinks, memberships, users } from "~/db/schema";
 import type { InvitesRepo } from "~/domain/invites/ports";
 
 function createId(): string {
@@ -49,15 +49,21 @@ export const invitesRepo: InvitesRepo = {
       .from(memberships)
       .where(eq(memberships.householdId, invite.householdId));
 
-    if (existingMemberships.length >= params.maxMembers) {
+    if (
+      params.maxMembers != null &&
+      existingMemberships.length >= params.maxMembers
+    ) {
       return { ok: false as const, reason: "full" as const };
     }
 
-    await db.insert(memberships).values({
-      householdId: invite.householdId,
-      userId: params.userId,
-      role: "member",
-    });
+    await db
+      .insert(memberships)
+      .values({
+        householdId: invite.householdId,
+        userId: params.userId,
+        role: "member",
+      })
+      .onConflictDoNothing();
 
     await db
       .update(inviteLinks)
@@ -65,5 +71,91 @@ export const invitesRepo: InvitesRepo = {
       .where(eq(inviteLinks.id, invite.id));
 
     return { ok: true as const, householdId: invite.householdId };
+  },
+
+  async registerUserFromInvite(params) {
+    const tokenHash = sha256(params.token);
+    const now = new Date();
+
+    return db.transaction(async (tx) => {
+      const inviteRows = await tx
+        .select({
+          id: inviteLinks.id,
+          householdId: inviteLinks.householdId,
+        })
+        .from(inviteLinks)
+        .where(eq(inviteLinks.tokenHash, tokenHash))
+        .limit(1);
+
+      const invite = inviteRows[0];
+      if (!invite) return { ok: false as const, reason: "invalid" as const };
+
+      const validInviteRows = await tx
+        .select({
+          id: inviteLinks.id,
+          householdId: inviteLinks.householdId,
+        })
+        .from(inviteLinks)
+        .where(eq(inviteLinks.id, invite.id))
+        .limit(1);
+
+      const validInvite = validInviteRows[0];
+      if (!validInvite) return { ok: false as const, reason: "invalid" as const };
+
+      const currentInviteRows = await tx
+        .select({
+          id: inviteLinks.id,
+          householdId: inviteLinks.householdId,
+          expiresAt: inviteLinks.expiresAt,
+          usedAt: inviteLinks.usedAt,
+        })
+        .from(inviteLinks)
+        .where(eq(inviteLinks.id, invite.id))
+        .limit(1);
+
+      const currentInvite = currentInviteRows[0];
+      if (!currentInvite || currentInvite.usedAt || currentInvite.expiresAt <= now) {
+        return { ok: false as const, reason: "invalid" as const };
+      }
+
+      const existingMemberships = await tx
+        .select({ userId: memberships.userId })
+        .from(memberships)
+        .where(eq(memberships.householdId, currentInvite.householdId));
+
+      if (params.maxMembers != null && existingMemberships.length >= params.maxMembers) {
+        return { ok: false as const, reason: "full" as const };
+      }
+
+      const existingUsers = await tx
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.username, params.username))
+        .limit(1);
+
+      if (existingUsers.length > 0) {
+        return { ok: false as const, reason: "username_taken" as const };
+      }
+
+      await tx.insert(users).values({
+        id: params.userId,
+        username: params.username,
+        passwordHash: params.passwordHash,
+        isAdmin: false,
+      });
+
+      await tx.insert(memberships).values({
+        householdId: currentInvite.householdId,
+        userId: params.userId,
+        role: "member",
+      });
+
+      await tx
+        .update(inviteLinks)
+        .set({ usedAt: now })
+        .where(eq(inviteLinks.id, currentInvite.id));
+
+      return { ok: true as const, householdId: currentInvite.householdId };
+    });
   },
 };

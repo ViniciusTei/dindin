@@ -24,7 +24,7 @@ test("transações: validar erro, criar, editar e excluir", async ({ page, seed 
 
   await ensureAccount(page);
 
-  await page.goto("/transactions");
+  await page.goto(`/households/${seed.householdId}/transactions`);
   await expect(page.getByRole("heading", { name: "Transações" })).toBeVisible();
 
   // Erro: conta obrigatória (deixa no default "Selecione…")

@@ -14,5 +14,5 @@ export async function acceptInviteLink(params: {
   token: string;
   userId: string;
 }) {
-  return acceptInviteLinkUsecase(invitesRepo, { ...params, maxMembers: 2 });
+  return acceptInviteLinkUsecase(invitesRepo, params);
 }

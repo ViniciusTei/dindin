@@ -23,15 +23,17 @@ async function assertAccountBelongsToUser(params: {
 }
 
 export const transactionsRepo: TransactionsRepo = {
-  async listByUser(userId) {
+  async listByHousehold(params) {
     const rows = await db.query.transactions.findMany({
-      where: (t, { eq }) => eq(t.userId, userId),
+      where: (t, { and, eq }) =>
+        and(eq(t.userId, params.userId), eq(t.householdId, params.householdId)),
       orderBy: (t) => [desc(t.occurredAt), desc(t.createdAt)],
     });
 
     return rows.map((t) => ({
       id: t.id,
       userId: t.userId,
+      householdId: t.householdId,
       accountId: t.accountId,
       categoryId: t.categoryId,
       type: t.type as "income" | "expense",
@@ -46,12 +48,10 @@ export const transactionsRepo: TransactionsRepo = {
     await assertAccountBelongsToUser({ userId: params.userId, accountId: params.accountId });
 
     if (params.categoryId) {
-      // Categoria é household-scoped hoje; validação do household deve ser feita pela rota.
-      // Aqui, por falta de householdId no port, apenas garante que existe.
       const exists = await db
         .select({ id: categories.id })
         .from(categories)
-        .where(eq(categories.id, params.categoryId))
+        .where(and(eq(categories.id, params.categoryId), eq(categories.householdId, params.householdId)))
         .limit(1);
       if (exists.length === 0) throw new TransactionCategoryNotFoundError();
     }
@@ -59,6 +59,7 @@ export const transactionsRepo: TransactionsRepo = {
     await db.insert(transactions).values({
       id: params.id,
       userId: params.userId,
+      householdId: params.householdId,
       accountId: params.accountId,
       categoryId: params.categoryId,
       type: params.type,
@@ -75,7 +76,7 @@ export const transactionsRepo: TransactionsRepo = {
       const exists = await db
         .select({ id: categories.id })
         .from(categories)
-        .where(eq(categories.id, params.categoryId))
+        .where(and(eq(categories.id, params.categoryId), eq(categories.householdId, params.householdId)))
         .limit(1);
       if (exists.length === 0) throw new TransactionCategoryNotFoundError();
     }
@@ -90,7 +91,13 @@ export const transactionsRepo: TransactionsRepo = {
         amountCents: params.amountCents,
         occurredAt: params.occurredAt,
       })
-      .where(and(eq(transactions.id, params.transactionId), eq(transactions.userId, params.userId)))
+      .where(
+        and(
+          eq(transactions.id, params.transactionId),
+          eq(transactions.userId, params.userId),
+          eq(transactions.householdId, params.householdId)
+        )
+      )
       .returning({ id: transactions.id });
 
     if (updated.length === 0) throw new TransactionNotFoundError();
@@ -99,7 +106,13 @@ export const transactionsRepo: TransactionsRepo = {
   async delete(params) {
     const deleted = await db
       .delete(transactions)
-      .where(and(eq(transactions.id, params.transactionId), eq(transactions.userId, params.userId)))
+      .where(
+        and(
+          eq(transactions.id, params.transactionId),
+          eq(transactions.userId, params.userId),
+          eq(transactions.householdId, params.householdId)
+        )
+      )
       .returning({ id: transactions.id });
 
     if (deleted.length === 0) throw new TransactionNotFoundError();

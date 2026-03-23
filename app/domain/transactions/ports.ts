@@ -1,11 +1,12 @@
 import type { Transaction, TransactionType } from "./entity";
 
 export interface TransactionsRepo {
-  listByUser(userId: string): Promise<Transaction[]>;
+  listByHousehold(params: { userId: string; householdId: string }): Promise<Transaction[]>;
 
   create(params: {
     id: string;
     userId: string;
+    householdId: string;
     accountId: string;
     categoryId: string | null;
     type: TransactionType;
@@ -16,6 +17,7 @@ export interface TransactionsRepo {
 
   update(params: {
     userId: string;
+    householdId: string;
     transactionId: string;
     accountId: string;
     categoryId: string | null;
@@ -25,5 +27,5 @@ export interface TransactionsRepo {
     occurredAt: Date;
   }): Promise<void>;
 
-  delete(params: { userId: string; transactionId: string }): Promise<void>;
+  delete(params: { userId: string; householdId: string; transactionId: string }): Promise<void>;
 }

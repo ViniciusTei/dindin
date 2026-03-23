@@ -1,5 +1,6 @@
 import type { HomeDashboardData } from "~/domain/dashboard/entity";
 import { DashboardExpensePieCard } from "~/domain/dashboard/ui/DashboardExpensePieCard";
+import { DashboardHouseholdsOverview } from "~/domain/dashboard/ui/DashboardHouseholdsOverview";
 import { DashboardIncomeExpenseCard } from "~/domain/dashboard/ui/DashboardIncomeExpenseCard";
 import { DashboardMonthHeader } from "~/domain/dashboard/ui/DashboardMonthHeader";
 import { DashboardSummaryCards } from "~/domain/dashboard/ui/DashboardSummaryCards";
@@ -28,6 +29,11 @@ export function HomeDashboardPage(props: HomeDashboardData) {
           incomeExpenseSeries={props.incomeExpenseSeries}
         />
       </div>
+
+      <DashboardHouseholdsOverview
+        householdSummaries={props.householdSummaries ?? []}
+        monthLabel={props.monthLabel}
+      />
     </main>
   );
 }

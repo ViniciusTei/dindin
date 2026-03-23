@@ -96,6 +96,28 @@ export const memberships = pgTable(
   })
 );
 
+export const householdPaymentShares = pgTable(
+  "household_payment_shares",
+  {
+    householdId: text("household_id")
+      .notNull()
+      .references(() => households.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    shareBps: integer("share_bps").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.householdId, table.userId] }),
+    householdIdx: index("household_payment_shares_household_id_idx").on(
+      table.householdId
+    ),
+  })
+);
+
 export const months = pgTable(
   "months",
   {
@@ -241,6 +263,9 @@ export const transactions = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    householdId: text("household_id")
+      .notNull()
+      .references(() => households.id, { onDelete: "cascade" }),
     accountId: text("account_id")
       .notNull()
       .references(() => accounts.id),
@@ -259,6 +284,7 @@ export const transactions = pgTable(
   },
   (table) => ({
     userIdx: index("transactions_user_id_idx").on(table.userId),
+    householdIdx: index("transactions_household_id_idx").on(table.householdId),
     accountIdx: index("transactions_account_id_idx").on(table.accountId),
     categoryIdx: index("transactions_category_id_idx").on(table.categoryId),
     occurredAtIdx: index("transactions_occurred_at_idx").on(table.occurredAt),
@@ -353,5 +379,6 @@ export type Account = typeof accounts.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
 export type CreditCard = typeof creditCards.$inferSelect;
 export type CreditCardPurchase = typeof creditCardPurchases.$inferSelect;
+export type HouseholdPaymentShare = typeof householdPaymentShares.$inferSelect;
 export type CreditCardPurchasePrepayment =
   typeof creditCardPurchasePrepayments.$inferSelect;

@@ -9,6 +9,7 @@ export async function createTransaction(params: {
   transactionsRepo: TransactionsRepo;
   idFactory: () => string;
   userId: string;
+  householdId: string;
   accountId: string;
   categoryId: string | null;
   type: TransactionType;
@@ -47,6 +48,7 @@ export async function createTransaction(params: {
     await params.transactionsRepo.create({
       id,
       userId: params.userId,
+      householdId: params.householdId,
       accountId: params.accountId,
       categoryId: params.categoryId,
       type: params.type,

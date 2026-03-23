@@ -10,6 +10,7 @@ describe("updateTransaction", () => {
     const result = await updateTransaction({
       transactionsRepo: repo,
       userId: "user-1",
+      householdId: "household-1",
       transactionId: "missing",
       accountId: "a1",
       categoryId: null,
@@ -39,6 +40,7 @@ describe("updateTransaction", () => {
     const result = await updateTransaction({
       transactionsRepo: repo,
       userId: "user-1",
+      householdId: "household-1",
       transactionId: "t1",
       accountId: "missing",
       categoryId: null,
@@ -68,6 +70,7 @@ describe("updateTransaction", () => {
     const result = await updateTransaction({
       transactionsRepo: repo,
       userId: "user-1",
+      householdId: "household-1",
       transactionId: "t1",
       accountId: "a1",
       categoryId: null,
