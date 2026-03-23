@@ -293,10 +293,8 @@ export function TransactionsPage(props: {
           </div>
         ) : null}
 
-        <section className="card bg-base-100 shadow">
-          <div className="card-body gap-4">
-            <h2 className="card-title">Lista</h2>
-
+        <section className="bg-base-100">
+          <div className="space-y-4">
             {props.transactions.length === 0 ? (
               <p className="opacity-70">Nenhuma transação.</p>
             ) : (

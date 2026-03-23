@@ -2,7 +2,10 @@ import { Form, Link } from "react-router";
 
 import type { Account } from "~/domain/accounts/entity";
 import { formatBRL } from "~/lib/money";
-import FormModal, { ModalCloseButton, closeDialogOnSubmit } from "~/ui/FormModal";
+import FormModal, {
+  ModalCloseButton,
+  closeDialogOnSubmit,
+} from "~/ui/FormModal";
 
 export type CreditCardListItem = {
   id: string;
@@ -14,10 +17,7 @@ export type CreditCardListItem = {
   accountId: string | null;
 };
 
-function CreditCardCreateModal(props: {
-  accounts: Account[];
-  error?: string;
-}) {
+function CreditCardCreateModal(props: { accounts: Account[]; error?: string }) {
   return (
     <FormModal
       dialogId="create_credit_card_modal"
@@ -60,7 +60,11 @@ function CreditCardCreateModal(props: {
             <label className="label" htmlFor="card-create-cvv">
               <span className="label-text">CVV (opcional)</span>
             </label>
-            <input id="card-create-cvv" name="cvv" className="input input-bordered w-full" />
+            <input
+              id="card-create-cvv"
+              name="cvv"
+              className="input input-bordered w-full"
+            />
           </div>
 
           <div className="form-control">
@@ -107,7 +111,9 @@ function CreditCardCreateModal(props: {
 
           <div className="form-control md:col-span-2">
             <label className="label" htmlFor="card-create-account-id">
-              <span className="label-text">Conta para pagamento (opcional)</span>
+              <span className="label-text">
+                Conta para pagamento (opcional)
+              </span>
             </label>
             <select
               id="card-create-account-id"
@@ -174,10 +180,8 @@ export function CreditCardsPage(props: {
           </div>
         ) : null}
 
-        <section className="card bg-base-100 shadow">
-          <div className="card-body gap-4">
-            <h2 className="card-title">Lista</h2>
-
+        <section className="bg-base-100">
+          <div className="space-y-4">
             {props.cards.length === 0 ? (
               <p className="opacity-70">Nenhum cartão.</p>
             ) : (
@@ -202,7 +206,10 @@ export function CreditCardsPage(props: {
                         <td>Dia {c.dueDay}</td>
                         <td>{c.limitCents ? formatBRL(c.limitCents) : "—"}</td>
                         <td className="text-right">
-                          <Link to={`/card/${c.id}`} className="btn btn-ghost btn-sm">
+                          <Link
+                            to={`/card/${c.id}`}
+                            className="btn btn-ghost btn-sm"
+                          >
                             Abrir
                           </Link>
                         </td>
