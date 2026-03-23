@@ -1,7 +1,7 @@
 import { Form, Link } from "react-router";
 import { useEffect, useMemo, useState } from "react";
-import Icon, { type IconName } from "~/ui/Icon";
 import { useTheme } from "~/contexts/ThemeContext";
+import Icon, { type IconName } from "./Icon";
 
 type AppShellUser = {
   username: string;
