@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { ReactNode } from "react";
 
 import { AppShell } from "./AppShell";
-import { ThemeProvider } from "~/components/ThemeContext";
+import { ThemeProvider } from "~/contexts/ThemeContext";
 
 function renderShell(ui: ReactNode) {
   return render(<ThemeProvider>{ui}</ThemeProvider>);

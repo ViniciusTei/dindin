@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { ThemeProvider } from "~/components/ThemeContext";
+import { ThemeProvider } from "~/contexts/ThemeContext";
 import { DashboardIncomeExpenseCard } from "~/domain/dashboard/ui/DashboardIncomeExpenseCard";
 
 const chartSpy = vi.fn();

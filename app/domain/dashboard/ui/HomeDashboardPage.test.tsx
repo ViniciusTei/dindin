@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 
-import { ThemeProvider } from "~/components/ThemeContext";
+import { ThemeProvider } from "~/contexts/ThemeContext";
 import { HomeDashboardPage } from "~/domain/dashboard/ui/HomeDashboardPage";
 
 vi.mock("react-charts", () => {

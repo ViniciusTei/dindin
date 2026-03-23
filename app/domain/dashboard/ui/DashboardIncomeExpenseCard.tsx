@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Chart } from "react-charts";
 import type { AxisOptions } from "react-charts";
 
-import { useTheme } from "~/components/ThemeContext";
+import { useTheme } from "~/contexts/ThemeContext";
 import type { DashboardIncomeExpenseMonth } from "~/domain/dashboard/entity";
 import { formatDate } from "~/lib/datetime";
 import { formatBRL } from "~/lib/money";
