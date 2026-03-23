@@ -1,7 +1,10 @@
 import { Form } from "react-router";
 
 import type { Category } from "~/domain/categories/entity";
-import FormModal, { ModalCloseButton, closeDialogOnSubmit } from "~/ui/FormModal";
+import FormModal, {
+  ModalCloseButton,
+  closeDialogOnSubmit,
+} from "~/ui/FormModal";
 
 function CategoryCreateModal(props: { error?: string }) {
   return (
@@ -53,7 +56,7 @@ function CategoryRenameModal(props: { category: Category }) {
       dialogId={`rename_category_modal_${props.category.id}`}
       triggerLabel="Renomear"
       title="Renomear categoria"
-      description={`Atualize o nome da categoria \"${props.category.name}\".`}
+      description={`Atualize o nome da categoria "${props.category.name}".`}
       triggerClassName="btn btn-ghost btn-sm"
       dialogClassName="max-w-lg"
     >
@@ -62,7 +65,10 @@ function CategoryRenameModal(props: { category: Category }) {
         <input type="hidden" name="categoryId" value={props.category.id} />
 
         <div className="form-control">
-          <label className="label" htmlFor={`category-rename-name-${props.category.id}`}>
+          <label
+            className="label"
+            htmlFor={`category-rename-name-${props.category.id}`}
+          >
             <span className="label-text">Nome</span>
           </label>
           <input
@@ -90,7 +96,7 @@ function CategoryDeleteModal(props: { category: Category }) {
       dialogId={`delete_category_modal_${props.category.id}`}
       triggerLabel="Excluir"
       title="Excluir categoria"
-      description={`Tem certeza que deseja excluir a categoria \"${props.category.name}\"?`}
+      description={`Tem certeza que deseja excluir a categoria "${props.category.name}"?`}
       triggerClassName="btn btn-ghost btn-sm text-error"
       dialogClassName="max-w-lg"
       resetFormOnOpen={false}
@@ -98,7 +104,9 @@ function CategoryDeleteModal(props: { category: Category }) {
       <Form method="post" onSubmit={closeDialogOnSubmit} className="space-y-3">
         <input type="hidden" name="intent" value="delete" />
         <input type="hidden" name="categoryId" value={props.category.id} />
-        <p className="text-sm opacity-70">As transações existentes ficam sem categoria após a exclusão.</p>
+        <p className="text-sm opacity-70">
+          As transações existentes ficam sem categoria após a exclusão.
+        </p>
         <div className="modal-action">
           <ModalCloseButton />
           <button type="submit" className="btn btn-error">

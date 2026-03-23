@@ -15,7 +15,7 @@ type FormModalProps = {
 function openDialog(dialogId: string, resetFormOnOpen: boolean) {
   const dialog = document.getElementById(dialogId) as HTMLDialogElement | null;
   if (!dialog) {
-    console.error(`Dialog element \"${dialogId}\" not found`);
+    console.error(`Dialog element "${dialogId}" not found`);
     return;
   }
 
@@ -34,11 +34,16 @@ function openDialog(dialogId: string, resetFormOnOpen: boolean) {
 }
 
 export function closeDialogOnSubmit(event: { currentTarget: Element }) {
-  const dialog = event.currentTarget.closest("dialog") as HTMLDialogElement | null;
+  const dialog = event.currentTarget.closest(
+    "dialog",
+  ) as HTMLDialogElement | null;
   dialog?.close();
 }
 
-export function ModalCloseButton(props: { children?: ReactNode; className?: string }) {
+export function ModalCloseButton(props: {
+  children?: ReactNode;
+  className?: string;
+}) {
   return (
     <button
       type="button"
@@ -57,7 +62,9 @@ export default function FormModal(props: FormModalProps) {
         type="button"
         className={props.triggerClassName ?? "btn btn-primary"}
         data-testid={props.triggerTestId}
-        onClick={() => openDialog(props.dialogId, props.resetFormOnOpen ?? true)}
+        onClick={() =>
+          openDialog(props.dialogId, props.resetFormOnOpen ?? true)
+        }
       >
         {props.triggerLabel}
       </button>

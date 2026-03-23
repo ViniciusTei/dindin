@@ -4,7 +4,10 @@ import type { Account } from "~/domain/accounts/entity";
 import type { Category } from "~/domain/categories/entity";
 import type { Transaction } from "~/domain/transactions/entity";
 import { formatBRL } from "~/lib/money";
-import FormModal, { ModalCloseButton, closeDialogOnSubmit } from "~/ui/FormModal";
+import FormModal, {
+  ModalCloseButton,
+  closeDialogOnSubmit,
+} from "~/ui/FormModal";
 
 function centsToInput(cents: number): string {
   const abs = Math.abs(cents);
@@ -167,7 +170,11 @@ function TransactionCreateModal(props: {
 
         <div className="modal-action">
           <ModalCloseButton />
-          <button type="submit" className="btn btn-primary" data-testid="transaction-create-submit">
+          <button
+            type="submit"
+            className="btn btn-primary"
+            data-testid="transaction-create-submit"
+          >
             Criar
           </button>
         </div>
@@ -186,13 +193,17 @@ function TransactionEditModal(props: {
       dialogId={`edit_transaction_modal_${props.transaction.id}`}
       triggerLabel="Editar"
       title="Editar transação"
-      description={`Atualize os dados de \"${props.transaction.description}\".`}
+      description={`Atualize os dados de "${props.transaction.description}".`}
       triggerClassName="btn btn-ghost btn-sm"
       dialogClassName="max-w-4xl"
     >
       <Form method="post" onSubmit={closeDialogOnSubmit} className="space-y-4">
         <input type="hidden" name="intent" value="update" />
-        <input type="hidden" name="transactionId" value={props.transaction.id} />
+        <input
+          type="hidden"
+          name="transactionId"
+          value={props.transaction.id}
+        />
         <TransactionFormFields
           accounts={props.accounts}
           categories={props.categories}
@@ -223,15 +234,21 @@ function TransactionDeleteModal(props: { transaction: Transaction }) {
       dialogId={`delete_transaction_modal_${props.transaction.id}`}
       triggerLabel="Excluir"
       title="Excluir transação"
-      description={`Tem certeza que deseja excluir \"${props.transaction.description}\"?`}
+      description={`Tem certeza que deseja excluir "${props.transaction.description}"?`}
       triggerClassName="btn btn-ghost btn-sm text-error"
       dialogClassName="max-w-lg"
       resetFormOnOpen={false}
     >
       <Form method="post" onSubmit={closeDialogOnSubmit} className="space-y-3">
         <input type="hidden" name="intent" value="delete" />
-        <input type="hidden" name="transactionId" value={props.transaction.id} />
-        <p className="text-sm opacity-70">A remoção ajusta o saldo da conta vinculada.</p>
+        <input
+          type="hidden"
+          name="transactionId"
+          value={props.transaction.id}
+        />
+        <p className="text-sm opacity-70">
+          A remoção ajusta o saldo da conta vinculada.
+        </p>
         <div className="modal-action">
           <ModalCloseButton />
           <button type="submit" className="btn btn-error">
@@ -285,8 +302,11 @@ export function TransactionsPage(props: {
             ) : (
               <div className="space-y-3">
                 {props.transactions.map((t) => {
-                  const displayCents = t.type === "expense" ? -t.amountCents : t.amountCents;
-                  const categoryName = props.categories.find((category) => category.id === t.categoryId)?.name;
+                  const displayCents =
+                    t.type === "expense" ? -t.amountCents : t.amountCents;
+                  const categoryName = props.categories.find(
+                    (category) => category.id === t.categoryId,
+                  )?.name;
 
                   return (
                     <article
@@ -298,14 +318,18 @@ export function TransactionsPage(props: {
                         <div className="space-y-2">
                           <div className="flex flex-wrap items-center gap-2">
                             <h3 className="font-semibold">{t.description}</h3>
-                            <span className={`badge ${t.type === "expense" ? "badge-error badge-outline" : "badge-success badge-outline"}`}>
+                            <span
+                              className={`badge ${t.type === "expense" ? "badge-error badge-outline" : "badge-success badge-outline"}`}
+                            >
                               {t.type === "expense" ? "Despesa" : "Receita"}
                             </span>
                           </div>
                           <div className="grid gap-1 text-sm opacity-70 md:grid-cols-2">
                             <div>Data: {toDateInputValue(t.occurredAt)}</div>
                             <div>Conta: {t.accountName ?? "—"}</div>
-                            <div>Categoria: {categoryName ?? "Sem categoria"}</div>
+                            <div>
+                              Categoria: {categoryName ?? "Sem categoria"}
+                            </div>
                             <div>Valor: {formatBRL(displayCents)}</div>
                           </div>
                         </div>

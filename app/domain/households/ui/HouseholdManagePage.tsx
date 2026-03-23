@@ -1,8 +1,14 @@
 import { Form, Link } from "react-router";
 
-import type { HouseholdDetails, HouseholdMember } from "~/domain/households/entity";
+import type {
+  HouseholdDetails,
+  HouseholdMember,
+} from "~/domain/households/entity";
 import { formatBRL } from "~/lib/money";
-import FormModal, { ModalCloseButton, closeDialogOnSubmit } from "~/ui/FormModal";
+import FormModal, {
+  ModalCloseButton,
+  closeDialogOnSubmit,
+} from "~/ui/FormModal";
 
 function formatShareBps(shareBps: number): string {
   return `${(shareBps / 100).toFixed(2).replace(".", ",")}%`;
@@ -88,7 +94,11 @@ function HouseholdAddMemberModal() {
         </div>
         <div className="modal-action">
           <ModalCloseButton />
-          <button type="submit" className="btn btn-primary" data-testid="household-add-member-submit">
+          <button
+            type="submit"
+            className="btn btn-primary"
+            data-testid="household-add-member-submit"
+          >
             Adicionar por username
           </button>
         </div>
@@ -110,7 +120,9 @@ function HouseholdInviteModal() {
     >
       <Form method="post" onSubmit={closeDialogOnSubmit} className="space-y-3">
         <input type="hidden" name="intent" value="create-invite-link" />
-        <p className="text-sm opacity-70">O convite ficará válido por 24 horas.</p>
+        <p className="text-sm opacity-70">
+          O convite ficará válido por 24 horas.
+        </p>
         <div className="modal-action">
           <ModalCloseButton />
           <button type="submit" className="btn btn-primary">
@@ -128,7 +140,7 @@ function HouseholdUpdateRoleModal(props: { member: HouseholdMember }) {
       dialogId={`household_update_role_modal_${props.member.userId}`}
       triggerLabel="Alterar papel"
       title="Alterar papel do membro"
-      description={`Defina o papel de \"${props.member.username}\" nesta household.`}
+      description={`Defina o papel de "${props.member.username}" nesta household.`}
       triggerClassName="btn btn-ghost btn-sm"
       dialogClassName="max-w-lg"
     >
@@ -136,7 +148,10 @@ function HouseholdUpdateRoleModal(props: { member: HouseholdMember }) {
         <input type="hidden" name="intent" value="update-role" />
         <input type="hidden" name="memberUserId" value={props.member.userId} />
         <div className="form-control">
-          <label className="label" htmlFor={`household-member-role-${props.member.userId}`}>
+          <label
+            className="label"
+            htmlFor={`household-member-role-${props.member.userId}`}
+          >
             <span className="label-text">Papel</span>
           </label>
           <select
@@ -166,7 +181,7 @@ function HouseholdRemoveMemberModal(props: { member: HouseholdMember }) {
       dialogId={`household_remove_member_modal_${props.member.userId}`}
       triggerLabel="Remover"
       title="Remover membro"
-      description={`Tem certeza que deseja remover \"${props.member.username}\" desta household?`}
+      description={`Tem certeza que deseja remover "${props.member.username}" desta household?`}
       triggerClassName="btn btn-ghost btn-sm text-error"
       dialogClassName="max-w-lg"
       resetFormOnOpen={false}
@@ -212,7 +227,9 @@ function HouseholdSharesModal(props: { household: HouseholdDetails }) {
               {props.household.members.map((member) => (
                 <tr key={member.userId}>
                   <td>{member.username}</td>
-                  <td>{member.role === "admin" ? "Administrador" : "Membro"}</td>
+                  <td>
+                    {member.role === "admin" ? "Administrador" : "Membro"}
+                  </td>
                   <td>
                     <label className="input input-bordered flex items-center gap-2">
                       <input
@@ -227,7 +244,9 @@ function HouseholdSharesModal(props: { household: HouseholdDetails }) {
                       <span className="text-xs opacity-70">%</span>
                     </label>
                   </td>
-                  <td className="font-medium">{formatShareBps(member.effectiveShareBps)}</td>
+                  <td className="font-medium">
+                    {formatShareBps(member.effectiveShareBps)}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -235,7 +254,11 @@ function HouseholdSharesModal(props: { household: HouseholdDetails }) {
         </div>
         <div className="modal-action">
           <ModalCloseButton />
-          <button type="submit" className="btn btn-primary" data-testid="household-shares-submit">
+          <button
+            type="submit"
+            className="btn btn-primary"
+            data-testid="household-shares-submit"
+          >
             Salvar rateio
           </button>
         </div>
@@ -252,17 +275,26 @@ export function HouseholdManagePage(props: {
   inviteToken?: string;
   inviteExpiresAt?: string;
 }) {
-  const inviteLink = props.inviteToken ? `${props.origin}/join/${props.inviteToken}` : null;
+  const inviteLink = props.inviteToken
+    ? `${props.origin}/join/${props.inviteToken}`
+    : null;
 
   return (
     <main className="mx-auto mt-10 max-w-6xl px-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Gerenciar {props.household.name}</h1>
-          <p className="text-sm opacity-70">Membros, permissões, convites e rateio financeiro.</p>
+          <h1 className="text-2xl font-semibold">
+            Gerenciar {props.household.name}
+          </h1>
+          <p className="text-sm opacity-70">
+            Membros, permissões, convites e rateio financeiro.
+          </p>
         </div>
         <div className="flex gap-2">
-          <Link className="btn btn-ghost btn-sm" to={`/households/${props.household.householdId}`}>
+          <Link
+            className="btn btn-ghost btn-sm"
+            to={`/households/${props.household.householdId}`}
+          >
             Ver detalhes
           </Link>
           <Link className="btn btn-ghost btn-sm" to="/households">
@@ -288,19 +320,25 @@ export function HouseholdManagePage(props: {
           <section className="card bg-base-100 shadow">
             <div className="card-body gap-2">
               <div className="text-sm opacity-70">Membros</div>
-              <div className="text-2xl font-semibold">{props.household.memberCount}</div>
+              <div className="text-2xl font-semibold">
+                {props.household.memberCount}
+              </div>
             </div>
           </section>
           <section className="card bg-base-100 shadow">
             <div className="card-body gap-2">
               <div className="text-sm opacity-70">Despesas do mês</div>
-              <div className="text-2xl font-semibold">{formatBRL(-props.household.currentMonthExpenseCents)}</div>
+              <div className="text-2xl font-semibold">
+                {formatBRL(-props.household.currentMonthExpenseCents)}
+              </div>
             </div>
           </section>
           <section className="card bg-base-100 shadow">
             <div className="card-body gap-2">
               <div className="text-sm opacity-70">Seu rateio</div>
-              <div className="text-2xl font-semibold">{formatShareBps(props.household.currentUserEffectiveShareBps)}</div>
+              <div className="text-2xl font-semibold">
+                {formatShareBps(props.household.currentUserEffectiveShareBps)}
+              </div>
             </div>
           </section>
         </div>
@@ -311,7 +349,9 @@ export function HouseholdManagePage(props: {
               <div className="card-body gap-4">
                 <div>
                   <h2 className="card-title">Dados básicos</h2>
-                  <p className="text-sm opacity-70">Nome atual: {props.household.name}</p>
+                  <p className="text-sm opacity-70">
+                    Nome atual: {props.household.name}
+                  </p>
                 </div>
                 <HouseholdRenameModal household={props.household} />
               </div>
@@ -321,7 +361,9 @@ export function HouseholdManagePage(props: {
               <div className="card-body gap-4">
                 <div>
                   <h2 className="card-title">Membros</h2>
-                  <p className="text-sm opacity-70">Adicione usuários existentes diretamente à household.</p>
+                  <p className="text-sm opacity-70">
+                    Adicione usuários existentes diretamente à household.
+                  </p>
                 </div>
                 <HouseholdAddMemberModal />
               </div>
@@ -331,18 +373,24 @@ export function HouseholdManagePage(props: {
               <div className="card-body gap-4">
                 <div>
                   <h2 className="card-title">Convite por link</h2>
-                  <p className="text-sm opacity-70">Use para convidar alguém a entrar nessa household.</p>
+                  <p className="text-sm opacity-70">
+                    Use para convidar alguém a entrar nessa household.
+                  </p>
                 </div>
                 <HouseholdInviteModal />
                 {inviteLink && props.inviteExpiresAt ? (
                   <div className="space-y-2 text-sm">
                     <div className="alert alert-info">
                       <span>
-                        Link: <a className="link" href={inviteLink}>{inviteLink}</a>
+                        Link:{" "}
+                        <a className="link" href={inviteLink}>
+                          {inviteLink}
+                        </a>
                       </span>
                     </div>
                     <p>
-                      Expira em: <span className="font-mono">{props.inviteExpiresAt}</span>
+                      Expira em:{" "}
+                      <span className="font-mono">{props.inviteExpiresAt}</span>
                     </p>
                   </div>
                 ) : null}
@@ -370,10 +418,16 @@ export function HouseholdManagePage(props: {
                           <td>
                             <div className="font-medium">{member.username}</div>
                             <div className="text-xs opacity-70">
-                              {member.role === "admin" ? "Administrador" : "Membro"}
+                              {member.role === "admin"
+                                ? "Administrador"
+                                : "Membro"}
                             </div>
                           </td>
-                          <td>{member.role === "admin" ? "Administrador" : "Membro"}</td>
+                          <td>
+                            {member.role === "admin"
+                              ? "Administrador"
+                              : "Membro"}
+                          </td>
                           <td>
                             <div className="flex justify-end gap-2">
                               <HouseholdUpdateRoleModal member={member} />
@@ -393,7 +447,10 @@ export function HouseholdManagePage(props: {
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <h2 className="card-title">Rateio de pagamentos</h2>
-                    <p className="text-sm opacity-70">Confira o percentual explícito e o efetivo aplicado a cada membro.</p>
+                    <p className="text-sm opacity-70">
+                      Confira o percentual explícito e o efetivo aplicado a cada
+                      membro.
+                    </p>
                   </div>
                   <HouseholdSharesModal household={props.household} />
                 </div>
@@ -412,9 +469,19 @@ export function HouseholdManagePage(props: {
                       {props.household.members.map((member) => (
                         <tr key={member.userId}>
                           <td>{member.username}</td>
-                          <td>{member.role === "admin" ? "Administrador" : "Membro"}</td>
-                          <td>{member.explicitShareBps == null ? "Automático" : formatShareBps(member.explicitShareBps)}</td>
-                          <td className="font-medium">{formatShareBps(member.effectiveShareBps)}</td>
+                          <td>
+                            {member.role === "admin"
+                              ? "Administrador"
+                              : "Membro"}
+                          </td>
+                          <td>
+                            {member.explicitShareBps == null
+                              ? "Automático"
+                              : formatShareBps(member.explicitShareBps)}
+                          </td>
+                          <td className="font-medium">
+                            {formatShareBps(member.effectiveShareBps)}
+                          </td>
                         </tr>
                       ))}
                     </tbody>

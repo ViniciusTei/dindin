@@ -2,7 +2,10 @@ import { Form } from "react-router";
 
 import type { Account } from "~/domain/accounts/entity";
 import { formatBRL } from "~/lib/money";
-import FormModal, { ModalCloseButton, closeDialogOnSubmit } from "~/ui/FormModal";
+import FormModal, {
+  ModalCloseButton,
+  closeDialogOnSubmit,
+} from "~/ui/FormModal";
 
 function AccountCreateModal(props: { error?: string }) {
   return (
@@ -71,7 +74,7 @@ function AccountRenameModal(props: { account: Account }) {
       dialogId={`rename_account_modal_${props.account.id}`}
       triggerLabel="Renomear"
       title="Renomear conta"
-      description={`Atualize o nome exibido para a conta \"${props.account.name}\".`}
+      description={`Atualize o nome exibido para a conta "${props.account.name}".`}
       triggerClassName="btn btn-ghost btn-sm"
       dialogClassName="max-w-lg"
     >
@@ -80,7 +83,10 @@ function AccountRenameModal(props: { account: Account }) {
         <input type="hidden" name="accountId" value={props.account.id} />
 
         <div className="form-control">
-          <label className="label" htmlFor={`account-rename-name-${props.account.id}`}>
+          <label
+            className="label"
+            htmlFor={`account-rename-name-${props.account.id}`}
+          >
             <span className="label-text">Nome</span>
           </label>
           <input
@@ -112,7 +118,7 @@ function AccountDeleteModal(props: { account: Account }) {
       dialogId={`delete_account_modal_${props.account.id}`}
       triggerLabel="Excluir"
       title="Excluir conta"
-      description={`Tem certeza que deseja excluir a conta \"${props.account.name}\"?`}
+      description={`Tem certeza que deseja excluir a conta "${props.account.name}"?`}
       triggerClassName="btn btn-ghost btn-sm text-error"
       dialogClassName="max-w-lg"
       resetFormOnOpen={false}
@@ -120,7 +126,9 @@ function AccountDeleteModal(props: { account: Account }) {
       <Form method="post" onSubmit={closeDialogOnSubmit} className="space-y-3">
         <input type="hidden" name="intent" value="delete" />
         <input type="hidden" name="accountId" value={props.account.id} />
-        <p className="text-sm opacity-70">Essa ação remove a conta da lista atual.</p>
+        <p className="text-sm opacity-70">
+          Essa ação remove a conta da lista atual.
+        </p>
         <div className="modal-action">
           <ModalCloseButton />
           <button
@@ -183,7 +191,9 @@ export function AccountsPage(props: {
                     {props.accounts.map((a) => (
                       <tr key={a.id}>
                         <td>
-                          <span data-testid={`account-name-${a.name}`}>{a.name}</span>
+                          <span data-testid={`account-name-${a.name}`}>
+                            {a.name}
+                          </span>
                         </td>
                         <td>{formatBRL(a.initialBalanceCents)}</td>
                         <td>{formatBRL(a.currentBalanceCents)}</td>
@@ -202,7 +212,9 @@ export function AccountsPage(props: {
 
             <div className="flex items-center justify-between border-t border-base-300 pt-3">
               <div className="text-sm opacity-70">Total (saldo atual)</div>
-              <div className="font-semibold">{formatBRL(props.totalCurrentBalanceCents)}</div>
+              <div className="font-semibold">
+                {formatBRL(props.totalCurrentBalanceCents)}
+              </div>
             </div>
           </div>
         </section>

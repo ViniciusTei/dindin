@@ -3,7 +3,10 @@ import { Form, Link } from "react-router";
 import type { Account } from "~/domain/accounts/entity";
 import type { Category } from "~/domain/categories/entity";
 import { formatBRL } from "~/lib/money";
-import FormModal, { ModalCloseButton, closeDialogOnSubmit } from "~/ui/FormModal";
+import FormModal, {
+  ModalCloseButton,
+  closeDialogOnSubmit,
+} from "~/ui/FormModal";
 
 export type CreditCardDetail = {
   id: string;
@@ -92,14 +95,20 @@ function CreditCardSettingsModal(props: {
               id="card-settings-limit"
               name="limit"
               placeholder="0,00"
-              defaultValue={props.card.limitCents ? (props.card.limitCents / 100).toFixed(2).replace(".", ",") : ""}
+              defaultValue={
+                props.card.limitCents
+                  ? (props.card.limitCents / 100).toFixed(2).replace(".", ",")
+                  : ""
+              }
               className="input input-bordered w-full"
             />
           </div>
 
           <div className="form-control">
             <label className="label" htmlFor="card-settings-account-id">
-              <span className="label-text">Conta para pagamento (opcional)</span>
+              <span className="label-text">
+                Conta para pagamento (opcional)
+              </span>
             </label>
             <select
               id="card-settings-account-id"
@@ -146,14 +155,22 @@ function CreditCardPurchaseModal(props: { categories: Category[] }) {
             <label className="label" htmlFor="card-purchase-description">
               <span className="label-text">Descrição</span>
             </label>
-            <input id="card-purchase-description" name="description" className="input input-bordered w-full" />
+            <input
+              id="card-purchase-description"
+              name="description"
+              className="input input-bordered w-full"
+            />
           </div>
 
           <div className="form-control md:col-span-2">
             <label className="label" htmlFor="card-purchase-category-id">
               <span className="label-text">Categoria</span>
             </label>
-            <select id="card-purchase-category-id" name="categoryId" className="select select-bordered w-full">
+            <select
+              id="card-purchase-category-id"
+              name="categoryId"
+              className="select select-bordered w-full"
+            >
               <option value="">Sem categoria</option>
               {props.categories.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -167,14 +184,24 @@ function CreditCardPurchaseModal(props: { categories: Category[] }) {
             <label className="label" htmlFor="card-purchase-amount">
               <span className="label-text">Valor</span>
             </label>
-            <input id="card-purchase-amount" name="amount" placeholder="0,00" className="input input-bordered w-full" />
+            <input
+              id="card-purchase-amount"
+              name="amount"
+              placeholder="0,00"
+              className="input input-bordered w-full"
+            />
           </div>
 
           <div className="form-control">
             <label className="label" htmlFor="card-purchase-occurred-at">
               <span className="label-text">Data</span>
             </label>
-            <input id="card-purchase-occurred-at" name="occurredAt" type="date" className="input input-bordered w-full" />
+            <input
+              id="card-purchase-occurred-at"
+              name="occurredAt"
+              type="date"
+              className="input input-bordered w-full"
+            />
           </div>
 
           <div className="form-control">
@@ -213,7 +240,7 @@ function CreditCardPrepayModal(props: {
       dialogId={`credit_card_prepay_modal_${props.purchase.id}`}
       triggerLabel="Antecipar"
       title="Antecipar parcelas"
-      description={`Antecipe parcelas de \"${props.purchase.description}\" para a fatura ${props.ym}.`}
+      description={`Antecipe parcelas de "${props.purchase.description}" para a fatura ${props.ym}.`}
       triggerClassName="btn btn-ghost btn-sm"
       dialogClassName="max-w-lg"
     >
@@ -223,7 +250,10 @@ function CreditCardPrepayModal(props: {
         <input type="hidden" name="ym" value={props.ym} />
 
         <div className="form-control">
-          <label className="label" htmlFor={`credit-card-prepay-installments-${props.purchase.id}`}>
+          <label
+            className="label"
+            htmlFor={`credit-card-prepay-installments-${props.purchase.id}`}
+          >
             <span className="label-text">Parcelas a antecipar</span>
           </label>
           <input
@@ -258,7 +288,9 @@ export function CreditCardPage(props: {
   warning?: string;
   ok?: boolean;
 }) {
-  const paymentAccountName = props.accounts.find((account) => account.id === props.card.accountId)?.name;
+  const paymentAccountName = props.accounts.find(
+    (account) => account.id === props.card.accountId,
+  )?.name;
 
   return (
     <main className="mx-auto mt-10 max-w-4xl px-4">
@@ -268,7 +300,8 @@ export function CreditCardPage(props: {
             {props.card.brand} •••• {props.card.last4}
           </h1>
           <div className="mt-1 text-sm opacity-70">
-            Fechamento: dia {props.card.closingDay} • Vencimento: dia {props.card.dueDay}
+            Fechamento: dia {props.card.closingDay} • Vencimento: dia{" "}
+            {props.card.dueDay}
           </div>
         </div>
         <Link to="/cards" className="btn btn-ghost">
@@ -301,10 +334,18 @@ export function CreditCardPage(props: {
               <h2 className="card-title">Configurações</h2>
               <div>Fechamento: dia {props.card.closingDay}</div>
               <div>Vencimento: dia {props.card.dueDay}</div>
-              <div>Limite: {props.card.limitCents ? formatBRL(props.card.limitCents) : "—"}</div>
-              <div>Conta para pagamento: {paymentAccountName ?? "(sem conta)"}</div>
+              <div>
+                Limite:{" "}
+                {props.card.limitCents ? formatBRL(props.card.limitCents) : "—"}
+              </div>
+              <div>
+                Conta para pagamento: {paymentAccountName ?? "(sem conta)"}
+              </div>
             </div>
-            <CreditCardSettingsModal accounts={props.accounts} card={props.card} />
+            <CreditCardSettingsModal
+              accounts={props.accounts}
+              card={props.card}
+            />
           </div>
         </section>
 
@@ -314,7 +355,9 @@ export function CreditCardPage(props: {
 
             <div className="flex items-center justify-between">
               <div className="text-sm opacity-70">Total</div>
-              <div className="text-xl font-semibold">{formatBRL(props.invoice.totalCents)}</div>
+              <div className="text-xl font-semibold">
+                {formatBRL(props.invoice.totalCents)}
+              </div>
             </div>
 
             {props.invoice.lines.length === 0 ? (
@@ -351,7 +394,10 @@ export function CreditCardPage(props: {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h2 className="card-title">Compras</h2>
-                <p className="text-sm opacity-70">Gerencie compras registradas no cartão e antecipe parcelas quando necessário.</p>
+                <p className="text-sm opacity-70">
+                  Gerencie compras registradas no cartão e antecipe parcelas
+                  quando necessário.
+                </p>
               </div>
               <CreditCardPurchaseModal categories={props.categories} />
             </div>
@@ -381,7 +427,10 @@ export function CreditCardPage(props: {
                         </td>
                         <td>
                           <div className="flex justify-end">
-                            <CreditCardPrepayModal purchase={p} ym={props.invoice.ym} />
+                            <CreditCardPrepayModal
+                              purchase={p}
+                              ym={props.invoice.ym}
+                            />
                           </div>
                         </td>
                       </tr>
