@@ -1,0 +1,115 @@
+import type { Account } from "~/domain/accounts/entity";
+import type { Category } from "~/domain/categories/entity";
+import type { Transaction } from "~/domain/transactions/entity";
+
+type TransactionFormValues = {
+  occurredAt: string;
+  type: Transaction["type"];
+  accountId: string;
+  categoryId: string;
+  amount: string;
+  description: string;
+};
+
+export default function TransactionFormFields(props: {
+  accounts: Account[];
+  categories: Category[];
+  values: TransactionFormValues;
+  idPrefix: string;
+}) {
+  return (
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
+      <div className="form-control md:col-span-3">
+        <label className="label" htmlFor={`${props.idPrefix}-occurredAt`}>
+          <span className="label-text">Data</span>
+        </label>
+        <input
+          id={`${props.idPrefix}-occurredAt`}
+          name="occurredAt"
+          type="date"
+          defaultValue={props.values.occurredAt}
+          className="input input-bordered w-full"
+        />
+      </div>
+
+      <div className="form-control md:col-span-3">
+        <label className="label" htmlFor={`${props.idPrefix}-type`}>
+          <span className="label-text">Tipo</span>
+        </label>
+        <select
+          id={`${props.idPrefix}-type`}
+          name="type"
+          className="select select-bordered w-full"
+          defaultValue={props.values.type}
+        >
+          <option value="expense">Despesa</option>
+          <option value="income">Receita</option>
+        </select>
+      </div>
+
+      <div className="form-control md:col-span-6">
+        <label className="label" htmlFor={`${props.idPrefix}-accountId`}>
+          <span className="label-text">Conta</span>
+        </label>
+        <select
+          id={`${props.idPrefix}-accountId`}
+          name="accountId"
+          className="select select-bordered w-full"
+          defaultValue={props.values.accountId}
+        >
+          <option value="">Selecione…</option>
+          {props.accounts.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="form-control md:col-span-6">
+        <label className="label" htmlFor={`${props.idPrefix}-categoryId`}>
+          <span className="label-text">Categoria</span>
+        </label>
+        <select
+          id={`${props.idPrefix}-categoryId`}
+          name="categoryId"
+          className="select select-bordered w-full"
+          defaultValue={props.values.categoryId}
+        >
+          <option value="">Sem categoria</option>
+          {props.categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="form-control md:col-span-3">
+        <label className="label" htmlFor={`${props.idPrefix}-amount`}>
+          <span className="label-text">Valor</span>
+        </label>
+        <input
+          id={`${props.idPrefix}-amount`}
+          name="amount"
+          defaultValue={props.values.amount}
+          placeholder="0,00"
+          className="input input-bordered w-full"
+        />
+      </div>
+
+      <div className="form-control md:col-span-12">
+        <label className="label" htmlFor={`${props.idPrefix}-description`}>
+          <span className="label-text">Descrição</span>
+        </label>
+        <input
+          id={`${props.idPrefix}-description`}
+          name="description"
+          defaultValue={props.values.description}
+          placeholder="Ex.: Mercado, Salário, Uber"
+          className="input input-bordered w-full"
+        />
+      </div>
+    </div>
+  );
+}
