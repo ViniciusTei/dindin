@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useFetcher, useNavigate } from "react-router";
 
 import type { MembershipRole } from "~/domain/households/entity";
+import { formatRole } from "../helpers";
 
 type HouseholdSwitcherOption = {
   householdId: string;
@@ -20,10 +21,6 @@ type HouseholdSwitcherActionData =
       ok: false;
       error: string;
     };
-
-function formatRole(role: MembershipRole): string {
-  return role === "admin" ? "Administrador" : "Membro";
-}
 
 function buildFallbackOptions(params: {
   households: Array<{
@@ -127,9 +124,7 @@ export function HouseholdSwitcher(props: {
       >
         {options.map((option) => (
           <option key={option.householdId} value={option.householdId}>
-            {`${option.name} — ${formatRole(option.role)}${
-              option.recommended ? " (recomendada)" : ""
-            }`}
+            {`${option.name} — ${formatRole(option.role)}`}
           </option>
         ))}
       </select>
