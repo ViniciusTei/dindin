@@ -30,6 +30,11 @@ export default function TransactionFormFields(props: {
   const [accountId, setAccountId] = useState<string>(props.values.accountId ?? "");
   const [creditCardId, setCreditCardId] = useState<string>("");
 
+  // Keep controlled account state in sync if parent updates values (e.g., when opening edit modal)
+  useEffect(() => {
+    setAccountId(props.values.accountId ?? "");
+  }, [props.values.accountId]);
+
   useEffect(() => {
     // If a card is selected and it has an associated account, auto-select that account.
     if (creditCardId) {

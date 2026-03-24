@@ -22,6 +22,8 @@ export default function TransactionEditModal(props: {
       title="Editar transação"
       description={`Atualize os dados de "${props.transaction.description}".`}
       triggerClassName="btn btn-ghost btn-sm"
+      // don't reset the form when opening the edit modal — keep populated values
+      resetFormOnOpen={false}
       dialogClassName="max-w-4xl"
     >
       <Form method="post" onSubmit={closeDialogOnSubmit} className="space-y-4">
