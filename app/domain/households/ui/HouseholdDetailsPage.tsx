@@ -3,9 +3,9 @@ import { Link } from "react-router";
 import { DashboardExpensePieCard } from "~/domain/dashboard/ui/DashboardExpensePieCard";
 import type { HouseholdDetails } from "~/domain/households/entity";
 import { HouseholdExpenseTrendCard } from "~/domain/households/ui/HouseholdExpenseTrendCard";
+import MonthSelect from "~/ui/MonthSelect";
 import { formatBRL } from "~/lib/money";
 import { formatDate } from "~/lib/datetime";
-import Icon from "~/ui/Icon";
 
 function formatShareBps(shareBps: number): string {
   return `${(shareBps / 100).toFixed(2).replace(".", ",")}%`;
@@ -40,28 +40,14 @@ export function HouseholdDetailsPage(props: { household: HouseholdDetails }) {
             </Link>
           ) : null}
 
-          <div className="join items-center gap-2 self-start sm:self-auto">
-            <Link
-              to={`/households/${props.household.householdId}?month=${props.household.previousMonthLabel}`}
-              className="btn btn-sm join-item"
-              aria-label="Mês anterior"
-            >
-              <Icon name="arrow-left" aria-label="Anterior" />
-            </Link>
-            <div className="text-sm opacity-70 capitalize">
-              {formatDate(props.household.monthLabel, {
-                format: "long",
-                exclude: ["day"],
-              })}
-            </div>
-            <Link
-              to={`/households/${props.household.householdId}?month=${props.household.nextMonthLabel}`}
-              className="btn btn-sm join-item"
-              aria-label="Próximo mês"
-            >
-              <Icon name="arrow-right" aria-label="Próximo" />
-            </Link>
-          </div>
+          <MonthSelect
+            monthLabel={formatDate(props.household.monthLabel, {
+              format: "long",
+              exclude: ["day"],
+            })}
+            previousLink={`/households/${props.household.householdId}?month=${props.household.previousMonthLabel}`}
+            nextLink={`/households/${props.household.householdId}?month=${props.household.nextMonthLabel}`}
+          />
         </div>
       </div>
 
