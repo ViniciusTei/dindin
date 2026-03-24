@@ -38,10 +38,15 @@ function todayISODate(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+import { redirect } from "react-router";
+
 export async function loader({ request, params }: Route.LoaderArgs) {
   const userId = await requireUserId(request);
   const householdId = String(params.householdId ?? "");
   await requireHouseholdAccess({ userId, householdId });
+
+  const url = new URL(request.url);
+  const ok = url.searchParams.get("ok") === "1";
 
   const [accounts, categories, transactions, cards] = await Promise.all([
     listAccounts({ accountsRepo, userId }),
@@ -85,6 +90,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     today: todayISODate(),
     cards: viewCards,
     warning,
+    ok,
   };
 }
 
@@ -164,7 +170,9 @@ export async function action({ request, params }: Route.ActionArgs) {
         }
       }
 
-      return { ok: true };
+      const url = new URL(request.url);
+      url.searchParams.set('ok', '1');
+      return redirect(url.pathname + url.search);
     }
 
     // fallback to normal transaction creation
@@ -200,7 +208,9 @@ export async function action({ request, params }: Route.ActionArgs) {
       }
     }
 
-    return { ok: true };
+    const url = new URL(request.url);
+    url.searchParams.set('ok', '1');
+    return redirect(url.pathname + url.search);
   }
 
   if (intent === "update") {
@@ -251,7 +261,9 @@ export async function action({ request, params }: Route.ActionArgs) {
       }
     }
 
-    return { ok: true };
+    const url = new URL(request.url);
+    url.searchParams.set('ok', '1');
+    return redirect(url.pathname + url.search);
   }
 
   if (intent === "delete") {
@@ -268,7 +280,9 @@ export async function action({ request, params }: Route.ActionArgs) {
       return { error: "Transação não encontrada." };
     }
 
-    return { ok: true };
+    const url = new URL(request.url);
+    url.searchParams.set('ok', '1');
+    return redirect(url.pathname + url.search);
   }
 
   return { error: "Ação inválida" };
@@ -281,8 +295,10 @@ export default function HouseholdTransactions({ loaderData, actionData }: Route.
       categories={loaderData.categories}
       transactions={loaderData.transactions}
       today={loaderData.today}
-      error={actionData?.error}
-      ok={actionData?.ok}
+      error={actionData?.error ?? loaderData?.error}
+      ok={actionData?.ok ?? loaderData?.ok}
+      actionOk={Boolean(actionData?.ok)}
+      loaderOk={Boolean(loaderData?.ok)}
       cards={loaderData.cards}
     />
   );

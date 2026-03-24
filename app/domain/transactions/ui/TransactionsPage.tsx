@@ -2,6 +2,7 @@ import type { Account } from "~/domain/accounts/entity";
 import type { Category } from "~/domain/categories/entity";
 import type { Transaction } from "~/domain/transactions/entity";
 import { formatBRL } from "~/lib/money";
+import { useEffect } from "react";
 import TransactionCreateModal from "./TransactionCreateModal";
 import TransactionEditModal from "./TransactionEditModal";
 import TransactionDeleteModal from "./TransactionDeleteModal";
@@ -13,6 +14,8 @@ export function TransactionsPage(props: {
   transactions: Array<Transaction & { accountName?: string }>;
   error?: string;
   ok?: boolean;
+  actionOk?: boolean;
+  loaderOk?: boolean;
   today: string;
   cards?: Array<{
     id: string;
@@ -24,6 +27,15 @@ export function TransactionsPage(props: {
     accountId?: string | null;
   }>;
 }) {
+  useEffect(() => {
+    if (props.actionOk && !props.loaderOk) {
+      const url = new URL(window.location.href);
+      url.searchParams.set("ok", "1");
+      // navigate to same path with ok=1 so loader runs and shows updated data + success message
+      window.location.href = url.pathname + url.search;
+    }
+  }, [props.actionOk, props.loaderOk]);
+
   return (
     <main className="mx-auto mt-10 max-w-5xl px-4">
       <div className="flex items-center justify-between gap-4">
