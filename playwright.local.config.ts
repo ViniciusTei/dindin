@@ -7,6 +7,7 @@ export default defineConfig({
   expect: { timeout: 10_000 },
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? 'github' : 'list',
+  globalSetup: './e2e/global-setup.js',
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'retain-on-failure',
