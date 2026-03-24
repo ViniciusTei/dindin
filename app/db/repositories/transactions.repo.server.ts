@@ -9,11 +9,9 @@ import {
 } from "~/domain/transactions/errors";
 import type { TransactionsRepo } from "~/domain/transactions/ports";
 
-async function assertAccountBelongsToUser(params: {
-  userId: string;
-  accountId: string;
-}) {
-  const rows = await db
+async function assertAccountBelongsToUser(params: { userId: string; accountId: string; tx?: any }) {
+  const client = params.tx ?? db;
+  const rows = await client
     .select({ id: accounts.id })
     .from(accounts)
     .where(and(eq(accounts.id, params.accountId), eq(accounts.userId, params.userId)))
@@ -45,10 +43,12 @@ export const transactionsRepo: TransactionsRepo = {
   },
 
   async create(params) {
-    await assertAccountBelongsToUser({ userId: params.userId, accountId: params.accountId });
+    const client = params.tx ?? db;
+
+    await assertAccountBelongsToUser({ userId: params.userId, accountId: params.accountId, tx: client });
 
     if (params.categoryId) {
-      const exists = await db
+      const exists = await client
         .select({ id: categories.id })
         .from(categories)
         .where(and(eq(categories.id, params.categoryId), eq(categories.householdId, params.householdId)))
@@ -56,7 +56,7 @@ export const transactionsRepo: TransactionsRepo = {
       if (exists.length === 0) throw new TransactionCategoryNotFoundError();
     }
 
-    await db.insert(transactions).values({
+    await client.insert(transactions).values({
       id: params.id,
       userId: params.userId,
       householdId: params.householdId,
@@ -70,10 +70,12 @@ export const transactionsRepo: TransactionsRepo = {
   },
 
   async update(params) {
-    await assertAccountBelongsToUser({ userId: params.userId, accountId: params.accountId });
+    const client = params.tx ?? db;
+
+    await assertAccountBelongsToUser({ userId: params.userId, accountId: params.accountId, tx: client });
 
     if (params.categoryId) {
-      const exists = await db
+      const exists = await client
         .select({ id: categories.id })
         .from(categories)
         .where(and(eq(categories.id, params.categoryId), eq(categories.householdId, params.householdId)))
@@ -81,7 +83,7 @@ export const transactionsRepo: TransactionsRepo = {
       if (exists.length === 0) throw new TransactionCategoryNotFoundError();
     }
 
-    const updated = await db
+    const updated = await client
       .update(transactions)
       .set({
         accountId: params.accountId,
@@ -104,7 +106,9 @@ export const transactionsRepo: TransactionsRepo = {
   },
 
   async delete(params) {
-    const deleted = await db
+    const client = params.tx ?? db;
+
+    const deleted = await client
       .delete(transactions)
       .where(
         and(

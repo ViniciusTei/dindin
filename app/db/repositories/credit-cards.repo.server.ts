@@ -9,11 +9,9 @@ import {
 } from "~/domain/credit-cards/errors";
 import type { CreditCardsRepo } from "~/domain/credit-cards/ports";
 
-async function assertAccountBelongsToUser(params: {
-  userId: string;
-  accountId: string;
-}) {
-  const rows = await db
+async function assertAccountBelongsToUser(params: { userId: string; accountId: string; tx?: any }) {
+  const client = params.tx ?? db;
+  const rows = await client
     .select({ id: accounts.id })
     .from(accounts)
     .where(and(eq(accounts.id, params.accountId), eq(accounts.userId, params.userId)))
@@ -45,7 +43,8 @@ export const creditCardsRepo: CreditCardsRepo = {
   },
 
   async findById(params) {
-    const rows = await db.query.creditCards.findMany({
+    const client = params.tx ?? db;
+    const rows = await client.query.creditCards.findMany({
       where: (t, { and, eq }) =>
         and(eq(t.userId, params.userId), eq(t.id, params.creditCardId)),
       limit: 1,
@@ -70,11 +69,12 @@ export const creditCardsRepo: CreditCardsRepo = {
   },
 
   async create(params) {
+    const client = params.tx ?? db;
     if (params.accountId) {
-      await assertAccountBelongsToUser({ userId: params.userId, accountId: params.accountId });
+      await assertAccountBelongsToUser({ userId: params.userId, accountId: params.accountId, tx: client });
     }
 
-    await db.insert(creditCards).values({
+    await client.insert(creditCards).values({
       id: params.id,
       userId: params.userId,
       accountId: params.accountId,
@@ -89,11 +89,12 @@ export const creditCardsRepo: CreditCardsRepo = {
   },
 
   async update(params) {
+    const client = params.tx ?? db;
     if (params.accountId) {
-      await assertAccountBelongsToUser({ userId: params.userId, accountId: params.accountId });
+      await assertAccountBelongsToUser({ userId: params.userId, accountId: params.accountId, tx: client });
     }
 
-    const updated = await db
+    const updated = await client
       .update(creditCards)
       .set({
         accountId: params.accountId,
@@ -108,7 +109,8 @@ export const creditCardsRepo: CreditCardsRepo = {
   },
 
   async delete(params) {
-    const deleted = await db
+    const client = params.tx ?? db;
+    const deleted = await client
       .delete(creditCards)
       .where(and(eq(creditCards.id, params.creditCardId), eq(creditCards.userId, params.userId)))
       .returning({ id: creditCards.id });

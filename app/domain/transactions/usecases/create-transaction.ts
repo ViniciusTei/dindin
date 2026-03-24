@@ -16,6 +16,7 @@ export async function createTransaction(params: {
   description: string;
   amountCents: number;
   occurredAt: Date;
+  tx?: any;
 }): Promise<
   | { ok: true; transactionId: string }
   | {
@@ -55,6 +56,7 @@ export async function createTransaction(params: {
       description,
       amountCents: params.amountCents,
       occurredAt: params.occurredAt,
+      tx: params.tx,
     });
     return { ok: true, transactionId: id };
   } catch (err) {

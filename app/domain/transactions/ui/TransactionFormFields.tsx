@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import type { Account } from "~/domain/accounts/entity";
 import type { Category } from "~/domain/categories/entity";
 import type { Transaction } from "~/domain/transactions/entity";
@@ -26,6 +27,20 @@ export default function TransactionFormFields(props: {
     accountId?: string | null;
   }>;
 }) {
+  const [accountId, setAccountId] = useState<string>(props.values.accountId ?? "");
+  const [creditCardId, setCreditCardId] = useState<string>("");
+
+  useEffect(() => {
+    // If a card is selected and it has an associated account, auto-select that account.
+    if (creditCardId) {
+      const card = props.cards?.find((c) => c.id === creditCardId);
+      if (card?.accountId) {
+        setAccountId(card.accountId);
+      }
+    }
+    // Intentionally not clearing account when unselecting card to avoid surprising the user.
+  }, [creditCardId, props.cards]);
+
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
       <div className="form-control md:col-span-3">
@@ -64,7 +79,8 @@ export default function TransactionFormFields(props: {
           id={`${props.idPrefix}-accountId`}
           name="accountId"
           className="select select-bordered w-full"
-          defaultValue={props.values.accountId}
+          value={accountId}
+          onChange={(e) => setAccountId(e.target.value)}
         >
           <option value="">Selecione…</option>
           {props.accounts.map((a) => (
@@ -102,7 +118,8 @@ export default function TransactionFormFields(props: {
           id={`${props.idPrefix}-creditCardId`}
           name="creditCardId"
           className="select select-bordered w-full"
-          defaultValue=""
+          value={creditCardId}
+          onChange={(e) => setCreditCardId(e.target.value)}
         >
           <option value="">Não (usar conta)</option>
           {props.cards?.map((c) => (

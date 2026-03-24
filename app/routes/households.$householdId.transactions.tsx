@@ -100,7 +100,8 @@ export async function action({ request, params }: Route.ActionArgs) {
   const intent = String(form.get("intent") ?? "");
 
   if (intent === "create") {
-    const accountId = String(form.get("accountId") ?? "");
+    // allow overriding accountId if card forces a specific linked account
+    let accountId = String(form.get("accountId") ?? "");
     const categoryIdRaw = String(form.get("categoryId") ?? "").trim();
     const categoryId = categoryIdRaw ? categoryIdRaw : null;
     const type = String(form.get("type") ?? "");
@@ -118,6 +119,16 @@ export async function action({ request, params }: Route.ActionArgs) {
     const installmentsTotal = Number(installmentsTotalRaw) || 1;
 
     if (creditCardId) {
+      // fetch card to validate and prefer its linked account if present
+      const card = await creditCardsRepo.findById({ userId, creditCardId });
+      if (!card) {
+        return { error: "Cartão não encontrado." };
+      }
+
+      if (card.accountId) {
+        accountId = card.accountId;
+      }
+
       const res = await createCreditCardPurchaseInHousehold({
         creditCardsRepo,
         purchasesRepo: creditCardPurchasesRepo,

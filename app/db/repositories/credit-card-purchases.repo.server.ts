@@ -6,8 +6,9 @@ import { creditCardPurchases, creditCards, creditCardPurchaseTransactions } from
 import { CreditCardNotFoundError, CreditCardPurchaseNotFoundError } from "~/domain/credit-cards/errors";
 import type { CreditCardPurchasesRepo } from "~/domain/credit-cards/ports";
 
-async function assertCardBelongsToUser(params: { userId: string; creditCardId: string }) {
-  const rows = await db
+async function assertCardBelongsToUser(params: { userId: string; creditCardId: string; tx?: any }) {
+  const client = params.tx ?? db;
+  const rows = await client
     .select({ id: creditCards.id })
     .from(creditCards)
     .where(and(eq(creditCards.id, params.creditCardId), eq(creditCards.userId, params.userId)))
@@ -18,7 +19,8 @@ async function assertCardBelongsToUser(params: { userId: string; creditCardId: s
 
 export const creditCardPurchasesRepo: CreditCardPurchasesRepo = {
   async listByCard(params) {
-    const rows = await db.query.creditCardPurchases.findMany({
+    const client = params.tx ?? db;
+    const rows = await client.query.creditCardPurchases.findMany({
       where: (t, { and, eq }) =>
         and(eq(t.userId, params.userId), eq(t.creditCardId, params.creditCardId)),
       orderBy: (t) => [desc(t.occurredAt), desc(t.createdAt)],
@@ -39,7 +41,8 @@ export const creditCardPurchasesRepo: CreditCardPurchasesRepo = {
   },
 
   async findById(params) {
-    const rows = await db.query.creditCardPurchases.findMany({
+    const client = params.tx ?? db;
+    const rows = await client.query.creditCardPurchases.findMany({
       where: (t, { and, eq }) => and(eq(t.userId, params.userId), eq(t.id, params.purchaseId)),
       limit: 1,
     });
@@ -62,9 +65,10 @@ export const creditCardPurchasesRepo: CreditCardPurchasesRepo = {
   },
 
   async create(params) {
-    await assertCardBelongsToUser({ userId: params.userId, creditCardId: params.creditCardId });
+    const client = params.tx ?? db;
+    await assertCardBelongsToUser({ userId: params.userId, creditCardId: params.creditCardId, tx: client });
 
-    await db.insert(creditCardPurchases).values({
+    await client.insert(creditCardPurchases).values({
       id: params.id,
       userId: params.userId,
       creditCardId: params.creditCardId,
@@ -78,14 +82,15 @@ export const creditCardPurchasesRepo: CreditCardPurchasesRepo = {
   },
 
   async linkTransaction(params) {
+    const client = params.tx ?? db;
     // ensure purchase belongs to user
-    const rows = await db.query.creditCardPurchases.findMany({
+    const rows = await client.query.creditCardPurchases.findMany({
       where: (t, { and, eq }) => and(eq(t.userId, params.userId), eq(t.id, params.purchaseId)),
       limit: 1,
     });
     if (rows.length === 0) throw new CreditCardPurchaseNotFoundError();
 
-    await db.insert(creditCardPurchaseTransactions).values({
+    await client.insert(creditCardPurchaseTransactions).values({
       id: crypto.randomUUID(),
       purchaseId: params.purchaseId,
       transactionId: params.transactionId,

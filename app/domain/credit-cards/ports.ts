@@ -11,7 +11,7 @@ export interface CardCrypto {
 
 export interface CreditCardsRepo {
   listByUser(userId: string): Promise<CreditCard[]>;
-  findById(params: { userId: string; creditCardId: string }): Promise<CreditCard | null>;
+  findById(params: { userId: string; creditCardId: string; tx?: any }): Promise<CreditCard | null>;
 
   create(params: {
     id: string;
@@ -24,6 +24,7 @@ export interface CreditCardsRepo {
     limitCents: number | null;
     closingDay: number;
     dueDay: number;
+    tx?: any;
   }): Promise<void>;
 
   update(params: {
@@ -33,14 +34,15 @@ export interface CreditCardsRepo {
     limitCents: number | null;
     closingDay: number;
     dueDay: number;
+    tx?: any;
   }): Promise<void>;
 
-  delete(params: { userId: string; creditCardId: string }): Promise<void>;
+  delete(params: { userId: string; creditCardId: string; tx?: any }): Promise<void>;
 }
 
 export interface CreditCardPurchasesRepo {
-  listByCard(params: { userId: string; creditCardId: string }): Promise<CreditCardPurchase[]>;
-  findById(params: { userId: string; purchaseId: string }): Promise<CreditCardPurchase | null>;
+  listByCard(params: { userId: string; creditCardId: string; tx?: any }): Promise<CreditCardPurchase[]>;
+  findById(params: { userId: string; purchaseId: string; tx?: any }): Promise<CreditCardPurchase | null>;
 
   create(params: {
     id: string;
@@ -52,15 +54,17 @@ export interface CreditCardPurchasesRepo {
     occurredAt: Date;
     installmentsTotal: number;
     firstInvoiceYm: string;
+    tx?: any;
   }): Promise<void>;
 
-  linkTransaction(params: { userId: string; purchaseId: string; transactionId: string }): Promise<void>;
+  linkTransaction(params: { userId: string; purchaseId: string; transactionId: string; tx?: any }): Promise<void>;
 }
 
 export interface CreditCardPrepaymentsRepo {
   listByCard(params: {
     userId: string;
     creditCardId: string;
+    tx?: any;
   }): Promise<CreditCardPurchasePrepayment[]>;
 
   create(params: {
@@ -70,5 +74,6 @@ export interface CreditCardPrepaymentsRepo {
     ym: string;
     installmentsCount: number;
     createdAt: Date;
+    tx?: any;
   }): Promise<void>;
 }
