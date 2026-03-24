@@ -61,11 +61,14 @@ export async function seedWorker(params: {
     hashPassword(memberPassword),
   ]);
 
+  console.log('[e2e] Seeding household', householdId, 'runId', params.runId, 'worker', params.workerIndex);
+  console.log('[e2e] Using DATABASE_URL=', process.env.DATABASE_URL);
   await pool.query(
     "insert into households (id, name) values ($1, $2)",
     [householdId, `E2E ${params.runId} w${params.workerIndex}`]
   );
 
+  console.log('[e2e] Seeding users', adminUsername, memberUsername);
   await pool.query(
     "insert into users (id, username, password_hash, is_admin) values ($1, $2, $3, $4)",
     [adminId, adminUsername, adminHash, true]
@@ -76,11 +79,13 @@ export async function seedWorker(params: {
   );
 
   // Apenas o admin começa no household; o member entra via convite.
+  console.log('[e2e] Seeding membership for admin', adminId);
   await pool.query(
     "insert into memberships (household_id, user_id, role) values ($1, $2, $3)",
     [householdId, adminId, "admin"]
   );
 
+  console.log('[e2e] Seeding categories');
   for (const name of DEFAULT_CATEGORIES) {
     await pool.query(
       "insert into categories (id, household_id, name) values ($1, $2, $3)",
