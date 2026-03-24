@@ -11,6 +11,15 @@ import TransactionFormFields from "./TransactionFormFields";
 export default function TransactionCreateModal(props: {
   accounts: Account[];
   categories: Category[];
+  cards?: Array<{
+    id: string;
+    brand: string;
+    last4: string;
+    limitCents?: number | null;
+    closingDay?: number;
+    dueDay?: number;
+    accountId?: string | null;
+  }>;
   error?: string;
   today: string;
 }) {
@@ -38,6 +47,7 @@ export default function TransactionCreateModal(props: {
             amount: "",
             description: "",
           }}
+          cards={props.cards}
         />
 
         {props.error ? (

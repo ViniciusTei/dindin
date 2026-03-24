@@ -75,7 +75,7 @@ export function AppShell(props: {
       visible: boolean;
     }> = [
       { to: "/", label: "Dashboard", icon: "dashboard", visible: true },
-      { to: "/households", label: "Households", icon: "heart", visible: true },
+      { to: "/households", label: "Rateios", icon: "heart", visible: true },
       { to: "/accounts", label: "Contas", icon: "bank", visible: true },
       { to: "/cards", label: "Cartões", icon: "credit-card", visible: true },
       { to: "/account", label: "Conta", icon: "account", visible: true },
@@ -192,7 +192,7 @@ export function AppShell(props: {
 
               {!isSidebarCollapsed && activeHousehold ? (
                 <li className="menu-title mt-4 px-3 text-xs uppercase opacity-60">
-                  <span>Household ativa</span>
+                  <span>Rateio ativo</span>
                 </li>
               ) : null}
 

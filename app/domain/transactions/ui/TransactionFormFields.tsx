@@ -16,6 +16,15 @@ export default function TransactionFormFields(props: {
   categories: Category[];
   values: TransactionFormValues;
   idPrefix: string;
+  cards?: Array<{
+    id: string;
+    brand: string;
+    last4: string;
+    limitCents?: number | null;
+    closingDay?: number;
+    dueDay?: number;
+    accountId?: string | null;
+  }>;
 }) {
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
@@ -83,6 +92,39 @@ export default function TransactionFormFields(props: {
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="form-control md:col-span-6">
+        <label className="label" htmlFor={`${props.idPrefix}-creditCardId`}>
+          <span className="label-text">Pagamento com cartão</span>
+        </label>
+        <select
+          id={`${props.idPrefix}-creditCardId`}
+          name="creditCardId"
+          className="select select-bordered w-full"
+          defaultValue=""
+        >
+          <option value="">Não (usar conta)</option>
+          {props.cards?.map((c) => (
+            <option key={c.id} value={c.id}>
+              {`${String(c.brand).toUpperCase()} •••• ${c.last4}`}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="form-control md:col-span-3">
+        <label className="label" htmlFor={`${props.idPrefix}-installmentsTotal`}>
+          <span className="label-text">Parcelas</span>
+        </label>
+        <input
+          id={`${props.idPrefix}-installmentsTotal`}
+          name="installmentsTotal"
+          type="number"
+          defaultValue="1"
+          min={1}
+          className="input input-bordered w-full"
+        />
       </div>
 
       <div className="form-control md:col-span-3">

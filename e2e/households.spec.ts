@@ -12,7 +12,7 @@ test("criar household, adicionar membro por username e configurar rateio", async
   });
 
   await page.goto("/households");
-  await page.getByRole("button", { name: "Criar household" }).click();
+  await page.getByRole("button", { name: "Criar Rateio" }).click();
   await page.getByLabel("Nome").fill("Casa Nova E2E");
   await Promise.all([
     page.waitForURL(/\/households\/.*\/manage/),
@@ -75,7 +75,7 @@ test("switcher troca a household ativa na sidebar e preserva subrota segura", as
   });
 
   await page.goto("/households");
-  await page.getByRole("button", { name: "Criar household" }).click();
+  await page.getByRole("button", { name: "Criar Rateio" }).click();
   await page.getByLabel("Nome").fill("Casa Sidebar E2E");
   await Promise.all([
     page.waitForURL(/\/households\/.*\/manage/),

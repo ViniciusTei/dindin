@@ -16,7 +16,7 @@ export function DashboardHouseholdsOverview(props: {
       <div className="card-body gap-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h2 className="card-title">Households</h2>
+            <h2 className="card-title">Rateios</h2>
             <p className="text-sm opacity-70">
               Resumo das households no mês {props.monthLabel}.
             </p>

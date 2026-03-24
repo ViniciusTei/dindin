@@ -6,15 +6,21 @@ import { requireUserId } from "~/auth/session.server";
 import { accountsRepo } from "~/db/repositories/accounts.repo.server";
 import { categoriesRepo } from "~/db/repositories/categories.repo.server";
 import { transactionsRepo } from "~/db/repositories/transactions.repo.server";
+import { creditCardsRepo } from "~/db/repositories/credit-cards.repo.server";
+import { creditCardPurchasesRepo } from "~/db/repositories/credit-card-purchases.repo.server";
 import { listAccounts } from "~/domain/accounts/usecases/list-accounts";
 import { listCategories } from "~/domain/categories/usecases/list-categories";
+import { listCreditCards } from "~/domain/credit-cards/usecases/list-credit-cards";
 import type { TransactionType } from "~/domain/transactions/entity";
 import { createTransaction } from "~/domain/transactions/usecases/create-transaction";
+import { createCreditCardPurchase } from "~/domain/credit-cards/usecases/create-purchase";
 import { deleteTransaction } from "~/domain/transactions/usecases/delete-transaction";
 import { listTransactions } from "~/domain/transactions/usecases/list-transactions";
 import { updateTransaction } from "~/domain/transactions/usecases/update-transaction";
 import { TransactionsPage } from "~/domain/transactions/ui/TransactionsPage";
 import { toCents } from "~/lib/money";
+import { decryptString } from "~/lib/crypto.server";
+import { addMonthsUTC } from "~/domain/dashboard/month";
 
 function createId(): string {
   return crypto.randomUUID();
@@ -37,13 +43,37 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const householdId = String(params.householdId ?? "");
   await requireHouseholdAccess({ userId, householdId });
 
-  const [accounts, categories, transactions] = await Promise.all([
+  const [accounts, categories, transactions, cards] = await Promise.all([
     listAccounts({ accountsRepo, userId }),
     listCategories({ categoriesRepo, householdId }),
     listTransactions({ transactionsRepo, userId, householdId }),
+    listCreditCards({ creditCardsRepo, userId }),
   ]);
 
   const accountNameById = new Map(accounts.map((account) => [account.id, account.name] as const));
+
+  let warning: string | undefined;
+  const viewCards = cards.map((c) => {
+    let last4 = "????";
+    try {
+      const number = decryptString(c.numberEnc);
+      last4 = number.slice(-4);
+    } catch (err) {
+      warning =
+        warning ??
+        (err instanceof Error ? err.message : "Falha ao decriptografar dados do cartão.");
+    }
+
+    return {
+      id: c.id,
+      brand: String(c.brand),
+      last4,
+      limitCents: c.limitCents,
+      closingDay: c.closingDay,
+      dueDay: c.dueDay,
+      accountId: c.accountId,
+    };
+  });
 
   return {
     accounts,
@@ -53,6 +83,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       accountName: accountNameById.get(transaction.accountId),
     })),
     today: todayISODate(),
+    cards: viewCards,
+    warning,
   };
 }
 
@@ -80,6 +112,90 @@ export async function action({ request, params }: Route.ActionArgs) {
       return { error: "Categoria não encontrada." };
     }
 
+    const creditCardIdRaw = String(form.get("creditCardId") ?? "").trim();
+    const creditCardId = creditCardIdRaw ? creditCardIdRaw : null;
+    const installmentsTotalRaw = String(form.get("installmentsTotal") ?? "1").trim();
+    const installmentsTotal = Number(installmentsTotalRaw) || 1;
+
+    if (creditCardId) {
+      // create purchase record
+      const purchaseResult = await createCreditCardPurchase({
+        creditCardsRepo,
+        purchasesRepo: creditCardPurchasesRepo,
+        idFactory: createId,
+        userId,
+        creditCardId,
+        categoryId,
+        description,
+        amountCents: amountCents ?? NaN,
+        occurredAt: occurredAt ?? new Date("invalid"),
+        installmentsTotal,
+      });
+
+      if (!purchaseResult.ok) {
+        switch (purchaseResult.error) {
+          case "CARD_REQUIRED":
+            return { error: "Cartão é obrigatório." };
+          case "CARD_NOT_FOUND":
+            return { error: "Cartão não encontrado." };
+          case "DESCRIPTION_REQUIRED":
+            return { error: "Descrição é obrigatória." };
+          case "AMOUNT_INVALID":
+            return { error: "Valor inválido." };
+          case "DATE_REQUIRED":
+            return { error: "Data é obrigatória." };
+          case "INSTALLMENTS_INVALID":
+            return { error: "Número de parcelas inválido." };
+        }
+      }
+
+      // create installment transactions in household
+      const total = amountCents ?? NaN;
+      const n = installmentsTotal;
+      const base = Math.floor(total / n);
+      const rem = total - base * n;
+
+      for (let i = 0; i < n; i++) {
+        const installmentAmount = base + (i < rem ? 1 : 0);
+        const installmentDate = addMonthsUTC(occurredAt ?? new Date("invalid"), i);
+
+        const txResult = await createTransaction({
+          transactionsRepo,
+          idFactory: createId,
+          userId,
+          householdId,
+          accountId,
+          categoryId,
+          type: type as TransactionType,
+          description: `${description} (parcela ${i + 1}/${n})`,
+          amountCents: installmentAmount,
+          occurredAt: installmentDate,
+        });
+
+        if (!txResult.ok) {
+          switch (txResult.error) {
+            case "ACCOUNT_REQUIRED":
+              return { error: "Conta é obrigatória." };
+            case "TYPE_INVALID":
+              return { error: "Tipo inválido." };
+            case "DESCRIPTION_REQUIRED":
+              return { error: "Descrição é obrigatória." };
+            case "AMOUNT_INVALID":
+              return { error: "Valor inválido." };
+            case "DATE_REQUIRED":
+              return { error: "Data é obrigatória." };
+            case "ACCOUNT_NOT_FOUND":
+              return { error: "Conta não encontrada." };
+            case "CATEGORY_NOT_FOUND":
+              return { error: "Categoria não encontrada." };
+          }
+        }
+      }
+
+      return { ok: true };
+    }
+
+    // fallback to normal transaction creation
     const result = await createTransaction({
       transactionsRepo,
       idFactory: createId,

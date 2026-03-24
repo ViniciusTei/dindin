@@ -137,7 +137,7 @@ describe("AppShell", () => {
       </AppShell>
     );
 
-    expect(screen.getByLabelText("Households")).toBeInTheDocument();
+    expect(screen.getByLabelText("Rateios")).toBeInTheDocument();
     expect(screen.queryByLabelText("Convites")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Transações")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Categorias")).not.toBeInTheDocument();

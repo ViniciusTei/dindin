@@ -17,7 +17,7 @@ export function HouseholdsPage(props: {
     <main className="mx-auto mt-10 max-w-5xl px-4">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Households</h1>
+          <h1 className="text-2xl font-semibold">Rateios</h1>
           <p className="text-sm opacity-70">Resumo do mês {props.monthLabel}</p>
         </div>
         <HouseholdCreateModal error={props.error} />

@@ -6,8 +6,8 @@ export default function HouseholdCreateModal(props: { error?: string }) {
   return (
     <FormModal
       dialogId="create_household_modal"
-      triggerLabel="Criar household"
-      title="Criar household"
+      triggerLabel="Criar Rateio"
+      title="Criar Rateio"
       description="Crie uma nova household e depois configure membros, convites e rateio."
       triggerClassName="btn btn-primary"
     >
@@ -38,7 +38,7 @@ export default function HouseholdCreateModal(props: { error?: string }) {
             className="btn btn-primary"
             data-testid="household-create-button"
           >
-            Criar household
+            Criar Rateio
           </button>
         </div>
       </Form>

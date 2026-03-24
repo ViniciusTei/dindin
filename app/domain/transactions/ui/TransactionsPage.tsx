@@ -14,6 +14,15 @@ export function TransactionsPage(props: {
   error?: string;
   ok?: boolean;
   today: string;
+  cards?: Array<{
+    id: string;
+    brand: string;
+    last4: string;
+    limitCents?: number | null;
+    closingDay?: number;
+    dueDay?: number;
+    accountId?: string | null;
+  }>;
 }) {
   return (
     <main className="mx-auto mt-10 max-w-5xl px-4">
@@ -24,6 +33,7 @@ export function TransactionsPage(props: {
           categories={props.categories}
           error={props.error}
           today={props.today}
+          cards={props.cards}
         />
       </div>
 

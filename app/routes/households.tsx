@@ -14,7 +14,7 @@ function createId(): string {
 }
 
 export function meta() {
-  return [{ title: "Households | Financeiro" }];
+  return [{ title: "Rateios | Financeiro" }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
