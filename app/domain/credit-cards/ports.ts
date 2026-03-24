@@ -53,6 +53,8 @@ export interface CreditCardPurchasesRepo {
     installmentsTotal: number;
     firstInvoiceYm: string;
   }): Promise<void>;
+
+  linkTransaction(params: { userId: string; purchaseId: string; transactionId: string }): Promise<void>;
 }
 
 export interface CreditCardPrepaymentsRepo {

@@ -69,3 +69,45 @@ test("transações: validar erro, criar, editar e excluir", async ({ page, seed 
   await expect(page.getByRole("status")).toHaveText(/Salvo\./);
   await expect(txCard).toHaveCount(0);
 });
+
+test("transações: criar compra por cartão (household) com parcelas", async ({ page, seed }) => {
+  await login(page, {
+    username: seed.users.admin.username,
+    password: seed.users.admin.password,
+  });
+
+  await ensureAccount(page);
+
+  // Criar cartão
+  await page.goto("/cards");
+  await expect(page.getByRole("heading", { name: "Cartões" })).toBeVisible();
+  await page.getByRole("button", { name: "Cadastrar cartão" }).click();
+  const createCardDialog = page.getByRole("dialog", { name: "Cadastrar cartão" });
+  await createCardDialog.locator("#card-create-number").fill("4111 1111 1111 1111");
+  await createCardDialog.locator("#card-create-expiration").fill("03/26");
+  await createCardDialog.locator("#card-create-cvv").fill("123");
+  await createCardDialog.locator("#card-create-limit").fill("1000,00");
+  await createCardDialog.locator("#card-create-account-id").selectOption({ label: "Carteira" });
+  await createCardDialog.getByRole("button", { name: "Cadastrar" }).click();
+  await expect(page.getByRole("status")).toHaveText(/Salvo\./);
+
+  // Criar compra na household usando cartão parcelado
+  await page.goto(`/households/${seed.householdId}/transactions`);
+  await expect(page.getByRole("heading", { name: "Transações" })).toBeVisible();
+
+  await page.getByTestId("transaction-create-open").click();
+  const createDialog = page.getByRole("dialog", { name: "Criar transação" });
+  await createDialog.getByLabel("Conta").selectOption({ label: "Carteira" });
+  await createDialog.getByLabel("Descrição").fill("Compras PC");
+  await createDialog.getByLabel("Valor").fill("100,00");
+  // select first card (index 1, index 0 is the 'Não (usar conta)')
+  await createDialog.locator('#transaction-create-creditCardId').selectOption({ index: 1 });
+  await createDialog.getByLabel("Parcelas").fill("3");
+  await createDialog.getByTestId("transaction-create-submit").click();
+
+  await expect(page.getByRole("status")).toHaveText(/Salvo\./);
+
+  // Verifica que 3 parcelas foram criadas (descrição base aparece em 3 headings)
+  const headings = page.locator("h3", { hasText: "Compras PC" });
+  await expect(headings).toHaveCount(3);
+});

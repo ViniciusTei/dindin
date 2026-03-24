@@ -610,6 +610,8 @@ export function makeCreditCardPurchasesRepo(seed?: {
     createdAt: p.createdAt ?? new Date(),
   }));
 
+  const purchaseTransactions: Array<{ id: string; purchaseId: string; transactionId: string; createdAt: Date }> = [];
+
   const repo: CreditCardPurchasesRepo = {
     async listByCard(params) {
       return purchases
@@ -635,9 +637,20 @@ export function makeCreditCardPurchasesRepo(seed?: {
         createdAt: new Date(),
       });
     },
+    async linkTransaction(params) {
+      if (params.userId !== userId) throw new CreditCardPurchaseNotFoundError();
+      const p = purchases.find((x) => x.id === params.purchaseId && x.userId === params.userId);
+      if (!p) throw new CreditCardPurchaseNotFoundError();
+      purchaseTransactions.push({
+        id: `${params.purchaseId}:${params.transactionId}`,
+        purchaseId: params.purchaseId,
+        transactionId: params.transactionId,
+        createdAt: new Date(),
+      });
+    },
   };
 
-  return { repo, purchases, userId, cardIds };
+  return { repo, purchases, userId, cardIds, purchaseTransactions };
 }
 
 export function makeCreditCardPrepaymentsRepo(seed?: {

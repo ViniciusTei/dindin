@@ -13,7 +13,7 @@ import { listCategories } from "~/domain/categories/usecases/list-categories";
 import { listCreditCards } from "~/domain/credit-cards/usecases/list-credit-cards";
 import type { TransactionType } from "~/domain/transactions/entity";
 import { createTransaction } from "~/domain/transactions/usecases/create-transaction";
-import { createCreditCardPurchase } from "~/domain/credit-cards/usecases/create-purchase";
+import { createCreditCardPurchaseInHousehold } from "~/domain/credit-cards/usecases/create-purchase-in-household";
 import { deleteTransaction } from "~/domain/transactions/usecases/delete-transaction";
 import { listTransactions } from "~/domain/transactions/usecases/list-transactions";
 import { updateTransaction } from "~/domain/transactions/usecases/update-transaction";
@@ -118,12 +118,14 @@ export async function action({ request, params }: Route.ActionArgs) {
     const installmentsTotal = Number(installmentsTotalRaw) || 1;
 
     if (creditCardId) {
-      // create purchase record
-      const purchaseResult = await createCreditCardPurchase({
+      const res = await createCreditCardPurchaseInHousehold({
         creditCardsRepo,
         purchasesRepo: creditCardPurchasesRepo,
+        transactionsRepo,
         idFactory: createId,
         userId,
+        householdId,
+        accountId,
         creditCardId,
         categoryId,
         description,
@@ -132,8 +134,8 @@ export async function action({ request, params }: Route.ActionArgs) {
         installmentsTotal,
       });
 
-      if (!purchaseResult.ok) {
-        switch (purchaseResult.error) {
+      if (!res.ok) {
+        switch (res.error) {
           case "CARD_REQUIRED":
             return { error: "Cartão é obrigatório." };
           case "CARD_NOT_FOUND":
@@ -146,49 +148,8 @@ export async function action({ request, params }: Route.ActionArgs) {
             return { error: "Data é obrigatória." };
           case "INSTALLMENTS_INVALID":
             return { error: "Número de parcelas inválido." };
-        }
-      }
-
-      // create installment transactions in household
-      const total = amountCents ?? NaN;
-      const n = installmentsTotal;
-      const base = Math.floor(total / n);
-      const rem = total - base * n;
-
-      for (let i = 0; i < n; i++) {
-        const installmentAmount = base + (i < rem ? 1 : 0);
-        const installmentDate = addMonthsUTC(occurredAt ?? new Date("invalid"), i);
-
-        const txResult = await createTransaction({
-          transactionsRepo,
-          idFactory: createId,
-          userId,
-          householdId,
-          accountId,
-          categoryId,
-          type: type as TransactionType,
-          description: `${description} (parcela ${i + 1}/${n})`,
-          amountCents: installmentAmount,
-          occurredAt: installmentDate,
-        });
-
-        if (!txResult.ok) {
-          switch (txResult.error) {
-            case "ACCOUNT_REQUIRED":
-              return { error: "Conta é obrigatória." };
-            case "TYPE_INVALID":
-              return { error: "Tipo inválido." };
-            case "DESCRIPTION_REQUIRED":
-              return { error: "Descrição é obrigatória." };
-            case "AMOUNT_INVALID":
-              return { error: "Valor inválido." };
-            case "DATE_REQUIRED":
-              return { error: "Data é obrigatória." };
-            case "ACCOUNT_NOT_FOUND":
-              return { error: "Conta não encontrada." };
-            case "CATEGORY_NOT_FOUND":
-              return { error: "Categoria não encontrada." };
-          }
+          case "TRANSACTION_ERROR":
+            return { error: "Falha ao criar transações." };
         }
       }
 
@@ -311,6 +272,7 @@ export default function HouseholdTransactions({ loaderData, actionData }: Route.
       today={loaderData.today}
       error={actionData?.error}
       ok={actionData?.ok}
+      cards={loaderData.cards}
     />
   );
 }

@@ -370,6 +370,26 @@ export const creditCardPurchasePrepayments = pgTable(
   })
 );
 
+export const creditCardPurchaseTransactions = pgTable(
+  "credit_card_purchase_transactions",
+  {
+    id: text("id").primaryKey(),
+    purchaseId: text("purchase_id")
+      .notNull()
+      .references(() => creditCardPurchases.id, { onDelete: "cascade" }),
+    transactionId: text("transaction_id")
+      .notNull()
+      .references(() => transactions.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    purchaseIdx: index("credit_card_purchase_transactions_purchase_id_idx").on(table.purchaseId),
+    transactionIdx: index("credit_card_purchase_transactions_transaction_id_idx").on(table.transactionId),
+  })
+);
+
 export type User = typeof users.$inferSelect;
 export type Household = typeof households.$inferSelect;
 export type Month = typeof months.$inferSelect;
@@ -382,3 +402,5 @@ export type CreditCardPurchase = typeof creditCardPurchases.$inferSelect;
 export type HouseholdPaymentShare = typeof householdPaymentShares.$inferSelect;
 export type CreditCardPurchasePrepayment =
   typeof creditCardPurchasePrepayments.$inferSelect;
+export type CreditCardPurchaseTransaction =
+  typeof creditCardPurchaseTransactions.$inferSelect;

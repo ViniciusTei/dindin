@@ -1,8 +1,9 @@
+import crypto from "node:crypto";
 import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "~/db/db.server";
-import { creditCardPurchases, creditCards } from "~/db/schema";
-import { CreditCardNotFoundError } from "~/domain/credit-cards/errors";
+import { creditCardPurchases, creditCards, creditCardPurchaseTransactions } from "~/db/schema";
+import { CreditCardNotFoundError, CreditCardPurchaseNotFoundError } from "~/domain/credit-cards/errors";
 import type { CreditCardPurchasesRepo } from "~/domain/credit-cards/ports";
 
 async function assertCardBelongsToUser(params: { userId: string; creditCardId: string }) {
@@ -73,6 +74,21 @@ export const creditCardPurchasesRepo: CreditCardPurchasesRepo = {
       occurredAt: params.occurredAt,
       installmentsTotal: params.installmentsTotal,
       firstInvoiceYm: params.firstInvoiceYm,
+    });
+  },
+
+  async linkTransaction(params) {
+    // ensure purchase belongs to user
+    const rows = await db.query.creditCardPurchases.findMany({
+      where: (t, { and, eq }) => and(eq(t.userId, params.userId), eq(t.id, params.purchaseId)),
+      limit: 1,
+    });
+    if (rows.length === 0) throw new CreditCardPurchaseNotFoundError();
+
+    await db.insert(creditCardPurchaseTransactions).values({
+      id: crypto.randomUUID(),
+      purchaseId: params.purchaseId,
+      transactionId: params.transactionId,
     });
   },
 };
