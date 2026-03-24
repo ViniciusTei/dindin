@@ -88,6 +88,8 @@ export function HouseholdSwitcher(props: {
 
     if (result.redirectTo !== props.currentPath) {
       navigate(result.redirectTo);
+
+      switchFetcher.reset();
     }
   }, [
     navigate,
