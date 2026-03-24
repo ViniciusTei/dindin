@@ -156,7 +156,7 @@ export function AppShell(props: {
             {isSidebarCollapsed ? null : (
               <div className="leading-tight">
                 <div className="font-semibold">Financeiro</div>
-                <div className="text-xs opacity-70">Rateio financeiro</div>
+                <div className="text-xs opacity-70">Controle Financeiro</div>
               </div>
             )}
           </Link>
