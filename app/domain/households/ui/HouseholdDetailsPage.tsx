@@ -4,14 +4,14 @@ import { DashboardExpensePieCard } from "~/domain/dashboard/ui/DashboardExpenseP
 import type { HouseholdDetails } from "~/domain/households/entity";
 import { HouseholdExpenseTrendCard } from "~/domain/households/ui/HouseholdExpenseTrendCard";
 import { formatBRL } from "~/lib/money";
+import { formatDate } from "~/lib/datetime";
+import Icon from "~/ui/Icon";
 
 function formatShareBps(shareBps: number): string {
   return `${(shareBps / 100).toFixed(2).replace(".", ",")}%`;
 }
 
-export function HouseholdDetailsPage(props: {
-  household: HouseholdDetails;
-}) {
+export function HouseholdDetailsPage(props: { household: HouseholdDetails }) {
   return (
     <main className="mx-auto mt-10 max-w-6xl px-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -22,60 +22,80 @@ export function HouseholdDetailsPage(props: {
               {props.household.role === "admin" ? "Admin" : "Membro"}
             </span>
           </div>
-          <p className="text-sm opacity-70">Detalhes financeiros e composição da household.</p>
+          <p className="text-sm opacity-70">
+            Detalhes financeiros e composição da household.
+          </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-4">
           <Link className="btn btn-ghost btn-sm" to="/households">
             Voltar
           </Link>
           {props.household.role === "admin" ? (
-            <Link className="btn btn-primary btn-sm" to={`/households/${props.household.householdId}/manage`}>
+            <Link
+              className="btn btn-primary btn-sm"
+              to={`/households/${props.household.householdId}/manage`}
+            >
               Gerenciar
             </Link>
           ) : null}
-        </div>
-      </div>
 
-      <div className="mt-6 flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-100 p-4">
-        <Link
-          className="btn btn-ghost btn-sm"
-          to={`/households/${props.household.householdId}?month=${props.household.previousMonthLabel}`}
-        >
-          Mês anterior
-        </Link>
-        <div className="text-sm font-medium">Mês exibido: {props.household.monthLabel}</div>
-        <Link
-          className="btn btn-ghost btn-sm"
-          to={`/households/${props.household.householdId}?month=${props.household.nextMonthLabel}`}
-        >
-          Próximo mês
-        </Link>
+          <div className="join items-center gap-2 self-start sm:self-auto">
+            <Link
+              to={`/households/${props.household.householdId}?month=${props.household.previousMonthLabel}`}
+              className="btn btn-sm join-item"
+              aria-label="Mês anterior"
+            >
+              <Icon name="arrow-left" aria-label="Anterior" />
+            </Link>
+            <div className="text-sm opacity-70 capitalize">
+              {formatDate(props.household.monthLabel, {
+                format: "long",
+                exclude: ["day"],
+              })}
+            </div>
+            <Link
+              to={`/households/${props.household.householdId}?month=${props.household.nextMonthLabel}`}
+              className="btn btn-sm join-item"
+              aria-label="Próximo mês"
+            >
+              <Icon name="arrow-right" aria-label="Próximo" />
+            </Link>
+          </div>
+        </div>
       </div>
 
       <div className="mt-6 grid gap-4 md:grid-cols-3">
         <section className="card bg-base-100 shadow">
           <div className="card-body gap-2">
             <div className="text-sm opacity-70">Membros</div>
-            <div className="text-2xl font-semibold">{props.household.memberCount}</div>
+            <div className="text-2xl font-semibold">
+              {props.household.memberCount}
+            </div>
           </div>
         </section>
         <section className="card bg-base-100 shadow">
           <div className="card-body gap-2">
             <div className="text-sm opacity-70">Despesas do mês</div>
-            <div className="text-2xl font-semibold">{formatBRL(-props.household.currentMonthExpenseCents)}</div>
+            <div className="text-2xl font-semibold">
+              {formatBRL(-props.household.currentMonthExpenseCents)}
+            </div>
           </div>
         </section>
         <section className="card bg-base-100 shadow">
           <div className="card-body gap-2">
             <div className="text-sm opacity-70">Seu rateio</div>
-            <div className="text-2xl font-semibold">{formatShareBps(props.household.currentUserEffectiveShareBps)}</div>
+            <div className="text-2xl font-semibold">
+              {formatShareBps(props.household.currentUserEffectiveShareBps)}
+            </div>
           </div>
         </section>
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <DashboardExpensePieCard expenseByCategory={props.household.expenseByCategory} />
+        <DashboardExpensePieCard
+          expenseByCategory={props.household.expenseByCategory}
+        />
         <HouseholdExpenseTrendCard
           expenseSeries={props.household.expenseSeries}
           currentMonthExpenseCents={props.household.currentMonthExpenseCents}
@@ -100,8 +120,14 @@ export function HouseholdDetailsPage(props: {
                 {props.household.members.map((member) => (
                   <tr key={member.userId}>
                     <td>{member.username}</td>
-                    <td>{member.role === "admin" ? "Administrador" : "Membro"}</td>
-                    <td>{member.explicitShareBps == null ? "Automático" : formatShareBps(member.explicitShareBps)}</td>
+                    <td>
+                      {member.role === "admin" ? "Administrador" : "Membro"}
+                    </td>
+                    <td>
+                      {member.explicitShareBps == null
+                        ? "Automático"
+                        : formatShareBps(member.explicitShareBps)}
+                    </td>
                     <td>{formatShareBps(member.effectiveShareBps)}</td>
                   </tr>
                 ))}
