@@ -64,3 +64,44 @@ test("criar household, adicionar membro por username e configurar rateio", async
 
   await memberContext.close();
 });
+
+test("switcher troca a household ativa na sidebar e preserva subrota segura", async ({
+  page,
+  seed,
+}) => {
+  await login(page, {
+    username: seed.users.admin.username,
+    password: seed.users.admin.password,
+  });
+
+  await page.goto("/households");
+  await page.getByRole("button", { name: "Criar household" }).click();
+  await page.getByLabel("Nome").fill("Casa Sidebar E2E");
+  await Promise.all([
+    page.waitForURL(/\/households\/.*\/manage/),
+    page.getByTestId("household-create-button").click(),
+  ]);
+
+  const sidebarHouseholdId = page.url().match(/\/households\/([^/]+)\/manage/)?.[1];
+  if (!sidebarHouseholdId) {
+    throw new Error("Household criada não encontrada na URL");
+  }
+
+  await page.goto("/cards");
+  const activeSelect = page.getByLabel("Selecionar household ativa");
+  await expect(activeSelect).toContainText("Casa Sidebar E2E");
+  await activeSelect.selectOption({ value: sidebarHouseholdId });
+
+  await expect(activeSelect).toHaveValue(sidebarHouseholdId);
+  await expect(page).toHaveURL(/\/cards$/);
+  await expect(page.getByLabel("Visão geral")).toHaveAttribute(
+    "href",
+    `/households/${sidebarHouseholdId}`,
+  );
+
+  await page.goto(`/households/${seed.householdId}/transactions`);
+  await activeSelect.selectOption({ value: sidebarHouseholdId });
+  await expect(page).toHaveURL(
+    new RegExp(`/households/${sidebarHouseholdId}/transactions$`),
+  );
+});

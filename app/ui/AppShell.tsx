@@ -1,6 +1,7 @@
 import { Form, Link, useLocation } from "react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "~/contexts/ThemeContext";
+import { HouseholdSwitcher } from "~/domain/households/ui/HouseholdSwitcher";
 import Icon, { type IconName } from "./Icon";
 
 type AppShellHousehold = {
@@ -14,6 +15,7 @@ type AppShellUser = {
   isAdmin: boolean;
   households: AppShellHousehold[];
   defaultHouseholdId: string | null;
+  preferredHouseholdId: string | null;
 };
 
 export function AppShell(props: {
@@ -22,6 +24,9 @@ export function AppShell(props: {
 }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+  const [preferredHouseholdId, setPreferredHouseholdId] = useState(
+    props.user.preferredHouseholdId ?? props.user.defaultHouseholdId,
+  );
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 
@@ -41,14 +46,20 @@ export function AppShell(props: {
     };
   }, []);
 
+  useEffect(() => {
+    setPreferredHouseholdId(
+      props.user.preferredHouseholdId ?? props.user.defaultHouseholdId,
+    );
+  }, [props.user.defaultHouseholdId, props.user.preferredHouseholdId]);
+
   const shellGridCols = isSidebarCollapsed
     ? "grid-cols-[4rem_repeat(4,minmax(0,1fr))]"
     : "grid-cols-[16rem_repeat(4,minmax(0,1fr))]";
 
   const activeHouseholdId = useMemo(() => {
     const match = location.pathname.match(/^\/households\/([^/]+)/);
-    return match?.[1] ?? props.user.defaultHouseholdId;
-  }, [location.pathname, props.user.defaultHouseholdId]);
+    return match?.[1] ?? preferredHouseholdId ?? props.user.defaultHouseholdId;
+  }, [location.pathname, preferredHouseholdId, props.user.defaultHouseholdId]);
 
   const activeHousehold = useMemo(
     () =>
@@ -187,12 +198,15 @@ export function AppShell(props: {
 
               {!isSidebarCollapsed && activeHousehold ? (
                 <li className="mb-1 px-3 pb-2 text-sm">
-                  <div className="rounded-box border border-base-300 bg-base-100 px-3 py-2">
-                    <div className="font-medium">{activeHousehold.name}</div>
-                    <div className="text-xs opacity-70">
-                      {activeHousehold.role === "admin" ? "Administrador" : "Membro"}
-                    </div>
-                  </div>
+                  <HouseholdSwitcher
+                    households={props.user.households}
+                    activeHouseholdId={activeHousehold.householdId}
+                    recommendedHouseholdId={
+                      preferredHouseholdId ?? props.user.defaultHouseholdId
+                    }
+                    currentPath={`${location.pathname}${location.search}`}
+                    onActiveHouseholdChange={setPreferredHouseholdId}
+                  />
                 </li>
               ) : null}
 

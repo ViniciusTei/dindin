@@ -6,12 +6,24 @@ import { requireUserId } from "~/auth/session.server";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const userId = await requireUserId(request);
-  return redirect(await getDefaultHouseholdRouteForUser({ userId, suffix: "/invite" }));
+  return redirect(
+    await getDefaultHouseholdRouteForUser({
+      userId,
+      request,
+      suffix: "/invite",
+    }),
+  );
 }
 
 export async function action({ request }: Route.ActionArgs) {
   const userId = await requireUserId(request);
-  return redirect(await getDefaultHouseholdRouteForUser({ userId, suffix: "/invite" }));
+  return redirect(
+    await getDefaultHouseholdRouteForUser({
+      userId,
+      request,
+      suffix: "/invite",
+    }),
+  );
 }
 
 export default function InviteLegacyRedirect() {

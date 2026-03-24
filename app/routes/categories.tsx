@@ -6,12 +6,24 @@ import { requireUserId } from "~/auth/session.server";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const userId = await requireUserId(request);
-  return redirect(await getDefaultHouseholdRouteForUser({ userId, suffix: "/categories" }));
+  return redirect(
+    await getDefaultHouseholdRouteForUser({
+      userId,
+      request,
+      suffix: "/categories",
+    }),
+  );
 }
 
 export async function action({ request }: Route.ActionArgs) {
   const userId = await requireUserId(request);
-  return redirect(await getDefaultHouseholdRouteForUser({ userId, suffix: "/categories" }));
+  return redirect(
+    await getDefaultHouseholdRouteForUser({
+      userId,
+      request,
+      suffix: "/categories",
+    }),
+  );
 }
 
 export default function CategoriesLegacyRedirect() {

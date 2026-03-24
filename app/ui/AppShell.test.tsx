@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import { MemoryRouter } from "react-router";
+import { createMemoryRouter, RouterProvider } from "react-router";
 import { describe, expect, it } from "vitest";
 
 import { ThemeProvider } from "~/contexts/ThemeContext";
@@ -9,10 +9,28 @@ import { ThemeProvider } from "~/contexts/ThemeContext";
 import { AppShell } from "./AppShell";
 
 function renderShell(ui: ReactNode) {
+  const router = createMemoryRouter(
+    [
+      {
+        path: "/api/households/options",
+        loader: () => ({
+          options: [],
+          recommendedHouseholdId: "household-1",
+        }),
+        element: <div>options</div>,
+      },
+      {
+        path: "*",
+        element: <ThemeProvider>{ui}</ThemeProvider>,
+      },
+    ],
+    {
+      initialEntries: ["/"],
+    },
+  );
+
   return render(
-    <MemoryRouter>
-      <ThemeProvider>{ui}</ThemeProvider>
-    </MemoryRouter>
+    <RouterProvider router={router} />
   );
 }
 
@@ -28,6 +46,7 @@ function makeUser(overrides?: Partial<Parameters<typeof AppShell>[0]["user"]>) {
       },
     ],
     defaultHouseholdId: "household-1",
+    preferredHouseholdId: "household-1",
     ...overrides,
   };
 }
@@ -111,6 +130,7 @@ describe("AppShell", () => {
           username: "nova",
           households: [],
           defaultHouseholdId: null,
+          preferredHouseholdId: null,
         })}
       >
         <div>Conteúdo</div>
@@ -121,5 +141,38 @@ describe("AppShell", () => {
     expect(screen.queryByLabelText("Convites")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Transações")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Categorias")).not.toBeInTheDocument();
+  });
+
+  it("mostra apenas o select da household ativa e ordena a recomendada primeiro", () => {
+    renderShell(
+      <AppShell
+        user={makeUser({
+          households: [
+            {
+              householdId: "household-1",
+              name: "Casa da Maria",
+              role: "admin",
+            },
+            {
+              householdId: "household-2",
+              name: "Apartamento",
+              role: "member",
+            },
+          ],
+          preferredHouseholdId: "household-2",
+        })}
+      >
+        <div>Conteúdo</div>
+      </AppShell>,
+    );
+
+    expect(
+      screen.getByLabelText("Selecionar household ativa"),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText("Buscar household")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Recomendada:/)).not.toBeInTheDocument();
+    expect(
+      screen.getAllByRole("option")[0],
+    ).toHaveTextContent("Apartamento");
   });
 });
