@@ -80,8 +80,8 @@ export async function createCreditCardPurchaseInHousehold(params: {
         });
 
         if (!res.ok) {
-          // rollback transaction
-          throw new Error("TRANSACTION_ERROR");
+          // propagate transaction-level error (e.g., ACCOUNT_REQUIRED) without throwing
+          return { ok: false, error: "TRANSACTION_ERROR", cause: `createTransaction failed: ${res.error}` } as any;
         }
 
         transactionIds.push(res.transactionId);
@@ -94,8 +94,8 @@ export async function createCreditCardPurchaseInHousehold(params: {
             tx,
           });
         } catch (err) {
-          // rollback transaction
-          throw new Error("TRANSACTION_ERROR");
+          // propagate link failure without throwing to allow graceful response
+          return { ok: false, error: "TRANSACTION_ERROR", cause: `linkTransaction failed: ${err instanceof Error ? err.message : String(err)}` } as any;
         }
       }
 
