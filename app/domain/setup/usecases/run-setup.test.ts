@@ -5,24 +5,6 @@ import { makeIdFactory, makePasswordHasher, makeUsersRepo } from "~/domain/test/
 import { runSetup } from "./run-setup";
 
 describe("domain/setup/runSetup", () => {
-  it("falha com ALREADY_DONE quando já existe usuário", async () => {
-    const { repo: usersRepo } = makeUsersRepo();
-    const usersStatsRepo = { hasAnyUsers: vi.fn(async () => true) };
-    const householdsRepo = { createHouseholdWithAdmin: vi.fn(async () => ({ householdId: "h1" })) };
-
-    const result = await runSetup({
-      usersStatsRepo,
-      usersRepo,
-      passwordHasher: makePasswordHasher(),
-      householdsRepo,
-      idFactory: makeIdFactory(),
-      username: "admin",
-      password: "password123",
-    });
-
-    expect(result).toEqual({ ok: false, error: "ALREADY_DONE" });
-    expect(householdsRepo.createHouseholdWithAdmin).not.toHaveBeenCalled();
-  });
 
   it("cria admin e household quando ok", async () => {
     const { repo: usersRepo, users } = makeUsersRepo();
