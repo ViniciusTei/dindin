@@ -33,7 +33,7 @@ export default function TransactionCreateModal(props: {
       triggerTestId="transaction-create-open"
       dialogClassName="max-w-4xl"
     >
-      <Form method="post" onSubmit={closeDialogOnSubmit} className="space-y-4">
+      <Form method="post" className="space-y-4">
         <input type="hidden" name="intent" value="create" />
         <TransactionFormFields
           accounts={props.accounts}

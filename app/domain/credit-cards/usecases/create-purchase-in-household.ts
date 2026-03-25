@@ -30,6 +30,9 @@ export async function createCreditCardPurchaseInHousehold(params: {
         | "DATE_REQUIRED"
         | "INSTALLMENTS_INVALID"
         | "TRANSACTION_ERROR";
+      // optional machine-friendly cause and human-friendly detail
+      causeError?: string;
+      cause?: string;
     }
 > {
   try {
@@ -81,7 +84,7 @@ export async function createCreditCardPurchaseInHousehold(params: {
 
         if (!res.ok) {
           // propagate transaction-level error (e.g., ACCOUNT_REQUIRED) without throwing
-          return { ok: false, error: "TRANSACTION_ERROR", cause: `createTransaction failed: ${res.error}` } as any;
+          return { ok: false, error: "TRANSACTION_ERROR", causeError: res.error, cause: `createTransaction failed: ${res.error}` } as any;
         }
 
         transactionIds.push(res.transactionId);
@@ -96,7 +99,7 @@ export async function createCreditCardPurchaseInHousehold(params: {
         } catch (err) {
           // propagate link failure without throwing to allow graceful response
           const detailed = err && typeof err === 'object' ? JSON.stringify(err, Object.getOwnPropertyNames(err)) : String(err);
-          return { ok: false, error: "TRANSACTION_ERROR", cause: `linkTransaction failed: ${detailed}` } as any;
+          return { ok: false, error: "TRANSACTION_ERROR", causeError: 'LINK_FAILED', cause: `linkTransaction failed: ${detailed}` } as any;
         }
       }
 

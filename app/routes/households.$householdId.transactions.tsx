@@ -165,8 +165,30 @@ export async function action({ request, params }: Route.ActionArgs) {
             return { error: "Data é obrigatória." };
           case "INSTALLMENTS_INVALID":
             return { error: "Número de parcelas inválido." };
-          case "TRANSACTION_ERROR":
-            return { error: (res as any).cause ? `Falha ao criar transações: ${(res as any).cause}` : "Falha ao criar transações." };
+          case "TRANSACTION_ERROR": {
+            const causeError = (res as any).causeError as string | undefined;
+            const detail = (res as any).cause as string | undefined;
+
+            // Map known transaction-level errors to friendly messages
+            switch (causeError) {
+              case "ACCOUNT_REQUIRED":
+                return { error: "Conta é obrigatória." };
+              case "ACCOUNT_NOT_FOUND":
+                return { error: "Conta não encontrada." };
+              case "CATEGORY_NOT_FOUND":
+                return { error: "Categoria não encontrada." };
+              case "DESCRIPTION_REQUIRED":
+                return { error: "Descrição é obrigatória." };
+              case "AMOUNT_INVALID":
+                return { error: "Valor inválido." };
+              case "DATE_REQUIRED":
+                return { error: "Data é obrigatória." };
+              case "LINK_FAILED":
+                return { error: detail ? `Falha ao vincular transação ao purchase: ${detail}` : "Falha ao vincular transação." };
+              default:
+                return { error: detail ? `Falha ao criar transações: ${detail}` : "Falha ao criar transações." };
+            }
+          }
         }
       }
 
