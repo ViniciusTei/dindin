@@ -1,6 +1,6 @@
 import type { Transaction, TransactionType } from "./entity";
 
-export interface TransactionsRepo {
+export interface TransactionsRepo<TTx = never> {
   listByHousehold(params: { userId: string; householdId: string }): Promise<Transaction[]>;
 
   create(params: {
@@ -13,7 +13,7 @@ export interface TransactionsRepo {
     description: string;
     amountCents: number;
     occurredAt: Date;
-    tx?: unknown;
+    tx?: TTx;
   }): Promise<void>;
 
   update(params: {
@@ -26,8 +26,8 @@ export interface TransactionsRepo {
     description: string;
     amountCents: number;
     occurredAt: Date;
-    tx?: unknown;
+    tx?: TTx;
   }): Promise<void>;
 
-  delete(params: { userId: string; householdId: string; transactionId: string; tx?: unknown }): Promise<void>;
+  delete(params: { userId: string; householdId: string; transactionId: string; tx?: TTx }): Promise<void>;
 }

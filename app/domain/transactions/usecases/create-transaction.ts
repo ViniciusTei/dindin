@@ -23,8 +23,8 @@ type CreateTransactionSuccessResult = {
   transactionId: string;
 }
 
-export async function createTransaction(params: {
-  transactionsRepo: TransactionsRepo;
+export async function createTransaction<TTx>(params: {
+  transactionsRepo: TransactionsRepo<TTx>;
   idFactory: () => string;
   userId: string;
   householdId: string;
@@ -34,7 +34,7 @@ export async function createTransaction(params: {
   description: string;
   amountCents: number;
   occurredAt: Date;
-  tx?: unknown;
+  tx?: TTx;
 }): Promise<
   | CreateTransactionSuccessResult
   | CreateTransactionErrorResult

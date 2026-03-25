@@ -1,6 +1,8 @@
 import { and, desc, eq } from "drizzle-orm";
 
 import { resolveClient } from "~/db/db.server";
+import type { DbExecutor } from "~/db/db.server";
+import type { DbTransaction } from "~/db/db.server";
 import { accounts, categories, transactions } from "~/db/schema";
 import {
   TransactionAccountNotFoundError,
@@ -9,7 +11,7 @@ import {
 } from "~/domain/transactions/errors";
 import type { TransactionsRepo } from "~/domain/transactions/ports";
 
-async function assertAccountBelongsToUser(params: { userId: string; accountId: string; tx?: unknown }) {
+async function assertAccountBelongsToUser(params: { userId: string; accountId: string; tx?: DbExecutor }) {
   const client = resolveClient(params.tx);
   const rows = await client
     .select({ id: accounts.id })
@@ -20,7 +22,7 @@ async function assertAccountBelongsToUser(params: { userId: string; accountId: s
   if (rows.length === 0) throw new TransactionAccountNotFoundError();
 }
 
-export const transactionsRepo: TransactionsRepo = {
+export const transactionsRepo: TransactionsRepo<DbTransaction> = {
   async listByHousehold(params) {
     const client = resolveClient();
     const rows = await client.query.transactions.findMany({

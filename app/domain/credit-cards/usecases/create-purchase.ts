@@ -2,9 +2,9 @@ import type { CreditCardsRepo, CreditCardPurchasesRepo } from "~/domain/credit-c
 import { CreditCardNotFoundError } from "~/domain/credit-cards/errors";
 import { computeInvoiceYmForDate } from "~/domain/credit-cards/invoice";
 
-export async function createCreditCardPurchase(params: {
-  creditCardsRepo: CreditCardsRepo;
-  purchasesRepo: CreditCardPurchasesRepo;
+export async function createCreditCardPurchase<TTx>(params: {
+  creditCardsRepo: CreditCardsRepo<TTx>;
+  purchasesRepo: CreditCardPurchasesRepo<TTx>;
   idFactory: () => string;
   userId: string;
   creditCardId: string;
@@ -13,7 +13,7 @@ export async function createCreditCardPurchase(params: {
   amountCents: number;
   occurredAt: Date;
   installmentsTotal: number;
-  tx?: unknown;
+  tx?: TTx;
 }): Promise<
   | { ok: true; purchaseId: string; firstInvoiceYm: string }
   | {

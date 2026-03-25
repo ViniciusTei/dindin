@@ -1,6 +1,8 @@
 import { and, asc, eq } from "drizzle-orm";
 
 import { resolveClient } from "~/db/db.server";
+import type { DbExecutor } from "~/db/db.server";
+import type { DbTransaction } from "~/db/db.server";
 import { accounts, creditCards } from "~/db/schema";
 import type { CreditCardBrand } from "~/domain/credit-cards/entity";
 import {
@@ -9,7 +11,7 @@ import {
 } from "~/domain/credit-cards/errors";
 import type { CreditCardsRepo } from "~/domain/credit-cards/ports";
 
-async function assertAccountBelongsToUser(params: { userId: string; accountId: string; tx?: unknown }) {
+async function assertAccountBelongsToUser(params: { userId: string; accountId: string; tx?: DbExecutor }) {
   const client = resolveClient(params.tx);
   const rows = await client
     .select({ id: accounts.id })
@@ -20,7 +22,7 @@ async function assertAccountBelongsToUser(params: { userId: string; accountId: s
   if (rows.length === 0) throw new CreditCardAccountNotFoundError();
 }
 
-export const creditCardsRepo: CreditCardsRepo = {
+export const creditCardsRepo: CreditCardsRepo<DbTransaction> = {
   async listByUser(userId) {
     const client = resolveClient();
     const rows = await client.query.creditCards.findMany({

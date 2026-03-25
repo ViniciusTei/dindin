@@ -2,11 +2,13 @@ import crypto from "node:crypto";
 import { and, desc, eq } from "drizzle-orm";
 
 import { resolveClient } from "~/db/db.server";
+import type { DbExecutor } from "~/db/db.server";
+import type { DbTransaction } from "~/db/db.server";
 import { creditCardPurchases, creditCards, creditCardPurchaseTransactions } from "~/db/schema";
 import { CreditCardNotFoundError, CreditCardPurchaseNotFoundError } from "~/domain/credit-cards/errors";
 import type { CreditCardPurchasesRepo } from "~/domain/credit-cards/ports";
 
-async function assertCardBelongsToUser(params: { userId: string; creditCardId: string; tx?: unknown }) {
+async function assertCardBelongsToUser(params: { userId: string; creditCardId: string; tx?: DbExecutor }) {
   const client = resolveClient(params.tx);
   const rows = await client
     .select({ id: creditCards.id })
@@ -17,7 +19,7 @@ async function assertCardBelongsToUser(params: { userId: string; creditCardId: s
   if (rows.length === 0) throw new CreditCardNotFoundError();
 }
 
-export const creditCardPurchasesRepo: CreditCardPurchasesRepo = {
+export const creditCardPurchasesRepo: CreditCardPurchasesRepo<DbTransaction> = {
   async listByCard(params) {
     const client = resolveClient(params.tx);
     const rows = await client.query.creditCardPurchases.findMany({

@@ -1,12 +1,14 @@
 import { and, asc, eq } from "drizzle-orm";
 
-import { db } from "~/db/db.server";
+import { resolveClient } from "~/db/db.server";
+import type { DbTransaction } from "~/db/db.server";
 import { creditCardPurchasePrepayments, creditCardPurchases } from "~/db/schema";
 import { CreditCardPurchaseNotFoundError } from "~/domain/credit-cards/errors";
 import type { CreditCardPrepaymentsRepo } from "~/domain/credit-cards/ports";
 
-async function assertPurchaseBelongsToUser(params: { userId: string; purchaseId: string }) {
-  const rows = await db
+async function assertPurchaseBelongsToUser(params: { userId: string; purchaseId: string; tx?: DbTransaction }) {
+  const client = resolveClient(params.tx);
+  const rows = await client
     .select({ id: creditCardPurchases.id })
     .from(creditCardPurchases)
     .where(and(eq(creditCardPurchases.id, params.purchaseId), eq(creditCardPurchases.userId, params.userId)))
@@ -15,10 +17,11 @@ async function assertPurchaseBelongsToUser(params: { userId: string; purchaseId:
   if (rows.length === 0) throw new CreditCardPurchaseNotFoundError();
 }
 
-export const creditCardPrepaymentsRepo: CreditCardPrepaymentsRepo = {
+export const creditCardPrepaymentsRepo: CreditCardPrepaymentsRepo<DbTransaction> = {
   async listByCard(params) {
+    const client = resolveClient(params.tx);
     // Join para filtrar por creditCardId.
-    const rows = await db
+    const rows = await client
       .select({
         id: creditCardPurchasePrepayments.id,
         userId: creditCardPurchasePrepayments.userId,
@@ -51,9 +54,10 @@ export const creditCardPrepaymentsRepo: CreditCardPrepaymentsRepo = {
   },
 
   async create(params) {
-    await assertPurchaseBelongsToUser({ userId: params.userId, purchaseId: params.purchaseId });
+    const client = resolveClient(params.tx);
+    await assertPurchaseBelongsToUser({ userId: params.userId, purchaseId: params.purchaseId, tx: client });
 
-    await db.insert(creditCardPurchasePrepayments).values({
+    await client.insert(creditCardPurchasePrepayments).values({
       id: params.id,
       userId: params.userId,
       purchaseId: params.purchaseId,

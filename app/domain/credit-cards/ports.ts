@@ -9,9 +9,9 @@ export interface CardCrypto {
   decrypt(payload: string): string;
 }
 
-export interface CreditCardsRepo {
+export interface CreditCardsRepo<TTx = never> {
   listByUser(userId: string): Promise<CreditCard[]>;
-  findById(params: { userId: string; creditCardId: string; tx?: unknown }): Promise<CreditCard | null>;
+  findById(params: { userId: string; creditCardId: string; tx?: TTx }): Promise<CreditCard | null>;
 
   create(params: {
     id: string;
@@ -24,7 +24,7 @@ export interface CreditCardsRepo {
     limitCents: number | null;
     closingDay: number;
     dueDay: number;
-    tx?: unknown;
+    tx?: TTx;
   }): Promise<void>;
 
   update(params: {
@@ -34,15 +34,15 @@ export interface CreditCardsRepo {
     limitCents: number | null;
     closingDay: number;
     dueDay: number;
-    tx?: unknown;
+    tx?: TTx;
   }): Promise<void>;
 
-  delete(params: { userId: string; creditCardId: string; tx?: unknown }): Promise<void>;
+  delete(params: { userId: string; creditCardId: string; tx?: TTx }): Promise<void>;
 }
 
-export interface CreditCardPurchasesRepo {
-  listByCard(params: { userId: string; creditCardId: string; tx?: unknown }): Promise<CreditCardPurchase[]>;
-  findById(params: { userId: string; purchaseId: string; tx?: unknown }): Promise<CreditCardPurchase | null>;
+export interface CreditCardPurchasesRepo<TTx = never> {
+  listByCard(params: { userId: string; creditCardId: string; tx?: TTx }): Promise<CreditCardPurchase[]>;
+  findById(params: { userId: string; purchaseId: string; tx?: TTx }): Promise<CreditCardPurchase | null>;
 
   create(params: {
     id: string;
@@ -54,17 +54,17 @@ export interface CreditCardPurchasesRepo {
     occurredAt: Date;
     installmentsTotal: number;
     firstInvoiceYm: string;
-    tx?: unknown;
+    tx?: TTx;
   }): Promise<void>;
 
-  linkTransaction(params: { userId: string; purchaseId: string; transactionId: string; tx?: unknown }): Promise<void>;
+  linkTransaction(params: { userId: string; purchaseId: string; transactionId: string; tx?: TTx }): Promise<void>;
 }
 
-export interface CreditCardPrepaymentsRepo {
+export interface CreditCardPrepaymentsRepo<TTx = never> {
   listByCard(params: {
     userId: string;
     creditCardId: string;
-    tx?: unknown;
+    tx?: TTx;
   }): Promise<CreditCardPurchasePrepayment[]>;
 
   create(params: {
@@ -74,6 +74,6 @@ export interface CreditCardPrepaymentsRepo {
     ym: string;
     installmentsCount: number;
     createdAt: Date;
-    tx?: unknown;
+    tx?: TTx;
   }): Promise<void>;
 }

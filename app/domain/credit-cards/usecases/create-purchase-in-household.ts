@@ -1,8 +1,8 @@
 import type { CreditCardsRepo, CreditCardPurchasesRepo } from "~/domain/credit-cards/ports";
+import type { TransactionRunner } from "~/domain/shared/transaction";
 import type { TransactionsRepo } from "~/domain/transactions/ports";
 import { createCreditCardPurchase } from "~/domain/credit-cards/usecases/create-purchase";
 import { createTransaction } from "~/domain/transactions/usecases/create-transaction";
-import { db } from "~/db/db.server";
 
 type CreatePurchaseInHouseholdError = 
   | "CARD_REQUIRED"
@@ -20,10 +20,11 @@ type CreatePurchaseInHouseholdErrorResult = {
     };
 type CreatePurchaseInHouseholdResult = { ok: true; purchaseId: string; transactionIds: string[]; firstInvoiceYm: string }
 
-export async function createCreditCardPurchaseInHousehold(params: {
-  creditCardsRepo: CreditCardsRepo;
-  purchasesRepo: CreditCardPurchasesRepo;
-  transactionsRepo: TransactionsRepo;
+export async function createCreditCardPurchaseInHousehold<TTx>(params: {
+  transactionRunner: TransactionRunner<TTx>;
+  creditCardsRepo: CreditCardsRepo<TTx>;
+  purchasesRepo: CreditCardPurchasesRepo<TTx>;
+  transactionsRepo: TransactionsRepo<TTx>;
   idFactory: () => string;
   userId: string;
   householdId: string;
@@ -36,7 +37,7 @@ export async function createCreditCardPurchaseInHousehold(params: {
   installmentsTotal: number;
 }): Promise<CreatePurchaseInHouseholdResult | CreatePurchaseInHouseholdErrorResult> {
   try {
-    const result = await db.transaction(async (tx) => {
+    const result = await params.transactionRunner.run(async (tx) => {
       const purchaseResult = await createCreditCardPurchase({
         creditCardsRepo: params.creditCardsRepo,
         purchasesRepo: params.purchasesRepo,

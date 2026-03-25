@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import { createCreditCardPurchaseInHousehold } from "./create-purchase-in-household";
+import type { TransactionRunner } from "~/domain/shared/transaction";
 import { makeCreditCardsRepo, makeCreditCardPurchasesRepo, makeTransactionsRepo, makeIdFactory } from "~/domain/test/fakes";
+
+const noopTransactionRunner: TransactionRunner<object> = {
+  async run(work) {
+    return work({});
+  },
+};
 
 describe("createCreditCardPurchaseInHousehold", () => {
   it("creates purchase and installment transactions", async () => {
@@ -30,6 +37,7 @@ describe("createCreditCardPurchaseInHousehold", () => {
     });
 
     const result = await createCreditCardPurchaseInHousehold({
+      transactionRunner: noopTransactionRunner,
       creditCardsRepo: cardsRepo,
       purchasesRepo,
       transactionsRepo,

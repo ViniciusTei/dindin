@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 
 import { requireHouseholdAccess } from "~/auth/household.server";
 import { requireUserId } from "~/auth/session.server";
+import { drizzleTransactionRunner } from "~/db/db.server";
 import { accountsRepo } from "~/db/repositories/accounts.repo.server";
 import { categoriesRepo } from "~/db/repositories/categories.repo.server";
 import { transactionsRepo } from "~/db/repositories/transactions.repo.server";
@@ -135,6 +136,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       }
 
       const res = await createCreditCardPurchaseInHousehold({
+        transactionRunner: drizzleTransactionRunner,
         creditCardsRepo,
         purchasesRepo: creditCardPurchasesRepo,
         transactionsRepo,
