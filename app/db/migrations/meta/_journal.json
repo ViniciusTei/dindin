@@ -43,6 +43,13 @@
       "when": 1774300172443,
       "tag": "0005_cold_purifiers",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1774459712286,
+      "tag": "0006_add_purchase_transactions",
+      "breakpoints": true
     }
   ]
 }
