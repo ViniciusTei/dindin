@@ -27,7 +27,7 @@ export async function ensureMemberJoined(seed: SeedData, params: { adminPage: Pa
   if (existing.rowCount && existing.rowCount > 0) return;
 
   // Admin gera link
-  await params.adminPage.goto("/invite");
+  await params.adminPage.goto(`/households/${seed.householdId}/invite`);
   await params.adminPage.getByRole("button", { name: "Gerar link (24h)" }).click();
 
   const linkLocator = params.adminPage.getByRole("link", { name: /\/join\// });
@@ -40,5 +40,5 @@ export async function ensureMemberJoined(seed: SeedData, params: { adminPage: Pa
     password: seed.users.member.password,
   });
   await params.memberPage.goto(href);
-  await params.memberPage.waitForURL("**/");
+  await params.memberPage.waitForURL(/\/households\/.+/);
 }

@@ -5,29 +5,39 @@ import {
 } from "~/domain/transactions/errors";
 import type { TransactionsRepo } from "~/domain/transactions/ports";
 
-export async function createTransaction(params: {
-  transactionsRepo: TransactionsRepo;
+type CreateTransactionError =
+  | "ACCOUNT_REQUIRED"
+  | "TYPE_INVALID"
+  | "DESCRIPTION_REQUIRED"
+  | "AMOUNT_INVALID"
+  | "DATE_REQUIRED"
+  | "ACCOUNT_NOT_FOUND"
+  | "CATEGORY_NOT_FOUND";
+ 
+type CreateTransactionErrorResult = {
+  ok: false;
+  error: CreateTransactionError;
+}
+type CreateTransactionSuccessResult = {
+  ok: true;
+  transactionId: string;
+}
+
+export async function createTransaction<TTx>(params: {
+  transactionsRepo: TransactionsRepo<TTx>;
   idFactory: () => string;
   userId: string;
+  householdId: string;
   accountId: string;
   categoryId: string | null;
   type: TransactionType;
   description: string;
   amountCents: number;
   occurredAt: Date;
+  tx?: TTx;
 }): Promise<
-  | { ok: true; transactionId: string }
-  | {
-      ok: false;
-      error:
-        | "ACCOUNT_REQUIRED"
-        | "TYPE_INVALID"
-        | "DESCRIPTION_REQUIRED"
-        | "AMOUNT_INVALID"
-        | "DATE_REQUIRED"
-        | "ACCOUNT_NOT_FOUND"
-        | "CATEGORY_NOT_FOUND";
-    }
+  | CreateTransactionSuccessResult
+  | CreateTransactionErrorResult
 > {
   const description = params.description.trim();
 
@@ -47,12 +57,14 @@ export async function createTransaction(params: {
     await params.transactionsRepo.create({
       id,
       userId: params.userId,
+      householdId: params.householdId,
       accountId: params.accountId,
       categoryId: params.categoryId,
       type: params.type,
       description,
       amountCents: params.amountCents,
       occurredAt: params.occurredAt,
+      tx: params.tx,
     });
     return { ok: true, transactionId: id };
   } catch (err) {

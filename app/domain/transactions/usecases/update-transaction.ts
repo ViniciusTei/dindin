@@ -9,6 +9,7 @@ import type { TransactionsRepo } from "~/domain/transactions/ports";
 export async function updateTransaction(params: {
   transactionsRepo: TransactionsRepo;
   userId: string;
+  householdId: string;
   transactionId: string;
   accountId: string;
   categoryId: string | null;
@@ -47,6 +48,7 @@ export async function updateTransaction(params: {
   try {
     await params.transactionsRepo.update({
       userId: params.userId,
+      householdId: params.householdId,
       transactionId: params.transactionId,
       accountId: params.accountId,
       categoryId: params.categoryId,

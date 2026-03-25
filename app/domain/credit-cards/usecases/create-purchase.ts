@@ -2,9 +2,9 @@ import type { CreditCardsRepo, CreditCardPurchasesRepo } from "~/domain/credit-c
 import { CreditCardNotFoundError } from "~/domain/credit-cards/errors";
 import { computeInvoiceYmForDate } from "~/domain/credit-cards/invoice";
 
-export async function createCreditCardPurchase(params: {
-  creditCardsRepo: CreditCardsRepo;
-  purchasesRepo: CreditCardPurchasesRepo;
+export async function createCreditCardPurchase<TTx>(params: {
+  creditCardsRepo: CreditCardsRepo<TTx>;
+  purchasesRepo: CreditCardPurchasesRepo<TTx>;
   idFactory: () => string;
   userId: string;
   creditCardId: string;
@@ -13,6 +13,7 @@ export async function createCreditCardPurchase(params: {
   amountCents: number;
   occurredAt: Date;
   installmentsTotal: number;
+  tx?: TTx;
 }): Promise<
   | { ok: true; purchaseId: string; firstInvoiceYm: string }
   | {
@@ -46,6 +47,7 @@ export async function createCreditCardPurchase(params: {
   const card = await params.creditCardsRepo.findById({
     userId: params.userId,
     creditCardId: params.creditCardId,
+    tx: params.tx,
   });
   if (!card) return { ok: false, error: "CARD_NOT_FOUND" };
 
@@ -67,6 +69,7 @@ export async function createCreditCardPurchase(params: {
       occurredAt: params.occurredAt,
       installmentsTotal: params.installmentsTotal,
       firstInvoiceYm,
+      tx: params.tx,
     });
 
     return { ok: true, purchaseId: id, firstInvoiceYm };

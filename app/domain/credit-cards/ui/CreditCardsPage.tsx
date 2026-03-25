@@ -2,6 +2,10 @@ import { Form, Link } from "react-router";
 
 import type { Account } from "~/domain/accounts/entity";
 import { formatBRL } from "~/lib/money";
+import FormModal, {
+  ModalCloseButton,
+  closeDialogOnSubmit,
+} from "~/ui/FormModal";
 
 export type CreditCardListItem = {
   id: string;
@@ -12,6 +16,136 @@ export type CreditCardListItem = {
   dueDay: number;
   accountId: string | null;
 };
+
+function CreditCardCreateModal(props: { accounts: Account[]; error?: string }) {
+  return (
+    <FormModal
+      dialogId="create_credit_card_modal"
+      triggerLabel="Cadastrar cartão"
+      title="Cadastrar cartão"
+      description="Adicione um novo cartão pessoal para acompanhar faturas e compras parceladas."
+      triggerClassName="btn btn-primary"
+      dialogClassName="max-w-3xl"
+    >
+      <Form method="post" onSubmit={closeDialogOnSubmit} className="space-y-3">
+        <input type="hidden" name="intent" value="create" />
+
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="form-control">
+            <label className="label" htmlFor="card-create-number">
+              <span className="label-text">Número</span>
+            </label>
+            <input
+              id="card-create-number"
+              name="number"
+              placeholder="Ex.: 4111 1111 1111 1111"
+              className="input input-bordered w-full"
+              aria-invalid={props.error ? "true" : undefined}
+            />
+          </div>
+
+          <div className="form-control">
+            <label className="label" htmlFor="card-create-expiration">
+              <span className="label-text">Validade (MM/AA)</span>
+            </label>
+            <input
+              id="card-create-expiration"
+              name="expiration"
+              placeholder="03/26"
+              className="input input-bordered w-full"
+            />
+          </div>
+
+          <div className="form-control">
+            <label className="label" htmlFor="card-create-cvv">
+              <span className="label-text">CVV (opcional)</span>
+            </label>
+            <input
+              id="card-create-cvv"
+              name="cvv"
+              className="input input-bordered w-full"
+            />
+          </div>
+
+          <div className="form-control">
+            <label className="label" htmlFor="card-create-limit">
+              <span className="label-text">Limite (opcional)</span>
+            </label>
+            <input
+              id="card-create-limit"
+              name="limit"
+              placeholder="0,00"
+              className="input input-bordered w-full"
+            />
+          </div>
+
+          <div className="form-control">
+            <label className="label" htmlFor="card-create-closing-day">
+              <span className="label-text">Dia de fechamento</span>
+            </label>
+            <input
+              id="card-create-closing-day"
+              name="closingDay"
+              type="number"
+              min={1}
+              max={31}
+              defaultValue={10}
+              className="input input-bordered w-full"
+            />
+          </div>
+
+          <div className="form-control">
+            <label className="label" htmlFor="card-create-due-day">
+              <span className="label-text">Dia de vencimento</span>
+            </label>
+            <input
+              id="card-create-due-day"
+              name="dueDay"
+              type="number"
+              min={1}
+              max={31}
+              defaultValue={15}
+              className="input input-bordered w-full"
+            />
+          </div>
+
+          <div className="form-control md:col-span-2">
+            <label className="label" htmlFor="card-create-account-id">
+              <span className="label-text">
+                Conta para pagamento (opcional)
+              </span>
+            </label>
+            <select
+              id="card-create-account-id"
+              name="accountId"
+              className="select select-bordered w-full"
+            >
+              <option value="">(sem conta)</option>
+              {props.accounts.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {props.error ? (
+          <div role="alert" className="alert alert-error">
+            <span>{props.error}</span>
+          </div>
+        ) : null}
+
+        <div className="modal-action">
+          <ModalCloseButton />
+          <button type="submit" className="btn btn-primary">
+            Cadastrar
+          </button>
+        </div>
+      </Form>
+    </FormModal>
+  );
+}
 
 export function CreditCardsPage(props: {
   accounts: Account[];
@@ -24,135 +158,30 @@ export function CreditCardsPage(props: {
     <main className="mx-auto mt-10 max-w-3xl px-4">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Cartões</h1>
+        <CreditCardCreateModal accounts={props.accounts} error={props.error} />
       </div>
 
       <div className="mt-6 grid gap-6">
-        <section className="card bg-base-100 shadow">
-          <div className="card-body gap-4">
-            <h2 className="card-title">Cadastrar cartão</h2>
-
-            <Form method="post" className="space-y-3">
-              <input type="hidden" name="intent" value="create" />
-
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <div className="form-control">
-                  <label className="label" htmlFor="number">
-                    <span className="label-text">Número</span>
-                  </label>
-                  <input
-                    id="number"
-                    name="number"
-                    placeholder="Ex.: 4111 1111 1111 1111"
-                    className="input input-bordered w-full"
-                    aria-invalid={props.error ? "true" : undefined}
-                  />
-                </div>
-
-                <div className="form-control">
-                  <label className="label" htmlFor="expiration">
-                    <span className="label-text">Validade (MM/AA)</span>
-                  </label>
-                  <input
-                    id="expiration"
-                    name="expiration"
-                    placeholder="03/26"
-                    className="input input-bordered w-full"
-                  />
-                </div>
-
-                <div className="form-control">
-                  <label className="label" htmlFor="cvv">
-                    <span className="label-text">CVV (opcional)</span>
-                  </label>
-                  <input id="cvv" name="cvv" className="input input-bordered w-full" />
-                </div>
-
-                <div className="form-control">
-                  <label className="label" htmlFor="limit">
-                    <span className="label-text">Limite (opcional)</span>
-                  </label>
-                  <input
-                    id="limit"
-                    name="limit"
-                    placeholder="0,00"
-                    className="input input-bordered w-full"
-                  />
-                </div>
-
-                <div className="form-control">
-                  <label className="label" htmlFor="closingDay">
-                    <span className="label-text">Dia de fechamento</span>
-                  </label>
-                  <input
-                    id="closingDay"
-                    name="closingDay"
-                    type="number"
-                    min={1}
-                    max={31}
-                    defaultValue={10}
-                    className="input input-bordered w-full"
-                  />
-                </div>
-
-                <div className="form-control">
-                  <label className="label" htmlFor="dueDay">
-                    <span className="label-text">Dia de vencimento</span>
-                  </label>
-                  <input
-                    id="dueDay"
-                    name="dueDay"
-                    type="number"
-                    min={1}
-                    max={31}
-                    defaultValue={15}
-                    className="input input-bordered w-full"
-                  />
-                </div>
-
-                <div className="form-control md:col-span-2">
-                  <label className="label" htmlFor="accountId">
-                    <span className="label-text">Conta para pagamento (opcional)</span>
-                  </label>
-                  <select id="accountId" name="accountId" className="select select-bordered w-full">
-                    <option value="">(sem conta)</option>
-                    {props.accounts.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {props.error ? (
-                <div role="alert" className="alert alert-error">
-                  <span>{props.error}</span>
-                </div>
-              ) : null}
-
-              {props.warning ? (
-                <div role="alert" className="alert alert-warning">
-                  <span>{props.warning}</span>
-                </div>
-              ) : null}
-
-              {props.ok ? (
-                <div role="status" className="alert alert-success">
-                  <span>Salvo.</span>
-                </div>
-              ) : null}
-
-              <button type="submit" className="btn btn-primary">
-                Cadastrar
-              </button>
-            </Form>
+        {props.error ? (
+          <div role="alert" className="alert alert-error">
+            <span>{props.error}</span>
           </div>
-        </section>
+        ) : null}
 
-        <section className="card bg-base-100 shadow">
-          <div className="card-body gap-4">
-            <h2 className="card-title">Lista</h2>
+        {props.warning ? (
+          <div role="alert" className="alert alert-warning">
+            <span>{props.warning}</span>
+          </div>
+        ) : null}
 
+        {props.ok ? (
+          <div role="status" className="alert alert-success">
+            <span>Salvo.</span>
+          </div>
+        ) : null}
+
+        <section className="bg-base-100">
+          <div className="space-y-4">
             {props.cards.length === 0 ? (
               <p className="opacity-70">Nenhum cartão.</p>
             ) : (
@@ -177,7 +206,10 @@ export function CreditCardsPage(props: {
                         <td>Dia {c.dueDay}</td>
                         <td>{c.limitCents ? formatBRL(c.limitCents) : "—"}</td>
                         <td className="text-right">
-                          <Link to={`/card/${c.id}`} className="btn btn-ghost btn-sm">
+                          <Link
+                            to={`/card/${c.id}`}
+                            className="btn btn-ghost btn-sm"
+                          >
                             Abrir
                           </Link>
                         </td>

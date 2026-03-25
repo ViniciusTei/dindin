@@ -10,7 +10,7 @@ import type { DashboardAccountsRepo, DashboardRepo } from "~/domain/dashboard/po
 
 export async function getHomeDashboard(params: {
   userId: string;
-  householdId: string;
+  householdId?: string | null;
   now?: Date;
   lookbackMonths?: number;
   selectedMonthLabel?: string;
@@ -27,20 +27,27 @@ export async function getHomeDashboard(params: {
   const historyStart = addMonthsUTC(selectedMonthStart, -(lookbackMonths - 1));
   const nextMonthStart = addMonthsUTC(selectedMonthStart, 1);
 
-  const [accounts, monthlyTotals, expenseByCategory, creditCardMonthlyExpenses, creditCardExpenseByCategory] =
-    await Promise.all([
+  const [
+    accounts,
+    monthlyTotals,
+    expenseByCategory,
+    creditCardMonthlyExpenses,
+    creditCardExpenseByCategory,
+  ] = await Promise.all([
     params.accountsRepo.listByUser(params.userId),
     params.dashboardRepo.getMonthlyTotals({
       userId: params.userId,
       start: historyStart,
       end: nextMonthStart,
     }),
-    params.dashboardRepo.getExpenseByCategory({
-      userId: params.userId,
-      householdId: params.householdId,
-      start: selectedMonthStart,
-      end: nextMonthStart,
-    }),
+    params.householdId
+      ? params.dashboardRepo.getExpenseByCategory({
+          userId: params.userId,
+          householdId: params.householdId,
+          start: selectedMonthStart,
+          end: nextMonthStart,
+        })
+      : Promise.resolve([]),
     params.dashboardRepo.getCreditCardMonthlyExpenses({
       userId: params.userId,
       start: historyStart,
@@ -48,14 +55,16 @@ export async function getHomeDashboard(params: {
       now,
       selectedMonthLabel,
     }),
-    params.dashboardRepo.getCreditCardExpenseByCategory({
-      userId: params.userId,
-      householdId: params.householdId,
-      start: selectedMonthStart,
-      end: nextMonthStart,
-      now,
-      selectedMonthLabel,
-    }),
+    params.householdId
+      ? params.dashboardRepo.getCreditCardExpenseByCategory({
+          userId: params.userId,
+          householdId: params.householdId,
+          start: selectedMonthStart,
+          end: nextMonthStart,
+          now,
+          selectedMonthLabel,
+        })
+      : Promise.resolve([]),
   ]);
 
   const signedSumsById = await params.accountsRepo.sumSignedTransactionsByAccountIds({

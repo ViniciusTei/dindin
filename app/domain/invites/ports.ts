@@ -2,6 +2,10 @@ export type AcceptInviteResult =
   | { ok: true; householdId: string }
   | { ok: false; reason: "invalid" | "full" };
 
+export type RegisterUserFromInviteResult =
+  | { ok: true; householdId: string }
+  | { ok: false; reason: "invalid" | "full" | "username_taken" };
+
 export interface InvitesRepo {
   createInviteLink(params: {
     householdId: string;
@@ -12,6 +16,14 @@ export interface InvitesRepo {
   acceptInviteLink(params: {
     token: string;
     userId: string;
-    maxMembers: number;
+    maxMembers?: number;
   }): Promise<AcceptInviteResult>;
+
+  registerUserFromInvite(params: {
+    token: string;
+    userId: string;
+    username: string;
+    passwordHash: string;
+    maxMembers?: number;
+  }): Promise<RegisterUserFromInviteResult>;
 }

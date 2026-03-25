@@ -1,6 +1,5 @@
 import type { Route } from "./+types/setup";
 import crypto from "node:crypto";
-import { redirect } from "react-router";
 
 import { createUserSession } from "~/auth/session.server";
 import { passwordHasher } from "~/auth/password-hasher.server";
@@ -14,16 +13,7 @@ function createId(): string {
   return crypto.randomUUID();
 }
 
-export async function loader() {
-  const anyUser = await usersStatsRepo.hasAnyUsers();
-  if (anyUser) return redirect("/login");
-  return {};
-}
-
 export async function action({ request }: Route.ActionArgs) {
-  const anyUser = await usersStatsRepo.hasAnyUsers();
-  if (anyUser) return new Response("Setup já realizado", { status: 403 });
-
   const form = await request.formData();
   const username = String(form.get("username") ?? "").trim();
   const password = String(form.get("password") ?? "");

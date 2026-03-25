@@ -247,6 +247,7 @@ export async function getExpenseByCategory(params: {
     .where(
       and(
         eq(transactions.userId, params.userId),
+        eq(transactions.householdId, params.householdId),
         eq(transactions.type, "expense"),
         gte(transactions.occurredAt, params.start),
         lt(transactions.occurredAt, params.end),

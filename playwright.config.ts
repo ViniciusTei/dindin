@@ -11,6 +11,7 @@ export default defineConfig({
     baseURL: "http://localhost:5173",
     trace: "retain-on-failure",
   },
+  globalSetup: './e2e/global-setup.js',
   webServer: {
     command: "npm run dev",
     url: "http://localhost:5173",

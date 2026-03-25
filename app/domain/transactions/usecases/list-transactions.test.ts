@@ -5,7 +5,7 @@ import { makeTransactionsRepo } from "~/domain/test/fakes";
 
 describe("listTransactions", () => {
   it("lista por usuário", async () => {
-    const { repo, userId } = makeTransactionsRepo({
+    const { repo, userId, householdId } = makeTransactionsRepo({
       userId: "user-1",
       accounts: [{ id: "a1" }],
       transactions: [
@@ -20,7 +20,7 @@ describe("listTransactions", () => {
       ],
     });
 
-    const rows = await listTransactions({ transactionsRepo: repo, userId });
+    const rows = await listTransactions({ transactionsRepo: repo, userId, householdId });
 
     expect(rows).toHaveLength(1);
     expect(rows[0]?.id).toBe("t1");

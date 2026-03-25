@@ -78,6 +78,22 @@ Notas:
 - Os E2E criam dados com prefixo `e2e_*` e limpam no final (via delete do household/usuários criados).
 - Requer `DATABASE_URL` apontando para o banco de dev e migrações aplicadas (`npm run db:migrate`).
 
+Global shared seed (recomendado para runs estáveis):
+
+- O `e2e/global-setup.js` aplica migrações e garante um usuário admin, um membro e uma household compartilhados para os testes. Ele escreve `e2e/.setup-credentials.json`.
+- Para fazer os fixtures usarem essas credenciais compartilhadas, exporte a variável `E2E_USE_SETUP_CREDENTIALS=1` antes de rodar os testes. Exemplo:
+
+  ```bash
+  E2E_USE_SETUP_CREDENTIALS=1 npm run test:e2e
+  ```
+
+- Se não usar o setup compartilhado, os workers criam dados isolados por run e os limpam ao final.
+
+Dicas de troubleshooting:
+
+- Se os testes falharem com "relation does not exist", verifique se as migrações foram aplicadas (`npm run db:migrate`) ou execute o global setup (Playwright config default já inclui `globalSetup`).
+- Se `e2e/.setup-credentials.json` não existir e você estiver usando `E2E_USE_SETUP_CREDENTIALS=1`, execute o global setup manualmente ou garanta que Playwright rode com `globalSetup`.
+
 ## Primeiro acesso
 
 - Se não existir usuário, acesse `/setup` para criar o primeiro admin.

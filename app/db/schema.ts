@@ -96,6 +96,28 @@ export const memberships = pgTable(
   })
 );
 
+export const householdPaymentShares = pgTable(
+  "household_payment_shares",
+  {
+    householdId: text("household_id")
+      .notNull()
+      .references(() => households.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    shareBps: integer("share_bps").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.householdId, table.userId] }),
+    householdIdx: index("household_payment_shares_household_id_idx").on(
+      table.householdId
+    ),
+  })
+);
+
 export const months = pgTable(
   "months",
   {
@@ -241,6 +263,9 @@ export const transactions = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    householdId: text("household_id")
+      .notNull()
+      .references(() => households.id, { onDelete: "cascade" }),
     accountId: text("account_id")
       .notNull()
       .references(() => accounts.id),
@@ -259,6 +284,7 @@ export const transactions = pgTable(
   },
   (table) => ({
     userIdx: index("transactions_user_id_idx").on(table.userId),
+    householdIdx: index("transactions_household_id_idx").on(table.householdId),
     accountIdx: index("transactions_account_id_idx").on(table.accountId),
     categoryIdx: index("transactions_category_id_idx").on(table.categoryId),
     occurredAtIdx: index("transactions_occurred_at_idx").on(table.occurredAt),
@@ -344,6 +370,26 @@ export const creditCardPurchasePrepayments = pgTable(
   })
 );
 
+export const creditCardPurchaseTransactions = pgTable(
+  "credit_card_purchase_transactions",
+  {
+    id: text("id").primaryKey(),
+    purchaseId: text("purchase_id")
+      .notNull()
+      .references(() => creditCardPurchases.id, { onDelete: "cascade" }),
+    transactionId: text("transaction_id")
+      .notNull()
+      .references(() => transactions.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    purchaseIdx: index("credit_card_purchase_transactions_purchase_id_idx").on(table.purchaseId),
+    transactionIdx: index("credit_card_purchase_transactions_transaction_id_idx").on(table.transactionId),
+  })
+);
+
 export type User = typeof users.$inferSelect;
 export type Household = typeof households.$inferSelect;
 export type Month = typeof months.$inferSelect;
@@ -353,5 +399,8 @@ export type Account = typeof accounts.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
 export type CreditCard = typeof creditCards.$inferSelect;
 export type CreditCardPurchase = typeof creditCardPurchases.$inferSelect;
+export type HouseholdPaymentShare = typeof householdPaymentShares.$inferSelect;
 export type CreditCardPurchasePrepayment =
   typeof creditCardPurchasePrepayments.$inferSelect;
+export type CreditCardPurchaseTransaction =
+  typeof creditCardPurchaseTransactions.$inferSelect;

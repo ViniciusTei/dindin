@@ -9,9 +9,11 @@ async function ensureAccount(page: Page) {
 
   if ((await page.getByTestId("account-name-Carteira").count()) > 0) return;
 
-  await page.getByTestId("account-name-input").fill("Carteira");
-  await page.getByTestId("account-initialBalance-input").fill("0,00");
-  await page.getByTestId("account-create-button").click();
+  await page.getByRole("button", { name: "Criar conta" }).click();
+  const createDialog = page.getByRole("dialog", { name: "Criar conta" });
+  await createDialog.getByTestId("account-name-input").fill("Carteira");
+  await createDialog.getByTestId("account-initialBalance-input").fill("0,00");
+  await createDialog.getByTestId("account-create-button").click();
   await expect(page.getByRole("status")).toHaveText(/Salvo\./);
   await expect(page.getByTestId("account-name-Carteira")).toBeVisible();
 }
@@ -22,12 +24,13 @@ async function ensureCreditCard(page: Page) {
 
   if ((await page.getByRole("link", { name: "Abrir" }).count()) > 0) return;
 
-  await page.locator("#number").fill("4111 1111 1111 1111");
-  await page.locator("#expiration").fill("12/30");
-  await page.locator("#closingDay").fill("10");
-  await page.locator("#dueDay").fill("15");
-  await page.getByRole("button", { name: "Cadastrar" }).click();
-  await expect(page.getByRole("status")).toHaveText(/Salvo\./);
+  await page.getByRole("button", { name: "Cadastrar cartão" }).click();
+  const createDialog = page.getByRole("dialog", { name: "Cadastrar cartão" });
+  await createDialog.getByLabel("Número").fill("4111 1111 1111 1111");
+  await createDialog.getByLabel("Validade (MM/AA)").fill("12/30");
+  await createDialog.getByLabel("Dia de fechamento").fill("10");
+  await createDialog.getByLabel("Dia de vencimento").fill("15");
+  await createDialog.getByRole("button", { name: "Cadastrar" }).click();
   await expect(page.getByRole("link", { name: "Abrir" })).toBeVisible();
 }
 
@@ -53,29 +56,35 @@ test("dashboard: gráficos renderizam sem NaN no console", async ({ page, seed }
   if (!cardHref) throw new Error("Link de cartão não encontrado");
 
   await page.goto(cardHref);
-  await page.locator("#description").fill("Streaming");
-  await page.locator("#categoryId").selectOption({ label: "Mercado" });
-  await page.locator("#amount").fill("90,00");
-  await page.locator("#occurredAt").fill("2026-03-20");
-  await page.locator("#installmentsTotal").fill("3");
-  await page.getByRole("button", { name: "Adicionar" }).click();
+  await page.getByRole("button", { name: "Adicionar compra" }).click();
+  let purchaseDialog = page.getByRole("dialog", { name: "Adicionar compra" });
+  await purchaseDialog.getByLabel("Descrição").fill("Streaming");
+  await purchaseDialog.getByLabel("Categoria").selectOption({ label: "Mercado" });
+  await purchaseDialog.getByLabel("Valor").fill("90,00");
+  await purchaseDialog.getByLabel("Data").fill("2026-03-20");
+  await purchaseDialog.getByLabel("Parcelas").fill("3");
+  await purchaseDialog.getByRole("button", { name: "Adicionar" }).click();
   await expect(page.getByRole("status")).toHaveText(/Salvo\./);
 
-  await page.goto("/transactions");
+  await page.goto(`/households/${seed.householdId}/transactions`);
   await expect(page.getByRole("heading", { name: "Transações" })).toBeVisible();
 
-  await page.locator("#accountId").selectOption({ label: "Carteira" });
-  await page.locator("#type").selectOption("expense");
-  await page.locator("#amount").fill("120,00");
-  await page.locator("#description").fill("Mercado");
-  await page.getByRole("button", { name: "Criar" }).click();
+  await page.getByTestId("transaction-create-open").click();
+  let createTransactionDialog = page.getByRole("dialog", { name: "Criar transação" });
+  await createTransactionDialog.getByLabel("Conta").selectOption({ label: "Carteira" });
+  await createTransactionDialog.getByLabel("Tipo").selectOption("expense");
+  await createTransactionDialog.getByLabel("Valor").fill("120,00");
+  await createTransactionDialog.getByLabel("Descrição").fill("Mercado");
+  await createTransactionDialog.getByRole("button", { name: "Criar" }).click();
   await expect(page.getByRole("status")).toHaveText(/Salvo\./);
 
-  await page.locator("#accountId").selectOption({ label: "Carteira" });
-  await page.locator("#type").selectOption("income");
-  await page.locator("#amount").fill("300,00");
-  await page.locator("#description").fill("Salário");
-  await page.getByRole("button", { name: "Criar" }).click();
+  await page.getByTestId("transaction-create-open").click();
+  createTransactionDialog = page.getByRole("dialog", { name: "Criar transação" });
+  await createTransactionDialog.getByLabel("Conta").selectOption({ label: "Carteira" });
+  await createTransactionDialog.getByLabel("Tipo").selectOption("income");
+  await createTransactionDialog.getByLabel("Valor").fill("300,00");
+  await createTransactionDialog.getByLabel("Descrição").fill("Salário");
+  await createTransactionDialog.getByRole("button", { name: "Criar" }).click();
   await expect(page.getByRole("status")).toHaveText(/Salvo\./);
 
   await page.goto("/");
@@ -85,6 +94,11 @@ test("dashboard: gráficos renderizam sem NaN no console", async ({ page, seed }
   await expect(page.getByText("Sem dados suficientes para gerar o gráfico.")).toHaveCount(0);
   await expect(page.getByText("Mercado")).toBeVisible();
   await expect(page.getByText("-R$ 150,00")).toHaveCount(3);
+
+  await page.goto(`/households/${seed.householdId}`);
+  const householdExpenseCard = page.locator("section.card", { hasText: "Despesas do mês" }).first();
+  await expect(householdExpenseCard).toContainText(/0,00/);
+  await expect(householdExpenseCard).not.toContainText(/150,00/);
 
   const nanMessages = consoleMessages.filter((message) => /NaN/i.test(message));
   expect(
@@ -108,12 +122,14 @@ test("dashboard: navega entre meses e mostra histórico e faturas futuras", asyn
   if (!cardHref) throw new Error("Link de cartão não encontrado");
 
   await page.goto(cardHref);
-  await page.locator("#description").fill("Parcela futura");
-  await page.locator("#categoryId").selectOption({ label: "Mercado" });
-  await page.locator("#amount").fill("90,00");
-  await page.locator("#occurredAt").fill("2026-03-20");
-  await page.locator("#installmentsTotal").fill("3");
-  await page.getByRole("button", { name: "Adicionar" }).click();
+  await page.getByRole("button", { name: "Adicionar compra" }).click();
+  const purchaseDialog = page.getByRole("dialog", { name: "Adicionar compra" });
+  await purchaseDialog.getByLabel("Descrição").fill("Parcela futura");
+  await purchaseDialog.getByLabel("Categoria").selectOption({ label: "Mercado" });
+  await purchaseDialog.getByLabel("Valor").fill("90,00");
+  await purchaseDialog.getByLabel("Data").fill("2026-03-20");
+  await purchaseDialog.getByLabel("Parcelas").fill("3");
+  await purchaseDialog.getByRole("button", { name: "Adicionar" }).click();
   await expect(page.getByRole("status")).toHaveText(/Salvo\./);
 
   await page.goto("/");

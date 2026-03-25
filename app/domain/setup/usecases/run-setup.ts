@@ -20,8 +20,6 @@ export async function runSetup(params: {
   password: string;
   householdName?: string;
 }): Promise<RunSetupResult> {
-  const alreadyDone = await params.usersStatsRepo.hasAnyUsers();
-  if (alreadyDone) return { ok: false, error: "ALREADY_DONE" };
 
   const created = await createLocalUser({
     usersRepo: params.usersRepo,

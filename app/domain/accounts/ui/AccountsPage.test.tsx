@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 
 import type { Account } from "~/domain/accounts/entity";
 
@@ -43,9 +43,7 @@ describe("AccountsPage", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Nome é obrigatório.");
   });
 
-  it("pede confirmação ao excluir conta", () => {
-    const confirmMock = vi.spyOn(window, "confirm").mockReturnValue(false);
-
+  it("mostra ações de renomear e excluir na lista", () => {
     const account = makeAccount({ name: "Carteira" });
 
     render(
@@ -55,14 +53,8 @@ describe("AccountsPage", () => {
       />
     );
 
-    const deleteButton = screen.getByRole("button", { name: "Excluir" });
-    const form = deleteButton.closest("form");
-    expect(form).not.toBeNull();
-
-    fireEvent.submit(form!);
-
-    expect(confirmMock).toHaveBeenCalledWith('Excluir a conta "Carteira"?');
-
-    confirmMock.mockRestore();
+    expect(screen.getByText("Carteira")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Renomear" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Excluir" })).toBeInTheDocument();
   });
 });

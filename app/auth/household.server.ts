@@ -1,81 +1,91 @@
-import crypto from "node:crypto";
+import type { HouseholdAccess } from "~/domain/households/entity";
+import { householdsRepo } from "~/db/repositories/households.repo.server";
+import { getStoredActiveHouseholdId } from "./active-household.server";
 
-import { db } from "~/db/db.server";
-import { categories, households, memberships } from "~/db/schema";
-
-function createId(): string {
-  return crypto.randomUUID();
+export async function listHouseholdsForUser(userId: string) {
+  return householdsRepo.listForUser(userId);
 }
 
-const DEFAULT_CATEGORIES = [
-  "Aluguel",
-  "Luz",
-  "Água",
-  "Internet",
-  "Cartão",
-  "Mercado",
-  "Outros",
-];
+export function pickPreferredHousehold(params: {
+  households: HouseholdAccess[];
+  preferredHouseholdId: string | null;
+}) {
+  return (
+    params.households.find(
+      (household) => household.householdId === params.preferredHouseholdId,
+    ) ??
+    params.households[0] ??
+    null
+  );
+}
+
+export async function getDefaultHouseholdForUser(userId: string) {
+  const households = await householdsRepo.listForUser(userId);
+  return households[0] ?? null;
+}
+
+export async function getPreferredHouseholdForUser(params: {
+  request: Request;
+  userId: string;
+}) {
+  const households = await householdsRepo.listForUser(params.userId);
+  const preferredHouseholdId = await getStoredActiveHouseholdId(params.request);
+  return pickPreferredHousehold({ households, preferredHouseholdId });
+}
 
 export async function getHouseholdForUser(userId: string) {
-  const membership = await db.query.memberships.findFirst({
-    where: (t, { eq }) => eq(t.userId, userId),
-  });
-  if (!membership) return null;
-
-  const household = await db.query.households.findFirst({
-    where: (t, { eq }) => eq(t.id, membership.householdId),
-  });
-  if (!household) return null;
-
-  return {
-    household,
-    role: membership.role,
-  };
-}
-
-export async function createHouseholdWithAdmin(params: {
-  adminUserId: string;
-  name?: string;
-}) {
-  const householdId = createId();
-  await db.insert(households).values({
-    id: householdId,
-    name: params.name ?? "Casa",
-  });
-
-  await db.insert(memberships).values({
-    householdId,
-    userId: params.adminUserId,
-    role: "admin",
-  });
-
-  for (const name of DEFAULT_CATEGORIES) {
-    await db.insert(categories).values({
-      id: createId(),
-      householdId,
-      name,
-    });
-  }
-
-  return { householdId };
+  return getDefaultHouseholdForUser(userId);
 }
 
 export async function requireHouseholdId(userId: string): Promise<string> {
-  const membership = await db.query.memberships.findFirst({
-    where: (t, { eq }) => eq(t.userId, userId),
-  });
-  if (!membership) throw new Response("Sem household", { status: 403 });
-  return membership.householdId;
+  const household = await getDefaultHouseholdForUser(userId);
+  if (!household) throw new Response("Sem household", { status: 403 });
+  return household.householdId;
+}
+
+export async function getDefaultHouseholdRouteForUser(params: {
+  userId: string;
+  suffix?: string;
+  request?: Request;
+}): Promise<string> {
+  const household = params.request
+    ? await getPreferredHouseholdForUser({
+        request: params.request,
+        userId: params.userId,
+      })
+    : await getDefaultHouseholdForUser(params.userId);
+  if (!household) return "/households";
+  return `/households/${household.householdId}${params.suffix ?? ""}`;
+}
+
+export async function requireHouseholdAccess(params: {
+  userId: string;
+  householdId: string;
+}) {
+  const access = await householdsRepo.findByIdForUser(params);
+  if (!access) {
+    throw new Response("Sem acesso à household", { status: 403 });
+  }
+
+  return access;
+}
+
+export async function requireHouseholdAdmin(params: {
+  userId: string;
+  householdId: string;
+}) {
+  const access = await requireHouseholdAccess(params);
+  if (access.role !== "admin") {
+    throw new Response("Apenas admins podem gerenciar esta household", { status: 403 });
+  }
+
+  return access;
 }
 
 export async function isUserMemberOfHousehold(params: {
   userId: string;
   householdId: string;
 }): Promise<boolean> {
-  const membership = await db.query.memberships.findFirst({
-    where: (t, { and, eq }) =>
-      and(eq(t.userId, params.userId), eq(t.householdId, params.householdId)),
-  });
-  return Boolean(membership);
+  const access = await householdsRepo.findByIdForUser(params);
+  return Boolean(access);
 }

@@ -27,6 +27,13 @@ import {
   TransactionCategoryNotFoundError,
   TransactionNotFoundError,
 } from "~/domain/transactions/errors";
+import type {
+  HouseholdAccess,
+  HouseholdDetails,
+  HouseholdMember,
+  HouseholdSummary,
+} from "~/domain/households/entity";
+import type { HouseholdsRepo } from "~/domain/households/ports";
 import type { PasswordHasher, UsersEraseRepo, UsersRepo } from "~/domain/users/ports";
 import type { UserSummary } from "~/domain/users/entity";
 
@@ -106,6 +113,7 @@ export function makePasswordVerifier(verifyFn: (params: { hash: string; password
 export function makeInvitesRepo(seed?: {
   create?: { token?: string; expiresAt?: Date };
   accept?: { ok: true; householdId: string } | { ok: false; reason: "invalid" | "full" };
+  registerUser?: { ok: true; householdId: string } | { ok: false; reason: "invalid" | "full" | "username_taken" };
 }) {
   const repo: InvitesRepo = {
     async createInviteLink(params) {
@@ -116,9 +124,176 @@ export function makeInvitesRepo(seed?: {
     async acceptInviteLink() {
       return seed?.accept ?? { ok: true, householdId: "household-1" };
     },
+    async registerUserFromInvite() {
+      return seed?.registerUser ?? { ok: true, householdId: "household-1" };
+    },
   };
 
   return repo;
+}
+
+export function makeHouseholdsRepo(seed?: {
+  users?: Array<{ id: string; username: string }>;
+  accesses?: HouseholdAccess[];
+  membersByHousehold?: Record<
+    string,
+    Array<{
+      userId: string;
+      username: string;
+      role: "admin" | "member";
+      createdAt?: Date;
+    }>
+  >;
+  sharesByHousehold?: Record<string, Array<{ userId: string; shareBps: number }>>;
+  summaries?: HouseholdSummary[];
+  detailsByHousehold?: Record<string, HouseholdDetails>;
+}) {
+  const users = [...(seed?.users ?? [])];
+  const accesses = [...(seed?.accesses ?? [])];
+  const membersByHousehold = new Map(
+    Object.entries(seed?.membersByHousehold ?? {}).map(([householdId, members]) => [
+      householdId,
+      members.map((member) => ({
+        userId: member.userId,
+        username: member.username,
+        role: member.role,
+        createdAt: member.createdAt ?? new Date(),
+      })),
+    ])
+  );
+  const sharesByHousehold = new Map(
+    Object.entries(seed?.sharesByHousehold ?? {}).map(([householdId, shares]) => [
+      householdId,
+      shares.map((share) => ({ ...share })),
+    ])
+  );
+  const summaries = [...(seed?.summaries ?? [])];
+  const detailsByHousehold = new Map(
+    Object.entries(seed?.detailsByHousehold ?? {}).map(([householdId, detail]) => [
+      householdId,
+      detail,
+    ])
+  );
+
+  const repo: HouseholdsRepo = {
+    async createHousehold(params) {
+      accesses.push({
+        householdId: params.id,
+        name: params.name,
+        role: "admin",
+        createdAt: new Date(),
+      });
+      const username =
+        users.find((user) => user.id === params.adminUserId)?.username ??
+        `user-${params.adminUserId}`;
+      const members = membersByHousehold.get(params.id) ?? [];
+      members.push({
+        userId: params.adminUserId,
+        username,
+        role: "admin",
+        createdAt: new Date(),
+      });
+      membersByHousehold.set(params.id, members);
+      return { householdId: params.id };
+    },
+
+    async createHouseholdWithAdmin(params) {
+      return repo.createHousehold({
+        id: `household-${accesses.length + 1}`,
+        adminUserId: params.adminUserId,
+        name: params.name ?? "Casa",
+      });
+    },
+
+    async listForUser() {
+      return accesses.slice();
+    },
+
+    async findByIdForUser(params) {
+      return (
+        accesses.find((access) => access.householdId === params.householdId) ?? null
+      );
+    },
+
+    async updateHouseholdName(params) {
+      const access = accesses.find((item) => item.householdId === params.householdId);
+      if (!access) return false;
+      access.name = params.name;
+      return true;
+    },
+
+    async listMembers(householdId) {
+      return (membersByHousehold.get(householdId) ?? []).slice();
+    },
+
+    async findUserByUsername(username) {
+      return users.find((user) => user.username === username) ?? null;
+    },
+
+    async addMember(params) {
+      const members = membersByHousehold.get(params.householdId) ?? [];
+      if (members.some((member) => member.userId === params.userId)) {
+        return "already_member";
+      }
+      const username =
+        users.find((user) => user.id === params.userId)?.username ??
+        `user-${params.userId}`;
+      members.push({
+        userId: params.userId,
+        username,
+        role: params.role,
+        createdAt: new Date(),
+      });
+      membersByHousehold.set(params.householdId, members);
+      return "added";
+    },
+
+    async updateMemberRole(params) {
+      const members = membersByHousehold.get(params.householdId) ?? [];
+      const member = members.find((item) => item.userId === params.userId);
+      if (!member) return false;
+      member.role = params.role;
+      return true;
+    },
+
+    async removeMember(params) {
+      const members = membersByHousehold.get(params.householdId) ?? [];
+      const index = members.findIndex((item) => item.userId === params.userId);
+      if (index === -1) return false;
+      members.splice(index, 1);
+      membersByHousehold.set(params.householdId, members);
+      return true;
+    },
+
+    async listPaymentShares(householdId) {
+      return (sharesByHousehold.get(householdId) ?? []).slice();
+    },
+
+    async replacePaymentShares(params) {
+      sharesByHousehold.set(
+        params.householdId,
+        params.shares.map((share) => ({ ...share }))
+      );
+    },
+
+    async listSummariesForUser() {
+      return summaries.slice();
+    },
+
+    async getDetailsForUser(params) {
+      return detailsByHousehold.get(params.householdId) ?? null;
+    },
+  };
+
+  return {
+    repo,
+    users,
+    accesses,
+    membersByHousehold,
+    sharesByHousehold,
+    summaries,
+    detailsByHousehold,
+  };
 }
 
 export function makeCategoriesRepo(seed?: { householdId?: string; categories?: Array<{ id: string; name: string }> }) {
@@ -240,6 +415,7 @@ export function makeAccountsRepo(seed?: {
 
 export function makeTransactionsRepo(seed?: {
   userId?: string;
+  householdId?: string;
   accounts?: Array<{ id: string }>;
   categories?: Array<{ id: string }>;
   transactions?: Array<{
@@ -253,12 +429,14 @@ export function makeTransactionsRepo(seed?: {
   }>;
 }) {
   const userId = seed?.userId ?? "user-1";
+  const householdId = seed?.householdId ?? "household-1";
   const accountIds = new Set((seed?.accounts ?? []).map((a) => a.id));
   const categoryIds = new Set((seed?.categories ?? []).map((c) => c.id));
 
   const transactions: Transaction[] = (seed?.transactions ?? []).map((t) => ({
     id: t.id,
     userId,
+    householdId,
     accountId: t.accountId,
     categoryId: t.categoryId ?? null,
     type: t.type,
@@ -269,19 +447,22 @@ export function makeTransactionsRepo(seed?: {
   }));
 
   const repo: TransactionsRepo = {
-    async listByUser(uId) {
+    async listByHousehold(params) {
       return transactions
-        .filter((t) => t.userId === uId)
+        .filter((t) => t.userId === params.userId && t.householdId === params.householdId)
         .slice()
         .sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime());
     },
     async create(params) {
-      if (params.userId !== userId) throw new TransactionAccountNotFoundError();
+      if (params.userId !== userId || params.householdId !== householdId) {
+        throw new TransactionAccountNotFoundError();
+      }
       if (!accountIds.has(params.accountId)) throw new TransactionAccountNotFoundError();
       if (params.categoryId && !categoryIds.has(params.categoryId)) throw new TransactionCategoryNotFoundError();
       transactions.push({
         id: params.id,
         userId: params.userId,
+        householdId: params.householdId,
         accountId: params.accountId,
         categoryId: params.categoryId,
         type: params.type,
@@ -292,10 +473,17 @@ export function makeTransactionsRepo(seed?: {
       });
     },
     async update(params) {
-      if (params.userId !== userId) throw new TransactionNotFoundError();
+      if (params.userId !== userId || params.householdId !== householdId) {
+        throw new TransactionNotFoundError();
+      }
       if (!accountIds.has(params.accountId)) throw new TransactionAccountNotFoundError();
       if (params.categoryId && !categoryIds.has(params.categoryId)) throw new TransactionCategoryNotFoundError();
-      const idx = transactions.findIndex((t) => t.userId === params.userId && t.id === params.transactionId);
+      const idx = transactions.findIndex(
+        (t) =>
+          t.userId === params.userId &&
+          t.householdId === params.householdId &&
+          t.id === params.transactionId
+      );
       if (idx === -1) throw new TransactionNotFoundError();
       transactions[idx] = {
         ...transactions[idx],
@@ -308,14 +496,21 @@ export function makeTransactionsRepo(seed?: {
       };
     },
     async delete(params) {
-      if (params.userId !== userId) throw new TransactionNotFoundError();
-      const idx = transactions.findIndex((t) => t.userId === params.userId && t.id === params.transactionId);
+      if (params.userId !== userId || params.householdId !== householdId) {
+        throw new TransactionNotFoundError();
+      }
+      const idx = transactions.findIndex(
+        (t) =>
+          t.userId === params.userId &&
+          t.householdId === params.householdId &&
+          t.id === params.transactionId
+      );
       if (idx === -1) throw new TransactionNotFoundError();
       transactions.splice(idx, 1);
     },
   };
 
-  return { repo, transactions, userId, accountIds, categoryIds };
+  return { repo, transactions, userId, householdId, accountIds, categoryIds };
 }
 
 export function makeCardCrypto(prefix = "enc") {
@@ -415,6 +610,8 @@ export function makeCreditCardPurchasesRepo(seed?: {
     createdAt: p.createdAt ?? new Date(),
   }));
 
+  const purchaseTransactions: Array<{ id: string; purchaseId: string; transactionId: string; createdAt: Date }> = [];
+
   const repo: CreditCardPurchasesRepo = {
     async listByCard(params) {
       return purchases
@@ -440,9 +637,20 @@ export function makeCreditCardPurchasesRepo(seed?: {
         createdAt: new Date(),
       });
     },
+    async linkTransaction(params) {
+      if (params.userId !== userId) throw new CreditCardPurchaseNotFoundError();
+      const p = purchases.find((x) => x.id === params.purchaseId && x.userId === params.userId);
+      if (!p) throw new CreditCardPurchaseNotFoundError();
+      purchaseTransactions.push({
+        id: `${params.purchaseId}:${params.transactionId}`,
+        purchaseId: params.purchaseId,
+        transactionId: params.transactionId,
+        createdAt: new Date(),
+      });
+    },
   };
 
-  return { repo, purchases, userId, cardIds };
+  return { repo, purchases, userId, cardIds, purchaseTransactions };
 }
 
 export function makeCreditCardPrepaymentsRepo(seed?: {

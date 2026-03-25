@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { db } from "~/db/db.server";
 import { env } from "~/lib/env.server";
 import { sessions } from "~/db/schema";
+import { clearStoredActiveHouseholdId } from "./active-household.server";
 
 const sessionCookie = createCookie("session", {
   httpOnly: true,
@@ -80,10 +81,12 @@ export async function logout(request: Request): Promise<Response> {
     await db.delete(sessions).where(eq(sessions.id, sessionId));
   }
 
+  const headers = new Headers();
+  headers.append("Set-Cookie", await sessionCookie.serialize("", { maxAge: 0 }));
+  headers.append("Set-Cookie", await clearStoredActiveHouseholdId());
+
   return redirect("/login", {
-    headers: {
-      "Set-Cookie": await sessionCookie.serialize("", { maxAge: 0 }),
-    },
+    headers,
   });
 }
 

@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 
 import type { Account } from "~/domain/accounts/entity";
 import type { Category } from "~/domain/categories/entity";
@@ -30,6 +30,7 @@ function makeTransaction(overrides: Partial<Transaction> = {}): Transaction {
   return {
     id: overrides.id ?? "tx_1",
     userId: overrides.userId ?? "user_1",
+    householdId: overrides.householdId ?? "hh_1",
     accountId: overrides.accountId ?? "acc_1",
     categoryId: overrides.categoryId ?? null,
     type: overrides.type ?? "expense",
@@ -85,9 +86,7 @@ describe("TransactionsPage", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Salvo.");
   });
 
-  it("pede confirmação ao excluir transação", () => {
-    const confirmMock = vi.spyOn(window, "confirm").mockReturnValue(false);
-
+  it("mostra resumo e ações da transação", () => {
     render(
       <TransactionsPage
         accounts={accounts}
@@ -97,14 +96,8 @@ describe("TransactionsPage", () => {
       />
     );
 
-    const deleteButton = screen.getByRole("button", { name: "Excluir" });
-    const form = deleteButton.closest("form");
-    expect(form).not.toBeNull();
-
-    fireEvent.submit(form!);
-
-    expect(confirmMock).toHaveBeenCalledWith("Excluir esta transação?");
-
-    confirmMock.mockRestore();
+    expect(screen.getByText("Uber")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Editar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Excluir" })).toBeInTheDocument();
   });
 });

@@ -10,6 +10,7 @@ describe("deleteTransaction", () => {
     const result = await deleteTransaction({
       transactionsRepo: repo,
       userId: "user-1",
+      householdId: "household-1",
       transactionId: "missing",
     });
 
@@ -34,6 +35,7 @@ describe("deleteTransaction", () => {
     const result = await deleteTransaction({
       transactionsRepo: repo,
       userId: "user-1",
+      householdId: "household-1",
       transactionId: "t1",
     });
 
