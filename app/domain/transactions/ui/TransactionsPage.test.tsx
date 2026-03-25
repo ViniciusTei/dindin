@@ -1,29 +1,11 @@
-import { render, screen } from "@testing-library/react";
-import type { ReactElement } from "react";
-import { createMemoryRouter, RouterProvider } from "react-router";
+import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import type { Account } from "~/domain/accounts/entity";
 import type { Category } from "~/domain/categories/entity";
 import type { Transaction } from "~/domain/transactions/entity";
-
+import { renderWithDataRouter } from "~/domain/test/renderWithDataRouter";
 import { TransactionsPage } from "./TransactionsPage";
-
-function renderWithDataRouter(ui: ReactElement) {
-  const router = createMemoryRouter(
-    [
-      {
-        path: "*",
-        element: ui,
-      },
-    ],
-    {
-      initialEntries: ["/"],
-    },
-  );
-
-  return render(<RouterProvider router={router} />);
-}
 
 function makeAccount(overrides: Partial<Account> = {}): Account {
   return {
