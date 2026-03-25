@@ -1,6 +1,6 @@
 import { and, asc, eq } from "drizzle-orm";
 
-import { db } from "~/db/db.server";
+import { resolveClient } from "~/db/db.server";
 import { accounts, creditCards } from "~/db/schema";
 import type { CreditCardBrand } from "~/domain/credit-cards/entity";
 import {
@@ -9,8 +9,8 @@ import {
 } from "~/domain/credit-cards/errors";
 import type { CreditCardsRepo } from "~/domain/credit-cards/ports";
 
-async function assertAccountBelongsToUser(params: { userId: string; accountId: string; tx?: any }) {
-  const client = params.tx ?? db;
+async function assertAccountBelongsToUser(params: { userId: string; accountId: string; tx?: unknown }) {
+  const client = resolveClient(params.tx);
   const rows = await client
     .select({ id: accounts.id })
     .from(accounts)
@@ -22,7 +22,8 @@ async function assertAccountBelongsToUser(params: { userId: string; accountId: s
 
 export const creditCardsRepo: CreditCardsRepo = {
   async listByUser(userId) {
-    const rows = await db.query.creditCards.findMany({
+    const client = resolveClient();
+    const rows = await client.query.creditCards.findMany({
       where: (t, { eq }) => eq(t.userId, userId),
       orderBy: (t) => asc(t.createdAt),
     });
@@ -43,7 +44,7 @@ export const creditCardsRepo: CreditCardsRepo = {
   },
 
   async findById(params) {
-    const client = params.tx ?? db;
+    const client = resolveClient(params.tx);
     const rows = await client.query.creditCards.findMany({
       where: (t, { and, eq }) =>
         and(eq(t.userId, params.userId), eq(t.id, params.creditCardId)),
@@ -69,7 +70,7 @@ export const creditCardsRepo: CreditCardsRepo = {
   },
 
   async create(params) {
-    const client = params.tx ?? db;
+    const client = resolveClient(params.tx);
     if (params.accountId) {
       await assertAccountBelongsToUser({ userId: params.userId, accountId: params.accountId, tx: client });
     }
@@ -89,7 +90,7 @@ export const creditCardsRepo: CreditCardsRepo = {
   },
 
   async update(params) {
-    const client = params.tx ?? db;
+    const client = resolveClient(params.tx);
     if (params.accountId) {
       await assertAccountBelongsToUser({ userId: params.userId, accountId: params.accountId, tx: client });
     }
@@ -109,7 +110,7 @@ export const creditCardsRepo: CreditCardsRepo = {
   },
 
   async delete(params) {
-    const client = params.tx ?? db;
+    const client = resolveClient(params.tx);
     const deleted = await client
       .delete(creditCards)
       .where(and(eq(creditCards.id, params.creditCardId), eq(creditCards.userId, params.userId)))

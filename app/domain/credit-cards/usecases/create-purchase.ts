@@ -13,7 +13,7 @@ export async function createCreditCardPurchase(params: {
   amountCents: number;
   occurredAt: Date;
   installmentsTotal: number;
-  tx?: any;
+  tx?: unknown;
 }): Promise<
   | { ok: true; purchaseId: string; firstInvoiceYm: string }
   | {

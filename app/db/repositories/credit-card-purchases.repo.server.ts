@@ -1,13 +1,13 @@
 import crypto from "node:crypto";
 import { and, desc, eq } from "drizzle-orm";
 
-import { db } from "~/db/db.server";
+import { resolveClient } from "~/db/db.server";
 import { creditCardPurchases, creditCards, creditCardPurchaseTransactions } from "~/db/schema";
 import { CreditCardNotFoundError, CreditCardPurchaseNotFoundError } from "~/domain/credit-cards/errors";
 import type { CreditCardPurchasesRepo } from "~/domain/credit-cards/ports";
 
-async function assertCardBelongsToUser(params: { userId: string; creditCardId: string; tx?: any }) {
-  const client = params.tx ?? db;
+async function assertCardBelongsToUser(params: { userId: string; creditCardId: string; tx?: unknown }) {
+  const client = resolveClient(params.tx);
   const rows = await client
     .select({ id: creditCards.id })
     .from(creditCards)
@@ -19,7 +19,7 @@ async function assertCardBelongsToUser(params: { userId: string; creditCardId: s
 
 export const creditCardPurchasesRepo: CreditCardPurchasesRepo = {
   async listByCard(params) {
-    const client = params.tx ?? db;
+    const client = resolveClient(params.tx);
     const rows = await client.query.creditCardPurchases.findMany({
       where: (t, { and, eq }) =>
         and(eq(t.userId, params.userId), eq(t.creditCardId, params.creditCardId)),
@@ -41,7 +41,7 @@ export const creditCardPurchasesRepo: CreditCardPurchasesRepo = {
   },
 
   async findById(params) {
-    const client = params.tx ?? db;
+    const client = resolveClient(params.tx);
     const rows = await client.query.creditCardPurchases.findMany({
       where: (t, { and, eq }) => and(eq(t.userId, params.userId), eq(t.id, params.purchaseId)),
       limit: 1,
@@ -65,7 +65,7 @@ export const creditCardPurchasesRepo: CreditCardPurchasesRepo = {
   },
 
   async create(params) {
-    const client = params.tx ?? db;
+    const client = resolveClient(params.tx);
     await assertCardBelongsToUser({ userId: params.userId, creditCardId: params.creditCardId, tx: client });
 
     await client.insert(creditCardPurchases).values({
@@ -82,7 +82,7 @@ export const creditCardPurchasesRepo: CreditCardPurchasesRepo = {
   },
 
   async linkTransaction(params) {
-    const client = params.tx ?? db;
+    const client = resolveClient(params.tx);
     // ensure purchase belongs to user
     const rows = await client.query.creditCardPurchases.findMany({
       where: (t, { and, eq }) => and(eq(t.userId, params.userId), eq(t.id, params.purchaseId)),

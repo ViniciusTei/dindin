@@ -1,6 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 
-import { db } from "~/db/db.server";
+import { resolveClient } from "~/db/db.server";
 import { accounts, categories, transactions } from "~/db/schema";
 import {
   TransactionAccountNotFoundError,
@@ -9,8 +9,8 @@ import {
 } from "~/domain/transactions/errors";
 import type { TransactionsRepo } from "~/domain/transactions/ports";
 
-async function assertAccountBelongsToUser(params: { userId: string; accountId: string; tx?: any }) {
-  const client = params.tx ?? db;
+async function assertAccountBelongsToUser(params: { userId: string; accountId: string; tx?: unknown }) {
+  const client = resolveClient(params.tx);
   const rows = await client
     .select({ id: accounts.id })
     .from(accounts)
@@ -22,7 +22,8 @@ async function assertAccountBelongsToUser(params: { userId: string; accountId: s
 
 export const transactionsRepo: TransactionsRepo = {
   async listByHousehold(params) {
-    const rows = await db.query.transactions.findMany({
+    const client = resolveClient();
+    const rows = await client.query.transactions.findMany({
       where: (t, { and, eq }) =>
         and(eq(t.userId, params.userId), eq(t.householdId, params.householdId)),
       orderBy: (t) => [desc(t.occurredAt), desc(t.createdAt)],
@@ -43,7 +44,7 @@ export const transactionsRepo: TransactionsRepo = {
   },
 
   async create(params) {
-    const client = params.tx ?? db;
+    const client = resolveClient(params.tx);
 
     await assertAccountBelongsToUser({ userId: params.userId, accountId: params.accountId, tx: client });
 
@@ -70,7 +71,7 @@ export const transactionsRepo: TransactionsRepo = {
   },
 
   async update(params) {
-    const client = params.tx ?? db;
+    const client = resolveClient(params.tx);
 
     await assertAccountBelongsToUser({ userId: params.userId, accountId: params.accountId, tx: client });
 
@@ -106,7 +107,7 @@ export const transactionsRepo: TransactionsRepo = {
   },
 
   async delete(params) {
-    const client = params.tx ?? db;
+    const client = resolveClient(params.tx);
 
     const deleted = await client
       .delete(transactions)
