@@ -95,7 +95,8 @@ export async function createCreditCardPurchaseInHousehold(params: {
           });
         } catch (err) {
           // propagate link failure without throwing to allow graceful response
-          return { ok: false, error: "TRANSACTION_ERROR", cause: `linkTransaction failed: ${err instanceof Error ? err.message : String(err)}` } as any;
+          const detailed = err && typeof err === 'object' ? JSON.stringify(err, Object.getOwnPropertyNames(err)) : String(err);
+          return { ok: false, error: "TRANSACTION_ERROR", cause: `linkTransaction failed: ${detailed}` } as any;
         }
       }
 
