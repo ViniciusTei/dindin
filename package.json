@@ -19,7 +19,7 @@
     "stack:up:prod": "docker compose --env-file .env.prod -p financeiro-prod up -d --build",
     "stack:down:prod": "docker compose --env-file .env.prod -p financeiro-prod down",
     "start": "react-router-serve ./build/server/index.js",
-    "test": "npm run test:unit && npm run test:e2e",
+    "test": "npm run test:unit && npm run test:ui",
     "test:domain": "vitest run -c vitest.domain.config.ts",
     "test:domain:watch": "vitest -c vitest.domain.config.ts",
     "test:domain:coverage": "vitest run --coverage -c vitest.domain.config.ts",

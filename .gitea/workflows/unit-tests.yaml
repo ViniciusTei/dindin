@@ -26,4 +26,4 @@ jobs:
       - name: Rodar testes unitários
         env:
           CI: true
-        run: npm run test:unit
+        run: npm run test
