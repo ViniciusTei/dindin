@@ -17,7 +17,6 @@ services:
       retries: 10
 
   migrate:
-    profiles: ["migrate"]
     build:
       context: .
       dockerfile: Dockerfile
@@ -35,7 +34,6 @@ services:
     restart: "no"
 
   web:
-    profiles: ["web"]
     build:
       context: .
       dockerfile: Dockerfile
@@ -55,16 +53,6 @@ services:
     ports:
       - "${APP_PORT:-3000}:${APP_PORT:-3000}"
     restart: unless-stopped
-
-  pgadmin:
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: viniciustei@admin.com.br
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-    ports:
-      - "5433:80"
-    depends_on:
-      - db
 
 volumes:
   pgdata:
