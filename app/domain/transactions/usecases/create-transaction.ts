@@ -5,6 +5,24 @@ import {
 } from "~/domain/transactions/errors";
 import type { TransactionsRepo } from "~/domain/transactions/ports";
 
+type CreateTransactionError =
+  | "ACCOUNT_REQUIRED"
+  | "TYPE_INVALID"
+  | "DESCRIPTION_REQUIRED"
+  | "AMOUNT_INVALID"
+  | "DATE_REQUIRED"
+  | "ACCOUNT_NOT_FOUND"
+  | "CATEGORY_NOT_FOUND";
+ 
+type CreateTransactionErrorResult = {
+  ok: false;
+  error: CreateTransactionError;
+}
+type CreateTransactionSuccessResult = {
+  ok: true;
+  transactionId: string;
+}
+
 export async function createTransaction(params: {
   transactionsRepo: TransactionsRepo;
   idFactory: () => string;
@@ -18,18 +36,8 @@ export async function createTransaction(params: {
   occurredAt: Date;
   tx?: unknown;
 }): Promise<
-  | { ok: true; transactionId: string }
-  | {
-      ok: false;
-      error:
-        | "ACCOUNT_REQUIRED"
-        | "TYPE_INVALID"
-        | "DESCRIPTION_REQUIRED"
-        | "AMOUNT_INVALID"
-        | "DATE_REQUIRED"
-        | "ACCOUNT_NOT_FOUND"
-        | "CATEGORY_NOT_FOUND";
-    }
+  | CreateTransactionSuccessResult
+  | CreateTransactionErrorResult
 > {
   const description = params.description.trim();
 
