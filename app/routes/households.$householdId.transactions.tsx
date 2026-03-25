@@ -166,7 +166,7 @@ export async function action({ request, params }: Route.ActionArgs) {
           case "INSTALLMENTS_INVALID":
             return { error: "Número de parcelas inválido." };
           case "TRANSACTION_ERROR":
-            return { error: "Falha ao criar transações." };
+            return { error: (res as any).cause ? `Falha ao criar transações: ${(res as any).cause}` : "Falha ao criar transações." };
         }
       }
 
