@@ -3,8 +3,17 @@ import path from 'path';
 import crypto from 'crypto';
 import { Pool } from 'pg';
 import argon2 from 'argon2';
+import { execSync } from 'node:child_process';
 
 export default async function globalSetup(config) {
+  // Apply database migrations so required tables exist for E2E tests
+  try {
+    console.log('[e2e global-setup] running db migrations...');
+    execSync('npm run db:migrate --silent', { stdio: 'inherit', env: process.env });
+    console.log('[e2e global-setup] migrations completed');
+  } catch (err) {
+    console.warn('[e2e global-setup] migrations failed', err);
+  }
   const databaseUrl = process.env.DATABASE_URL || 'postgres://financeiro_user:financeiro_pass@localhost:5432/financeiro_dev';
   const pool = new Pool({ connectionString: databaseUrl });
 
