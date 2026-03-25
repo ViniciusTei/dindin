@@ -13,7 +13,7 @@ export interface TransactionsRepo {
     description: string;
     amountCents: number;
     occurredAt: Date;
-    tx?: any;
+    tx?: unknown;
   }): Promise<void>;
 
   update(params: {
@@ -26,8 +26,8 @@ export interface TransactionsRepo {
     description: string;
     amountCents: number;
     occurredAt: Date;
-    tx?: any;
+    tx?: unknown;
   }): Promise<void>;
 
-  delete(params: { userId: string; householdId: string; transactionId: string; tx?: any }): Promise<void>;
+  delete(params: { userId: string; householdId: string; transactionId: string; tx?: unknown }): Promise<void>;
 }

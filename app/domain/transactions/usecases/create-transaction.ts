@@ -16,7 +16,7 @@ export async function createTransaction(params: {
   description: string;
   amountCents: number;
   occurredAt: Date;
-  tx?: any;
+  tx?: unknown;
 }): Promise<
   | { ok: true; transactionId: string }
   | {

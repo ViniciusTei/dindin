@@ -4,6 +4,22 @@ import { createCreditCardPurchase } from "~/domain/credit-cards/usecases/create-
 import { createTransaction } from "~/domain/transactions/usecases/create-transaction";
 import { db } from "~/db/db.server";
 
+type CreatePurchaseInHouseholdError = 
+  | "CARD_REQUIRED"
+  | "CARD_NOT_FOUND"
+  | "DESCRIPTION_REQUIRED"
+  | "AMOUNT_INVALID"
+  | "DATE_REQUIRED"
+  | "INSTALLMENTS_INVALID"
+  | "TRANSACTION_ERROR";
+type CreatePurchaseInHouseholdErrorResult = {
+      ok: false;
+      error: CreatePurchaseInHouseholdError;
+      causeError?: string;
+      cause?: string;
+    };
+type CreatePurchaseInHouseholdResult = { ok: true; purchaseId: string; transactionIds: string[]; firstInvoiceYm: string }
+
 export async function createCreditCardPurchaseInHousehold(params: {
   creditCardsRepo: CreditCardsRepo;
   purchasesRepo: CreditCardPurchasesRepo;
@@ -18,23 +34,7 @@ export async function createCreditCardPurchaseInHousehold(params: {
   amountCents: number;
   occurredAt: Date;
   installmentsTotal: number;
-}): Promise<
-  | { ok: true; purchaseId: string; transactionIds: string[]; firstInvoiceYm: string }
-  | {
-      ok: false;
-      error:
-        | "CARD_REQUIRED"
-        | "CARD_NOT_FOUND"
-        | "DESCRIPTION_REQUIRED"
-        | "AMOUNT_INVALID"
-        | "DATE_REQUIRED"
-        | "INSTALLMENTS_INVALID"
-        | "TRANSACTION_ERROR";
-      // optional machine-friendly cause and human-friendly detail
-      causeError?: string;
-      cause?: string;
-    }
-> {
+}): Promise<CreatePurchaseInHouseholdResult | CreatePurchaseInHouseholdErrorResult> {
   try {
     const result = await db.transaction(async (tx) => {
       const purchaseResult = await createCreditCardPurchase({
@@ -49,11 +49,11 @@ export async function createCreditCardPurchaseInHousehold(params: {
         occurredAt: params.occurredAt,
         installmentsTotal: params.installmentsTotal,
         tx,
-      } as any);
+      });
 
       if (!purchaseResult.ok) {
         // no DB writes occurred if creation failed, return the error
-        return { ok: false, error: purchaseResult.error } as any;
+        return { ok: false, error: purchaseResult.error };
       }
 
       const n = params.installmentsTotal;
@@ -84,7 +84,7 @@ export async function createCreditCardPurchaseInHousehold(params: {
 
         if (!res.ok) {
           // propagate transaction-level error (e.g., ACCOUNT_REQUIRED) without throwing
-          return { ok: false, error: "TRANSACTION_ERROR", causeError: res.error, cause: `createTransaction failed: ${res.error}` } as any;
+          return { ok: false, error: "TRANSACTION_ERROR", causeError: res.error, cause: `createTransaction failed: ${res.error}` };
         }
 
         transactionIds.push(res.transactionId);
@@ -99,18 +99,18 @@ export async function createCreditCardPurchaseInHousehold(params: {
         } catch (err) {
           // propagate link failure without throwing to allow graceful response
           const detailed = err && typeof err === 'object' ? JSON.stringify(err, Object.getOwnPropertyNames(err)) : String(err);
-          return { ok: false, error: "TRANSACTION_ERROR", causeError: 'LINK_FAILED', cause: `linkTransaction failed: ${detailed}` } as any;
+          return { ok: false, error: "TRANSACTION_ERROR", causeError: 'LINK_FAILED', cause: `linkTransaction failed: ${detailed}` };
         }
       }
 
-      return { ok: true, purchaseId: purchaseResult.purchaseId, transactionIds, firstInvoiceYm: purchaseResult.firstInvoiceYm } as any;
+      return { ok: true, purchaseId: purchaseResult.purchaseId, transactionIds, firstInvoiceYm: purchaseResult.firstInvoiceYm };
     });
 
     // result may be an error object returned from transaction callback or the success
-    if (!result.ok) return result as any;
-    return result as any;
-  } catch (err: any) {
-    if (err && err.message === "TRANSACTION_ERROR") {
+    if (!result.ok) return result as CreatePurchaseInHouseholdErrorResult;
+    return result as CreatePurchaseInHouseholdResult;
+  } catch (err) {
+    if (err && (err as Error).message === "TRANSACTION_ERROR") {
       return { ok: false, error: "TRANSACTION_ERROR" };
     }
     throw err;

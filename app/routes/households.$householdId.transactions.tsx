@@ -165,8 +165,8 @@ export async function action({ request, params }: Route.ActionArgs) {
           case "INSTALLMENTS_INVALID":
             return { error: "Número de parcelas inválido." };
           case "TRANSACTION_ERROR": {
-            const causeError = (res as any).causeError as string | undefined;
-            const detail = (res as any).cause as string | undefined;
+            const causeError = res.causeError as string | undefined;
+            const detail = res.cause as string | undefined;
 
             // Map known transaction-level errors to friendly messages
             switch (causeError) {
