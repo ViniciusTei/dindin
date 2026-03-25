@@ -318,9 +318,9 @@ export default function HouseholdTransactions({ loaderData, actionData }: Route.
       categories={loaderData.categories}
       transactions={loaderData.transactions}
       today={loaderData.today}
-      error={actionData?.error ?? loaderData?.error}
-      ok={actionData?.ok ?? loaderData?.ok}
-      actionOk={Boolean(actionData?.ok)}
+      error={actionData?.error ?? loaderData?.warning}
+      ok={Boolean(loaderData?.ok)}
+      actionOk={Boolean(loaderData?.ok)}
       loaderOk={Boolean(loaderData?.ok)}
       cards={loaderData.cards}
     />

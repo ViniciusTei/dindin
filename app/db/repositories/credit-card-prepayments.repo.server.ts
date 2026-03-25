@@ -1,14 +1,13 @@
 import { and, asc, eq } from "drizzle-orm";
 
 import { resolveClient } from "~/db/db.server";
-import type { DbTransaction } from "~/db/db.server";
+import type { DbExecutor, DbTransaction } from "~/db/db.server";
 import { creditCardPurchasePrepayments, creditCardPurchases } from "~/db/schema";
 import { CreditCardPurchaseNotFoundError } from "~/domain/credit-cards/errors";
 import type { CreditCardPrepaymentsRepo } from "~/domain/credit-cards/ports";
 
-async function assertPurchaseBelongsToUser(params: { userId: string; purchaseId: string; tx?: DbTransaction }) {
-  const client = resolveClient(params.tx);
-  const rows = await client
+async function assertPurchaseBelongsToUser(params: { userId: string; purchaseId: string; tx: DbExecutor }) {
+  const rows = await params.tx
     .select({ id: creditCardPurchases.id })
     .from(creditCardPurchases)
     .where(and(eq(creditCardPurchases.id, params.purchaseId), eq(creditCardPurchases.userId, params.userId)))
