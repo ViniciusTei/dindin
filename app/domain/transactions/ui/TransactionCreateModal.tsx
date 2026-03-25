@@ -1,10 +1,10 @@
-import { Form } from "react-router";
+import { useEffect, useState } from "react";
+import { Form, useNavigation } from "react-router";
 
 import type { Account } from "~/domain/accounts/entity";
 import type { Category } from "~/domain/categories/entity";
 import FormModal, {
   ModalCloseButton,
-  closeDialogOnSubmit,
 } from "~/ui/FormModal";
 import TransactionFormFields from "./TransactionFormFields";
 
@@ -23,6 +23,20 @@ export default function TransactionCreateModal(props: {
   error?: string;
   today: string;
 }) {
+  const navigation = useNavigation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (navigation.state === "idle") {
+      setIsSubmitting(false);
+    }
+  }, [navigation.state]);
+
+  const isCreateSubmitting =
+    isSubmitting ||
+    (navigation.state === "submitting" &&
+      navigation.formData?.get("intent") === "create");
+
   return (
     <FormModal
       dialogId="create_transaction_modal"
@@ -33,7 +47,13 @@ export default function TransactionCreateModal(props: {
       triggerTestId="transaction-create-open"
       dialogClassName="max-w-4xl"
     >
-      <Form method="post" className="space-y-4">
+      <Form
+        method="post"
+        className="space-y-4"
+        onSubmit={() => {
+          setIsSubmitting(true);
+        }}
+      >
         <input type="hidden" name="intent" value="create" />
         <TransactionFormFields
           accounts={props.accounts}
@@ -62,6 +82,7 @@ export default function TransactionCreateModal(props: {
             type="submit"
             className="btn btn-primary"
             data-testid="transaction-create-submit"
+            disabled={isCreateSubmitting}
           >
             Criar
           </button>

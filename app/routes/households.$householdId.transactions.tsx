@@ -20,7 +20,6 @@ import { updateTransaction } from "~/domain/transactions/usecases/update-transac
 import { TransactionsPage } from "~/domain/transactions/ui/TransactionsPage";
 import { toCents } from "~/lib/money";
 import { decryptString } from "~/lib/crypto.server";
-import { addMonthsUTC } from "~/domain/dashboard/month";
 
 function createId(): string {
   return crypto.randomUUID();
