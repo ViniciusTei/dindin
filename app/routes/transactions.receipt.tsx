@@ -53,10 +53,19 @@ function generateNote(receipt: { storeName: string | null; date: Date | null; it
 
 export async function loader({ request }: Route.LoaderArgs) {
   const userId = await requireUserId(request);
-  const household = await getPreferredHouseholdForUser({ request, userId });
-  if (!household) return redirect("/households");
 
-  const householdId = household.householdId;
+  const url = new URL(request.url);
+  const householdIdParam = url.searchParams.get("householdId");
+
+  let householdId: string;
+  if (householdIdParam) {
+    await requireHouseholdAccess({ userId, householdId: householdIdParam });
+    householdId = householdIdParam;
+  } else {
+    const household = await getPreferredHouseholdForUser({ request, userId });
+    if (!household) return redirect("/households");
+    householdId = household.householdId;
+  }
 
   const [accounts, categories, cards] = await Promise.all([
     listAccounts({ accountsRepo, userId }),
