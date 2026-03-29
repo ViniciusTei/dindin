@@ -1,10 +1,12 @@
 ---
 description: daisyUI 5
-alwaysApply: true
+alwaysApply: false
 applyTo: "**"
 downloadedFrom: https://daisyui.com/llms.txt
 version: 5.5.x
 ---
+
+Apply this rule when developing frontend UI components.
 
 # daisyUI 5
 daisyUI 5 is a CSS library for Tailwind CSS 4
