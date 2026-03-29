@@ -1,4 +1,4 @@
-import type { Route } from "./+types/account";
+import type { Route } from "./+types/settings";
 
 import { Link } from "react-router";
 
@@ -16,11 +16,11 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       <p className="mt-1 text-sm opacity-60">{loaderData.user.username}</p>
 
       <div className="mt-6 max-w-xl flex flex-col gap-3">
-        <Link to="/account/change-password" className="btn btn-outline w-full justify-start">
+        <Link to="/settings/change-password" className="btn btn-outline w-full justify-start">
           Alterar senha
         </Link>
 
-        <Link to="/account/delete" className="btn btn-error btn-outline w-full justify-start">
+        <Link to="/settings/delete" className="btn btn-error btn-outline w-full justify-start">
           Excluir conta
         </Link>
       </div>

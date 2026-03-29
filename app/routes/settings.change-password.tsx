@@ -1,4 +1,4 @@
-import type { Route } from "./+types/account.change-password";
+import type { Route } from "./+types/settings.change-password";
 
 import { requireUser } from "~/auth/session.server";
 import { passwordHasher } from "~/auth/password-hasher.server";

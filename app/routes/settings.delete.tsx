@@ -1,4 +1,4 @@
-import type { Route } from "./+types/account.delete";
+import type { Route } from "./+types/settings.delete";
 
 import { Form, redirect } from "react-router";
 

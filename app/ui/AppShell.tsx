@@ -78,7 +78,7 @@ export function AppShell(props: {
       { to: "/households", label: "Rateios", icon: "heart", visible: true },
       { to: "/accounts", label: "Contas", icon: "bank", visible: true },
       { to: "/cards", label: "Cartões", icon: "credit-card", visible: true },
-      { to: "/account", label: "Conta", icon: "account", visible: true },
+      { to: "/settings", label: "Configurações", icon: "settings", visible: true },
     ];
 
     return items.filter((i) => i.visible);

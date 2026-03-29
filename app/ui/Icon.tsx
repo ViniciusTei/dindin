@@ -13,6 +13,7 @@ import {
   RiWalletLine,
   RiMoonLine,
   RiSunLine,
+  RiSettings3Line,
 } from "@remixicon/react";
 import type { RemixiconComponentType } from "@remixicon/react";
 
@@ -28,6 +29,7 @@ const availableIcons = {
   sun: RiSunLine,
   categories: RiBookShelfLine,
   account: RiAccountBoxLine,
+  settings: RiSettings3Line,
   wallet: RiWalletLine,
   "credit-card": RiBankCardFill,
   bank: RiBankFill,
