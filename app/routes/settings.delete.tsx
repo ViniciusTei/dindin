@@ -1,4 +1,4 @@
-import type { Route } from "./+types/account";
+import type { Route } from "./+types/settings.delete";
 
 import { Form, redirect } from "react-router";
 
@@ -25,10 +25,8 @@ export async function action({ request }: Route.ActionArgs) {
 
   await eraseUserData({ usersEraseRepo, userId: user.id });
 
-  // Se apagou o último usuário, volta para o /setup
   const anyUser = await usersStatsRepo.hasAnyUsers();
   if (!anyUser) {
-    // limpa cookie de sessão
     const res = await logout(request);
     return redirect("/setup", { headers: res.headers });
   }
@@ -36,10 +34,10 @@ export async function action({ request }: Route.ActionArgs) {
   return logout(request);
 }
 
-export default function Account({ loaderData, actionData }: Route.ComponentProps) {
+export default function AccountDelete({ loaderData, actionData }: Route.ComponentProps) {
   return (
     <div className="p-4">
-      <h1 className="text-xl font-semibold">Conta</h1>
+      <h1 className="text-xl font-semibold">Excluir conta</h1>
 
       <div className="mt-4 max-w-xl">
         <div className="alert alert-warning">
@@ -66,7 +64,6 @@ export default function Account({ loaderData, actionData }: Route.ComponentProps
               return;
             }
 
-            // Melhor esforço: limpa caches do SW (evita dados offline ficarem no device)
             try {
               if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
                 navigator.serviceWorker.controller.postMessage({ type: "CLEAR_CACHES" });

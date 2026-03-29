@@ -18,3 +18,11 @@ export interface PasswordHasher {
 export interface UsersEraseRepo {
   eraseUserData(params: { userId: string }): Promise<{ deleted: boolean }>;
 }
+
+export interface UserPasswordRepo {
+  updatePasswordHash(userId: string, newHash: string): Promise<void>;
+}
+
+export interface PasswordVerifier {
+  verify(params: { hash: string; password: string }): Promise<boolean>;
+}
