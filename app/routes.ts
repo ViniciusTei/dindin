@@ -23,6 +23,7 @@ export default [
     route("cards", "routes/cards.tsx"),
     route("card/:creditCardId", "routes/card.$creditCardId.tsx"),
     route("transactions", "routes/transactions.tsx"),
+    route("transactions/receipt", "routes/transactions.receipt.tsx"),
     route("categories", "routes/categories.tsx"),
     index("routes/home.tsx"),
   ]),

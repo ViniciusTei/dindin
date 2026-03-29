@@ -28,4 +28,5 @@ export const env = {
   CARD_ENCRYPTION_KEY: optionalEnv("CARD_ENCRYPTION_KEY"),
   COOKIE_SECURE:
     toBool(optionalEnv("COOKIE_SECURE")) ?? process.env.NODE_ENV === "production",
+  ANTHROPIC_API_KEY: requireEnv("ANTHROPIC_API_KEY"),
 };
