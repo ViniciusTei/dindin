@@ -4,7 +4,10 @@ import { redirect, useNavigation } from "react-router";
 import { useState, useEffect } from "react";
 
 import { requireUserId } from "~/auth/session.server";
-import { getPreferredHouseholdForUser, requireHouseholdAccess } from "~/auth/household.server";
+import {
+  getPreferredHouseholdForUser,
+  requireHouseholdAccess,
+} from "~/auth/household.server";
 import { drizzleTransactionRunner } from "~/db/db.server";
 import { accountsRepo } from "~/db/repositories/accounts.repo.server";
 import { categoriesRepo } from "~/db/repositories/categories.repo.server";
@@ -18,7 +21,7 @@ import { listCreditCards } from "~/domain/credit-cards/usecases/list-credit-card
 import { parseReceipt } from "~/domain/receipt/usecases/parse-receipt";
 import { createReceiptTransactions } from "~/domain/receipt/usecases/create-receipt-transactions";
 import { decryptString } from "~/lib/crypto.server";
-import type { ParsedReceipt, ReceiptItem } from "~/domain/receipt/entity";
+import type { ReceiptItem } from "~/domain/receipt/entity";
 import { ReceiptUploadStep } from "~/domain/receipt/ui/ReceiptUploadStep";
 import { ReceiptItemsTable } from "~/domain/receipt/ui/ReceiptItemsTable";
 import { ReceiptPaymentForm } from "~/domain/receipt/ui/ReceiptPaymentForm";
@@ -28,7 +31,11 @@ function todayISODate(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function generateNote(receipt: { storeName: string | null; date: Date | null; items: ReceiptItem[] }): string {
+function generateNote(receipt: {
+  storeName: string | null;
+  date: Date | null;
+  items: ReceiptItem[];
+}): string {
   const header = receipt.storeName
     ? `Nota fiscal importada - ${receipt.storeName}`
     : "Nota fiscal importada";
@@ -90,14 +97,23 @@ export async function loader({ request }: Route.LoaderArgs) {
     };
   });
 
-  return { accounts, categories, cards: viewCards, householdId, today: todayISODate() };
+  return {
+    accounts,
+    categories,
+    cards: viewCards,
+    householdId,
+    today: todayISODate(),
+  };
 }
 
 export async function action({ request }: Route.ActionArgs) {
   const userId = await requireUserId(request);
 
   const contentType = request.headers.get("content-type") ?? "";
-  if (!contentType.includes("multipart/form-data") && !contentType.includes("application/x-www-form-urlencoded")) {
+  if (
+    !contentType.includes("multipart/form-data") &&
+    !contentType.includes("application/x-www-form-urlencoded")
+  ) {
     return { type: "error" as const, message: "Formato inválido." };
   }
 
@@ -111,8 +127,15 @@ export async function action({ request }: Route.ActionArgs) {
     }
 
     const mimeType = imageFile.type;
-    if (mimeType !== "image/jpeg" && mimeType !== "image/png" && mimeType !== "image/webp") {
-      return { type: "error" as const, message: "Formato de imagem inválido. Use JPEG, PNG ou WebP." };
+    if (
+      mimeType !== "image/jpeg" &&
+      mimeType !== "image/png" &&
+      mimeType !== "image/webp"
+    ) {
+      return {
+        type: "error" as const,
+        message: "Formato de imagem inválido. Use JPEG, PNG ou WebP.",
+      };
     }
 
     const buffer = await imageFile.arrayBuffer();
@@ -127,7 +150,10 @@ export async function action({ request }: Route.ActionArgs) {
       });
 
       if (receipt.items.length === 0) {
-        return { type: "error" as const, message: "Nenhum item encontrado na nota fiscal. Tente outra imagem." };
+        return {
+          type: "error" as const,
+          message: "Nenhum item encontrado na nota fiscal. Tente outra imagem.",
+        };
       }
 
       return {
@@ -140,7 +166,8 @@ export async function action({ request }: Route.ActionArgs) {
         },
       };
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erro ao processar imagem.";
+      const message =
+        err instanceof Error ? err.message : "Erro ao processar imagem.";
       return { type: "error" as const, message };
     }
   }
@@ -158,7 +185,10 @@ export async function action({ request }: Route.ActionArgs) {
     }
 
     if (!Array.isArray(items) || items.length === 0) {
-      return { type: "error" as const, message: "Nenhum item para criar transações." };
+      return {
+        type: "error" as const,
+        message: "Nenhum item para criar transações.",
+      };
     }
 
     const storeName = String(form.get("storeName") ?? "").trim() || null;
@@ -172,16 +202,23 @@ export async function action({ request }: Route.ActionArgs) {
     const mode = String(form.get("mode") ?? "single") as "single" | "per-item";
     const paymentType = String(form.get("paymentType") ?? "account");
 
-    let paymentMethod: Parameters<typeof createReceiptTransactions>[0]["paymentMethod"];
+    let paymentMethod: Parameters<
+      typeof createReceiptTransactions
+    >[0]["paymentMethod"];
 
     if (paymentType === "credit-card") {
       const creditCardId = String(form.get("creditCardId") ?? "").trim();
-      if (!creditCardId) return { type: "error" as const, message: "Selecione um cartão." };
+      if (!creditCardId)
+        return { type: "error" as const, message: "Selecione um cartão." };
 
       const card = await creditCardsRepo.findById({ userId, creditCardId });
-      if (!card) return { type: "error" as const, message: "Cartão não encontrado." };
+      if (!card)
+        return { type: "error" as const, message: "Cartão não encontrado." };
 
-      const installments = Math.max(1, Number(form.get("installments") ?? 1) || 1);
+      const installments = Math.max(
+        1,
+        Number(form.get("installments") ?? 1) || 1,
+      );
       paymentMethod = {
         type: "credit-card",
         creditCardId,
@@ -191,7 +228,8 @@ export async function action({ request }: Route.ActionArgs) {
       };
     } else {
       const accountId = String(form.get("accountId") ?? "").trim();
-      if (!accountId) return { type: "error" as const, message: "Selecione uma conta." };
+      if (!accountId)
+        return { type: "error" as const, message: "Selecione uma conta." };
       paymentMethod = { type: "account", accountId };
     }
 
@@ -220,7 +258,10 @@ export async function action({ request }: Route.ActionArgs) {
   return { type: "error" as const, message: "Ação inválida." };
 }
 
-export default function TransactionsReceipt({ loaderData, actionData }: Route.ComponentProps) {
+export default function TransactionsReceipt({
+  loaderData,
+  actionData,
+}: Route.ComponentProps) {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
@@ -241,11 +282,15 @@ export default function TransactionsReceipt({ loaderData, actionData }: Route.Co
     }
   }, [actionData]);
 
-  function updateItem(id: string, field: "name" | "quantity" | "unitPriceCents", value: string | number) {
+  function updateItem(
+    id: string,
+    field: "name" | "quantity" | "unitPriceCents",
+    value: string | number,
+  ) {
     setItems((prev) =>
       prev.map((item) => {
         if (item.id !== id) return item;
-        let updated = { ...item };
+        const updated = { ...item };
         if (field === "name") {
           updated.name = String(value);
         } else if (field === "quantity") {
@@ -279,8 +324,13 @@ export default function TransactionsReceipt({ loaderData, actionData }: Route.Co
     ]);
   }
 
-  const note = generateNote({ storeName, date: receiptDate ? new Date(`${receiptDate}T00:00:00.000Z`) : null, items });
-  const parseError = actionData?.type === "error" ? actionData.message : undefined;
+  const note = generateNote({
+    storeName,
+    date: receiptDate ? new Date(`${receiptDate}T00:00:00.000Z`) : null,
+    items,
+  });
+  const parseError =
+    actionData?.type === "error" ? actionData.message : undefined;
 
   if (step === "upload") {
     return (
@@ -305,7 +355,8 @@ export default function TransactionsReceipt({ loaderData, actionData }: Route.Co
 
       {storeName && (
         <p className="text-base-content/60 mb-4 text-sm">
-          Estabelecimento: <span className="font-medium text-base-content">{storeName}</span>
+          Estabelecimento:{" "}
+          <span className="font-medium text-base-content">{storeName}</span>
         </p>
       )}
 
@@ -320,7 +371,11 @@ export default function TransactionsReceipt({ loaderData, actionData }: Route.Co
 
       <form method="post">
         <input type="hidden" name="_intent" value="create" />
-        <input type="hidden" name="householdId" value={loaderData.householdId} />
+        <input
+          type="hidden"
+          name="householdId"
+          value={loaderData.householdId}
+        />
         <input type="hidden" name="storeName" value={storeName ?? ""} />
         <input type="hidden" name="items" value={JSON.stringify(items)} />
 

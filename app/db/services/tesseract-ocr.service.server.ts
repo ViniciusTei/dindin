@@ -3,10 +3,6 @@ import crypto from "node:crypto";
 import type { OcrService } from "~/domain/receipt/ports";
 import type { ParsedReceipt, ReceiptItem } from "~/domain/receipt/entity";
 
-// ---------------------------------------------------------------------------
-// Text parsing helpers
-// ---------------------------------------------------------------------------
-
 function parseDateBR(text: string): Date | null {
   const match = /\b(\d{2})\/(\d{2})\/(\d{4})\b/.exec(text);
   if (!match) return null;
@@ -52,7 +48,9 @@ function extractItems(lines: string[]): ReceiptItem[] {
 
     // Try to extract quantity: patterns like "2 UN", "3X", "2 x", qty at start
     let quantity = 1;
-    const qtyMatch = /^(\d+)\s*[xX×]\s/.exec(clean) ?? /\b(\d+)\s*(?:UN|un|PC|pc|KG|kg)\b/.exec(clean);
+    const qtyMatch =
+      /^(\d+)\s*[xX×]\s/.exec(clean) ??
+      /\b(\d+)\s*(?:UN|un|PC|pc|KG|kg)\b/.exec(clean);
     if (qtyMatch) {
       const q = parseInt(qtyMatch[1], 10);
       if (q > 0 && q < 100) quantity = q;
@@ -82,7 +80,7 @@ function extractItems(lines: string[]): ReceiptItem[] {
 // ---------------------------------------------------------------------------
 
 export const tesseractOcrService: OcrService = {
-  async parseReceipt({ imageBase64, mimeType }) {
+  async parseReceipt({ imageBase64 }) {
     const imageBuffer = Buffer.from(imageBase64, "base64");
 
     const worker = await createWorker("por+eng");
