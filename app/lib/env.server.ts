@@ -28,4 +28,6 @@ export const env = {
   CARD_ENCRYPTION_KEY: optionalEnv("CARD_ENCRYPTION_KEY"),
   COOKIE_SECURE:
     toBool(optionalEnv("COOKIE_SECURE")) ?? process.env.NODE_ENV === "production",
+  // Optional: when set, Claude Vision is used for OCR; otherwise Tesseract.js is used.
+  ANTHROPIC_API_KEY: optionalEnv("ANTHROPIC_API_KEY"),
 };

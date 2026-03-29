@@ -91,6 +91,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     cards: viewCards,
     warning,
     ok,
+    householdId,
   };
 }
 
@@ -323,6 +324,7 @@ export default function HouseholdTransactions({ loaderData, actionData }: Route.
       actionOk={Boolean(loaderData?.ok)}
       loaderOk={Boolean(loaderData?.ok)}
       cards={loaderData.cards}
+      householdId={loaderData.householdId}
     />
   );
 }

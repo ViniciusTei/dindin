@@ -3,6 +3,7 @@ import type { Category } from "~/domain/categories/entity";
 import type { Transaction } from "~/domain/transactions/entity";
 import { formatBRL } from "~/lib/money";
 import { useEffect } from "react";
+import { Link } from "react-router";
 import TransactionCreateModal from "./TransactionCreateModal";
 import TransactionEditModal from "./TransactionEditModal";
 import TransactionDeleteModal from "./TransactionDeleteModal";
@@ -17,6 +18,7 @@ export function TransactionsPage(props: {
   actionOk?: boolean;
   loaderOk?: boolean;
   today: string;
+  householdId?: string;
   cards?: Array<{
     id: string;
     brand: string;
@@ -40,13 +42,21 @@ export function TransactionsPage(props: {
     <main className="mx-auto mt-10 max-w-5xl px-4">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Transações</h1>
-        <TransactionCreateModal
-          accounts={props.accounts}
-          categories={props.categories}
-          error={props.error}
-          today={props.today}
-          cards={props.cards}
-        />
+        <div className="flex gap-2">
+          <Link
+            to={props.householdId ? `/transactions/receipt?householdId=${props.householdId}` : "/transactions/receipt"}
+            className="btn btn-ghost btn-sm"
+          >
+            Importar nota fiscal
+          </Link>
+          <TransactionCreateModal
+            accounts={props.accounts}
+            categories={props.categories}
+            error={props.error}
+            today={props.today}
+            cards={props.cards}
+          />
+        </div>
       </div>
 
       <div className="mt-6 grid gap-6">
