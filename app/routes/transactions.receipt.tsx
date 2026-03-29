@@ -11,7 +11,7 @@ import { categoriesRepo } from "~/db/repositories/categories.repo.server";
 import { creditCardsRepo } from "~/db/repositories/credit-cards.repo.server";
 import { creditCardPurchasesRepo } from "~/db/repositories/credit-card-purchases.repo.server";
 import { transactionsRepo } from "~/db/repositories/transactions.repo.server";
-import { claudeOcrService } from "~/db/services/claude-ocr.service.server";
+import { getOcrService } from "~/db/services/ocr.service.server";
 import { listAccounts } from "~/domain/accounts/usecases/list-accounts";
 import { listCategories } from "~/domain/categories/usecases/list-categories";
 import { listCreditCards } from "~/domain/credit-cards/usecases/list-credit-cards";
@@ -119,8 +119,9 @@ export async function action({ request }: Route.ActionArgs) {
     const imageBase64 = Buffer.from(buffer).toString("base64");
 
     try {
+      const ocrService = await getOcrService();
       const receipt = await parseReceipt({
-        ocrService: claudeOcrService,
+        ocrService,
         imageBase64,
         mimeType,
       });

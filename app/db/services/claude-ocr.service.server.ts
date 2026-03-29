@@ -4,6 +4,10 @@ import type { OcrService } from "~/domain/receipt/ports";
 import type { ParsedReceipt, ReceiptItem } from "~/domain/receipt/entity";
 import { env } from "~/lib/env.server";
 
+if (!env.ANTHROPIC_API_KEY) {
+  throw new Error("ANTHROPIC_API_KEY não configurado. Use o serviço Tesseract em vez deste.");
+}
+
 const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
 
 const SYSTEM_PROMPT = `You are a receipt OCR assistant. Extract structured data from receipt images.
