@@ -1,14 +1,11 @@
-import { Form, Link, useLocation } from "react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useTheme } from "~/contexts/ThemeContext";
-import { HouseholdSwitcher } from "~/domain/households/ui/HouseholdSwitcher";
-import Icon, { type IconName } from "./Icon";
+import { useLocation } from "react-router";
 
-type AppShellHousehold = {
-  householdId: string;
-  name: string;
-  role: "admin" | "member";
-};
+import { useTheme } from "~/contexts/ThemeContext";
+
+import { DesktopSidebar, type AppShellHousehold } from "./DesktopSidebar";
+import Icon, { type IconName } from "./Icon";
+import { MobileBottomNav } from "./MobileBottomNav";
 
 type AppShellUser = {
   username: string;
@@ -37,7 +34,6 @@ export function AppShell(props: {
     function onOffline() {
       setIsOnline(false);
     }
-
     window.addEventListener("online", onOnline);
     window.addEventListener("offline", onOffline);
     return () => {
@@ -53,8 +49,8 @@ export function AppShell(props: {
   }, [props.user.defaultHouseholdId, props.user.preferredHouseholdId]);
 
   const shellGridCols = isSidebarCollapsed
-    ? "grid-cols-[4rem_repeat(4,minmax(0,1fr))]"
-    : "grid-cols-[16rem_repeat(4,minmax(0,1fr))]";
+    ? "grid-cols-1 md:grid-cols-[4rem_repeat(4,minmax(0,1fr))]"
+    : "grid-cols-1 md:grid-cols-[16rem_repeat(4,minmax(0,1fr))]";
 
   const activeHouseholdId = useMemo(() => {
     const match = location.pathname.match(/^\/households\/([^/]+)/);
@@ -63,8 +59,10 @@ export function AppShell(props: {
 
   const activeHousehold = useMemo(
     () =>
-      props.user.households.find((household) => household.householdId === activeHouseholdId) ?? null,
-    [activeHouseholdId, props.user.households]
+      props.user.households.find(
+        (household) => household.householdId === activeHouseholdId,
+      ) ?? null,
+    [activeHouseholdId, props.user.households],
   );
 
   const navItems = useMemo(() => {
@@ -80,13 +78,11 @@ export function AppShell(props: {
       { to: "/cards", label: "Cartões", icon: "credit-card", visible: true },
       { to: "/settings", label: "Configurações", icon: "settings", visible: true },
     ];
-
     return items.filter((i) => i.visible);
   }, []);
 
   const householdNavItems = useMemo(() => {
     if (!activeHousehold) return [];
-
     const items: Array<{
       to: string;
       label: string;
@@ -124,7 +120,6 @@ export function AppShell(props: {
         visible: activeHousehold.role === "admin",
       },
     ];
-
     return items.filter((item) => item.visible);
   }, [activeHousehold]);
 
@@ -137,137 +132,23 @@ export function AppShell(props: {
         shellGridCols,
       ].join(" ")}
     >
-      <aside className="row-start-1 row-end-6 col-start-1 col-end-2 border-r border-base-300 bg-base-200">
-        <div className="flex h-full flex-col p-2">
-          <Link
-            to="/"
-            className={[
-              "flex items-center gap-3 rounded-box p-2",
-              isSidebarCollapsed ? "justify-center" : "justify-start",
-              "hover:bg-base-300",
-            ].join(" ")}
-          >
-            <div className="avatar">
-              <div className="w-10 rounded">
-                <img src="/site-icon.png" alt="Financeiro" />
-              </div>
-            </div>
+      <DesktopSidebar
+        isSidebarCollapsed={isSidebarCollapsed}
+        navItems={navItems}
+        householdNavItems={householdNavItems}
+        activeHousehold={activeHousehold}
+        households={props.user.households}
+        preferredHouseholdId={preferredHouseholdId}
+        defaultHouseholdId={props.user.defaultHouseholdId}
+        currentPath={`${location.pathname}${location.search}`}
+        onActiveHouseholdChange={setPreferredHouseholdId}
+      />
 
-            {isSidebarCollapsed ? null : (
-              <div className="leading-tight">
-                <div className="font-semibold">Financeiro</div>
-                <div className="text-xs opacity-70">Controle Financeiro</div>
-              </div>
-            )}
-          </Link>
-
-          <nav className="mt-4 flex-1">
-            <ul className="menu w-full p-0">
-              {navItems.map((item) => (
-                <li key={item.to}>
-                  <Link
-                    to={item.to}
-                    title={item.label}
-                    className={[
-                      "flex items-center",
-                      isSidebarCollapsed ? "justify-center" : "justify-start",
-                      "gap-3",
-                    ].join(" ")}
-                    aria-label={item.label}
-                  >
-                    <span
-                      className={[
-                        "inline-flex h-8 w-8 items-center justify-center rounded-box",
-                        "bg-base-300",
-                        "text-sm font-semibold",
-                      ].join(" ")}
-                      aria-hidden={true}
-                    >
-                      <Icon name={item.icon} className="h-4 w-4" />
-                    </span>
-                    {isSidebarCollapsed ? null : <span>{item.label}</span>}
-                  </Link>
-                </li>
-              ))}
-
-              {!isSidebarCollapsed && activeHousehold ? (
-                <li className="menu-title mt-4 px-3 text-xs uppercase opacity-60">
-                  <span>Rateio ativo</span>
-                </li>
-              ) : null}
-
-              {!isSidebarCollapsed && activeHousehold ? (
-                <li className="mb-1 px-3 pb-2 text-sm">
-                  <HouseholdSwitcher
-                    households={props.user.households}
-                    activeHouseholdId={activeHousehold.householdId}
-                    recommendedHouseholdId={
-                      preferredHouseholdId ?? props.user.defaultHouseholdId
-                    }
-                    currentPath={`${location.pathname}${location.search}`}
-                    onActiveHouseholdChange={setPreferredHouseholdId}
-                  />
-                </li>
-              ) : null}
-
-              {householdNavItems.map((item) => (
-                <li key={item.to}>
-                  <Link
-                    to={item.to}
-                    title={item.label}
-                    className={[
-                      "flex items-center",
-                      isSidebarCollapsed ? "justify-center" : "justify-start pl-6",
-                      "gap-3",
-                    ].join(" ")}
-                    aria-label={item.label}
-                  >
-                    <span
-                      className={[
-                        "inline-flex h-8 w-8 items-center justify-center rounded-box",
-                        "bg-base-300",
-                        "text-sm font-semibold",
-                      ].join(" ")}
-                      aria-hidden={true}
-                    >
-                      <Icon name={item.icon} className="h-4 w-4" />
-                    </span>
-                    {isSidebarCollapsed ? null : <span>{item.label}</span>}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          <div className="mt-2">
-            <Form method="post" action="/logout">
-              <button
-                type="submit"
-                className={[
-                  "btn btn-ghost w-full",
-                  isSidebarCollapsed ? "btn-square mx-auto" : "justify-start",
-                ].join(" ")}
-                title="Sair"
-              >
-                {isSidebarCollapsed ? (
-                  <Icon name="logout" className="h-4 w-4" />
-                ) : (
-                  <>
-                    <Icon name="logout" className="h-4 w-4" />
-                    <span>Sair</span>
-                  </>
-                )}
-              </button>
-            </Form>
-          </div>
-        </div>
-      </aside>
-
-      <header className="row-start-1 row-end-2 col-start-2 col-end-6 border-b border-base-300 bg-base-100">
+      <header className="row-start-1 row-end-2 col-start-1 col-end-2 md:col-start-2 md:col-end-6 border-b border-base-300 bg-base-100">
         <div className="flex h-full items-center justify-between px-4">
           <button
             type="button"
-            className="btn btn-ghost btn-square"
+            className="hidden md:inline-flex btn btn-ghost btn-square"
             onClick={() => setIsSidebarCollapsed((v) => !v)}
             aria-label={isSidebarCollapsed ? "Expandir menu" : "Recolher menu"}
             title={isSidebarCollapsed ? "Expandir menu" : "Recolher menu"}
@@ -280,8 +161,12 @@ export function AppShell(props: {
               type="button"
               className="btn btn-ghost btn-square"
               onClick={toggleTheme}
-              aria-label={theme === "sunset" ? "Ativar tema claro" : "Ativar tema escuro"}
-              title={theme === "sunset" ? "Ativar tema claro" : "Ativar tema escuro"}
+              aria-label={
+                theme === "sunset" ? "Ativar tema claro" : "Ativar tema escuro"
+              }
+              title={
+                theme === "sunset" ? "Ativar tema claro" : "Ativar tema escuro"
+              }
             >
               <Icon
                 name={theme === "sunset" ? ("sun" as IconName) : ("moon" as IconName)}
@@ -299,9 +184,11 @@ export function AppShell(props: {
         </div>
       </header>
 
-      <main className="row-start-2 row-end-6 col-start-2 col-end-6 min-h-0 overflow-y-auto">
+      <main className="row-start-2 row-end-6 col-start-1 col-end-2 md:col-start-2 md:col-end-6 min-h-0 overflow-y-auto pb-20 md:pb-0">
         {props.children}
       </main>
+
+      <MobileBottomNav navItems={navItems} currentPath={location.pathname} />
     </div>
   );
 }
