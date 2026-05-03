@@ -1,17 +1,16 @@
 import type { PasswordHasher, UsersRepo } from "~/domain/users/ports";
 import { createLocalUser } from "~/domain/users/usecases/create-local-user";
 
-import type { SetupHouseholdsRepo, SetupUsersStatsRepo } from "../ports";
+import type { SetupHouseholdsRepo } from "../ports";
 
 export type RunSetupResult =
   | { ok: true; adminUserId: string }
   | {
       ok: false;
-      error: "ALREADY_DONE" | "INVALID_INPUT" | "USER_EXISTS";
+      error: "INVALID_INPUT" | "USER_EXISTS";
     };
 
 export async function runSetup(params: {
-  usersStatsRepo: SetupUsersStatsRepo;
   usersRepo: UsersRepo;
   passwordHasher: PasswordHasher;
   householdsRepo: SetupHouseholdsRepo;

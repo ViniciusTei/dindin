@@ -8,12 +8,10 @@ describe("domain/setup/runSetup", () => {
 
   it("cria admin e household quando ok", async () => {
     const { repo: usersRepo, users } = makeUsersRepo();
-    const usersStatsRepo = { hasAnyUsers: vi.fn(async () => false) };
     const householdsRepo = { createHouseholdWithAdmin: vi.fn(async () => ({ householdId: "h1" })) };
     const idFactory = makeIdFactory("user");
 
     const result = await runSetup({
-      usersStatsRepo,
       usersRepo,
       passwordHasher: makePasswordHasher("argon"),
       householdsRepo,
