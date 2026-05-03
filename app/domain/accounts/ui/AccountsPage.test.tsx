@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { createMemoryRouter, RouterProvider } from "react-router";
 import { describe, expect, it } from "vitest";
 
 import type { Account } from "~/domain/accounts/entity";
@@ -15,26 +16,30 @@ function makeAccount(overrides: Partial<Account> = {}): Account {
   };
 }
 
+function renderAccountsPage(props: Parameters<typeof AccountsPage>[0]) {
+  const router = createMemoryRouter(
+    [{ path: "*", element: <AccountsPage {...props} /> }],
+    { initialEntries: ["/"] },
+  );
+  return render(<RouterProvider router={router} />);
+}
+
 describe("AccountsPage", () => {
   it("mostra estado vazio", () => {
-    render(
-      <AccountsPage
-        accounts={[]}
-        totalCurrentBalanceCents={0}
-      />
-    );
+    renderAccountsPage({
+      accounts: [],
+      totalCurrentBalanceCents: 0,
+    });
 
     expect(screen.getByText("Nenhuma conta.")).toBeInTheDocument();
   });
 
   it("mostra erro e marca input de nome como inválido", () => {
-    render(
-      <AccountsPage
-        accounts={[]}
-        totalCurrentBalanceCents={0}
-        error="Nome é obrigatório."
-      />
-    );
+    renderAccountsPage({
+      accounts: [],
+      totalCurrentBalanceCents: 0,
+      error: "Nome é obrigatório.",
+    });
 
     const nameInput = screen.getByLabelText("Nome");
     expect(nameInput).toHaveAttribute("aria-invalid");
@@ -46,15 +51,13 @@ describe("AccountsPage", () => {
   it("mostra ações de renomear e excluir na lista", () => {
     const account = makeAccount({ name: "Carteira" });
 
-    render(
-      <AccountsPage
-        accounts={[{ ...account, currentBalanceCents: 0 }]}
-        totalCurrentBalanceCents={0}
-      />
-    );
+    renderAccountsPage({
+      accounts: [{ ...account, currentBalanceCents: 0 }],
+      totalCurrentBalanceCents: 0,
+    });
 
     expect(screen.getByText("Carteira")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Renomear" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Excluir" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Renomear conta" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Excluir conta" })).toBeInTheDocument();
   });
 });
