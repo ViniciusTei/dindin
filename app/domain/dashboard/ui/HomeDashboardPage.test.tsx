@@ -5,13 +5,14 @@ import { describe, expect, it, vi } from "vitest";
 import { ThemeProvider } from "~/contexts/ThemeContext";
 import { HomeDashboardPage } from "~/domain/dashboard/ui/HomeDashboardPage";
 
-vi.mock("react-charts", () => {
-  return {
-    Chart: ({ options }: { options: { data: unknown[]; primaryAxis: { scaleType?: string } } }) => (
-      <div data-testid="chart-mock">chart:{options.data.length}</div>
-    ),
-  };
-});
+vi.mock("~/lib/charts", () => ({
+  BarChart: ({ series }: { series: Array<{ name: string }> }) => (
+    <div data-testid="chart-mock">chart:{series.length}</div>
+  ),
+  PieChart: ({ slices }: { slices: unknown[] }) => (
+    <div data-testid="expense-pie-chart">pie:{slices.length}</div>
+  ),
+}));
 
 describe("HomeDashboardPage", () => {
   it("renderiza os blocos principais e os gráficos", () => {
@@ -146,7 +147,7 @@ describe("HomeDashboardPage", () => {
         </ThemeProvider>
       </MemoryRouter>
     );
-    const saldoValue = screen.getByText("R$ 500,00");
-    expect(saldoValue).toHaveClass("text-success");
+    const saldoValues = screen.getAllByText("R$ 500,00");
+    expect(saldoValues[0]).toHaveClass("text-success");
   });
 });
