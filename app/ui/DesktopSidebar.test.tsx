@@ -137,4 +137,16 @@ describe("DesktopSidebar", () => {
     expect(screen.getByLabelText("Selecionar household ativa")).toBeInTheDocument();
     expect(screen.getAllByRole("option")[0]).toHaveTextContent("Apartamento");
   });
+
+  it("aplica classe ativa no item de nav correspondente ao caminho atual", () => {
+    renderSidebar({ currentPath: "/accounts" });
+    const contasLink = screen.getByRole("link", { name: "Contas" });
+    expect(contasLink.closest("li")).toHaveClass("active");
+  });
+
+  it("aplica active no Dashboard apenas quando path é exato /", () => {
+    renderSidebar({ currentPath: "/accounts" });
+    const dashboardLink = screen.getByRole("link", { name: "Dashboard" });
+    expect(dashboardLink.closest("li")).not.toHaveClass("active");
+  });
 });
