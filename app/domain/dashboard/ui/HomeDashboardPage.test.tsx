@@ -154,4 +154,27 @@ describe("HomeDashboardPage", () => {
     const saldoValues = screen.getAllByText("R$ 500,00");
     expect(saldoValues[0]).toHaveClass("text-success");
   });
+
+  it("exibe seção RESUMO PESSOAL e RATEIOS ATIVOS", () => {
+    render(
+      <MemoryRouter>
+        <ThemeProvider>
+          <HomeDashboardPage
+            monthLabel="2026-03"
+            previousMonthLabel="2026-02"
+            nextMonthLabel="2026-04"
+            totalBalanceCents={0}
+            monthIncomeCents={0}
+            monthExpenseCents={0}
+            monthNetCents={0}
+            expenseByCategory={[]}
+            incomeExpenseSeries={[]}
+          />
+        </ThemeProvider>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText("Resumo pessoal")).toBeInTheDocument();
+    expect(screen.getByText("Rateios ativos")).toBeInTheDocument();
+  });
 });
