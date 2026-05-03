@@ -102,7 +102,7 @@ describe("TransactionsPage", () => {
 
     expect(screen.getByText("Uber")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Editar" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Excluir" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Excluir transação" })).toBeInTheDocument();
   });
 
   it("agrupa transações por data", () => {

@@ -12,6 +12,7 @@ export { closeResponsiveModal as closeDialogOnSubmit, ModalCloseButton };
 type FormModalProps = {
   dialogId: string;
   triggerLabel: string;
+  triggerContent?: ReactNode;
   title: string;
   description?: string;
   children: ReactNode;
@@ -28,11 +29,12 @@ export default function FormModal(props: FormModalProps) {
         type="button"
         className={props.triggerClassName ?? "btn btn-primary"}
         data-testid={props.triggerTestId}
+        aria-label={props.triggerContent ? props.triggerLabel : undefined}
         onClick={() =>
           openResponsiveModal(props.dialogId, props.resetFormOnOpen ?? true)
         }
       >
-        {props.triggerLabel}
+        {props.triggerContent ?? props.triggerLabel}
       </button>
       <ResponsiveModal
         dialogId={props.dialogId}
