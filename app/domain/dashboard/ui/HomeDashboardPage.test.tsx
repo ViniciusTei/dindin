@@ -127,4 +127,26 @@ describe("HomeDashboardPage", () => {
     expect(screen.getByText("Despesas (mês exibido)")).toBeInTheDocument();
     expect(screen.getByText("Saldo atual das contas")).toBeInTheDocument();
   });
+
+  it("aplica cor verde ao saldo total positivo", () => {
+    render(
+      <MemoryRouter>
+        <ThemeProvider>
+          <HomeDashboardPage
+            monthLabel="2026-03"
+            previousMonthLabel="2026-02"
+            nextMonthLabel="2026-04"
+            totalBalanceCents={50000}
+            monthIncomeCents={60000}
+            monthExpenseCents={10000}
+            monthNetCents={50000}
+            expenseByCategory={[]}
+            incomeExpenseSeries={[]}
+          />
+        </ThemeProvider>
+      </MemoryRouter>
+    );
+    const saldoValue = screen.getByText("R$ 500,00");
+    expect(saldoValue).toHaveClass("text-success");
+  });
 });
