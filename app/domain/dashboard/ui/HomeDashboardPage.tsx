@@ -1,3 +1,4 @@
+import type { AvailableMonth } from "~/ui/MonthSelect";
 import type { HomeDashboardData } from "~/domain/dashboard/entity";
 import { DashboardExpensePieCard } from "~/domain/dashboard/ui/DashboardExpensePieCard";
 import { DashboardHouseholdsOverview } from "~/domain/dashboard/ui/DashboardHouseholdsOverview";
@@ -5,13 +6,16 @@ import { DashboardIncomeExpenseCard } from "~/domain/dashboard/ui/DashboardIncom
 import { DashboardMonthHeader } from "~/domain/dashboard/ui/DashboardMonthHeader";
 import { DashboardSummaryCards } from "~/domain/dashboard/ui/DashboardSummaryCards";
 
-export function HomeDashboardPage(props: HomeDashboardData) {
+export function HomeDashboardPage(
+  props: HomeDashboardData & { availableMonths?: AvailableMonth[] }
+) {
   return (
     <main className="mx-auto mt-10 max-w-5xl px-4">
       <DashboardMonthHeader
         monthLabel={props.monthLabel}
         previousMonthLabel={props.previousMonthLabel}
         nextMonthLabel={props.nextMonthLabel}
+        availableMonths={props.availableMonths}
       />
 
       <DashboardSummaryCards
