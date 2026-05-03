@@ -1,4 +1,5 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, like, sql } from "drizzle-orm";
+import type { SQL } from "drizzle-orm";
 
 import { resolveClient } from "~/db/db.server";
 import type { DbExecutor } from "~/db/db.server";
@@ -25,9 +26,36 @@ async function assertAccountBelongsToUser(params: { userId: string; accountId: s
 export const transactionsRepo: TransactionsRepo<DbTransaction> = {
   async listByHousehold(params) {
     const client = resolveClient();
+    const filters = params.filters;
+
+    const conditions: SQL[] = [
+      eq(transactions.userId, params.userId),
+      eq(transactions.householdId, params.householdId),
+    ];
+
+    if (filters?.type) {
+      conditions.push(eq(transactions.type, filters.type));
+    }
+
+    if (filters?.categoryId !== undefined) {
+      if (filters.categoryId === null) {
+        conditions.push(sql`${transactions.categoryId} IS NULL`);
+      } else {
+        conditions.push(eq(transactions.categoryId, filters.categoryId));
+      }
+    }
+
+    if (filters?.accountId) {
+      conditions.push(eq(transactions.accountId, filters.accountId));
+    }
+
+    if (filters?.q) {
+      const pattern = `%${filters.q.toLowerCase()}%`;
+      conditions.push(like(sql`lower(${transactions.description})`, pattern));
+    }
+
     const rows = await client.query.transactions.findMany({
-      where: (t, { and, eq }) =>
-        and(eq(t.userId, params.userId), eq(t.householdId, params.householdId)),
+      where: and(...conditions),
       orderBy: (t) => [desc(t.occurredAt), desc(t.createdAt)],
     });
 

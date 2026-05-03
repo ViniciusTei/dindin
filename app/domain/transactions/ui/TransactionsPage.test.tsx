@@ -52,6 +52,7 @@ describe("TransactionsPage", () => {
         categories={categories}
         transactions={[]}
         today="2026-03-04"
+        activeFilters={{ type: "", categoryId: "", accountId: "", q: "" }}
       />
     );
 
@@ -66,6 +67,7 @@ describe("TransactionsPage", () => {
         transactions={[]}
         today="2026-03-04"
         error="Conta é obrigatória."
+        activeFilters={{ type: "", categoryId: "", accountId: "", q: "" }}
       />
     );
 
@@ -80,6 +82,7 @@ describe("TransactionsPage", () => {
         transactions={[]}
         today="2026-03-04"
         ok={true}
+        activeFilters={{ type: "", categoryId: "", accountId: "", q: "" }}
       />
     );
 
@@ -93,11 +96,47 @@ describe("TransactionsPage", () => {
         categories={categories}
         transactions={[makeTransaction()]}
         today="2026-03-04"
+        activeFilters={{ type: "", categoryId: "", accountId: "", q: "" }}
       />
     );
 
     expect(screen.getByText("Uber")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Editar" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Excluir" })).toBeInTheDocument();
+  });
+
+  it("agrupa transações por data", () => {
+    renderWithDataRouter(
+      <TransactionsPage
+        accounts={accounts}
+        categories={categories}
+        transactions={[
+          makeTransaction({ id: "tx_1", occurredAt: new Date("2026-02-01T00:00:00.000Z"), description: "Uber" }),
+          makeTransaction({ id: "tx_2", occurredAt: new Date("2026-02-01T00:00:00.000Z"), description: "Lyft" }),
+          makeTransaction({ id: "tx_3", occurredAt: new Date("2026-02-05T00:00:00.000Z"), description: "Netflix" }),
+        ]}
+        today="2026-03-04"
+        activeFilters={{ type: "", categoryId: "", accountId: "", q: "" }}
+      />,
+    );
+    expect(screen.getByText("01/02/2026")).toBeInTheDocument();
+    expect(screen.getByText("05/02/2026")).toBeInTheDocument();
+    expect(screen.getByText("Uber")).toBeInTheDocument();
+    expect(screen.getByText("Lyft")).toBeInTheDocument();
+    expect(screen.getByText("Netflix")).toBeInTheDocument();
+  });
+
+  it("mostra barra de filtros", () => {
+    renderWithDataRouter(
+      <TransactionsPage
+        accounts={accounts}
+        categories={categories}
+        transactions={[]}
+        today="2026-03-04"
+        activeFilters={{ type: "", categoryId: "", accountId: "", q: "" }}
+      />,
+    );
+    expect(screen.getByRole("combobox", { name: /tipo/i })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/buscar/i)).toBeInTheDocument();
   });
 });

@@ -1,13 +1,21 @@
+import { useMemo } from "react";
+import { Form, Link, useNavigation } from "react-router";
+
 import type { Account } from "~/domain/accounts/entity";
 import type { Category } from "~/domain/categories/entity";
 import type { Transaction } from "~/domain/transactions/entity";
+import { formatTransactionDate } from "~/domain/transactions/helpers";
 import { formatBRL } from "~/lib/money";
-import { useEffect } from "react";
-import { Link } from "react-router";
 import TransactionCreateModal from "./TransactionCreateModal";
 import TransactionEditModal from "./TransactionEditModal";
 import TransactionDeleteModal from "./TransactionDeleteModal";
-import { toDateInputValue } from "../helpers";
+
+type ActiveFilters = {
+  type: string;
+  categoryId: string;
+  accountId: string;
+  q: string;
+};
 
 export function TransactionsPage(props: {
   accounts: Account[];
@@ -19,6 +27,7 @@ export function TransactionsPage(props: {
   loaderOk?: boolean;
   today: string;
   householdId?: string;
+  activeFilters?: ActiveFilters;
   cards?: Array<{
     id: string;
     brand: string;
@@ -29,18 +38,31 @@ export function TransactionsPage(props: {
     accountId?: string | null;
   }>;
 }) {
-  useEffect(() => {
-    if (props.actionOk && !props.loaderOk) {
-      const url = new URL(window.location.href);
-      url.searchParams.set("ok", "1");
-      // navigate to same path with ok=1 so loader runs and shows updated data + success message
-      window.location.href = url.pathname + url.search;
+  const navigation = useNavigation();
+  const isLoading = navigation.state === "loading";
+
+  // Group transactions by date
+  const groupedByDate = useMemo(() => {
+    const groups = new Map<string, typeof props.transactions>();
+    for (const tx of props.transactions) {
+      const key = formatTransactionDate(tx.occurredAt);
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(tx);
     }
-  }, [props.actionOk, props.loaderOk]);
+    return Array.from(groups.entries());
+  }, [props.transactions]);
+
+  const categoryById = useMemo(
+    () => new Map(props.categories.map((c) => [c.id, c] as const)),
+    [props.categories],
+  );
+
+  const af = props.activeFilters ?? { type: "", categoryId: "", accountId: "", q: "" };
 
   return (
-    <main className="mx-auto mt-10 max-w-5xl px-4">
-      <div className="flex items-center justify-between gap-4">
+    <div className="p-4 flex flex-col gap-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Transações</h1>
         <div className="flex gap-2">
           <Link
@@ -59,75 +81,134 @@ export function TransactionsPage(props: {
         </div>
       </div>
 
-      <div className="mt-6 grid gap-6">
-        {props.error ? (
-          <div role="alert" className="alert alert-error">
-            <span>{props.error}</span>
-          </div>
+      {/* Error / Success feedback */}
+      {props.error ? (
+        <div role="alert" className="alert alert-error">
+          <span>{props.error}</span>
+        </div>
+      ) : null}
+      {props.ok ? (
+        <div role="status" className="alert alert-success">
+          <span>Salvo.</span>
+        </div>
+      ) : null}
+
+      {/* Filter bar (GET form — server-side filtering) */}
+      <Form method="get" className="flex flex-wrap gap-2 items-end">
+        <select
+          name="type"
+          defaultValue={af.type}
+          aria-label="Tipo"
+          className="select select-sm select-bordered"
+        >
+          <option value="">Todos os tipos</option>
+          <option value="expense">Despesas</option>
+          <option value="income">Receitas</option>
+        </select>
+
+        <select
+          name="categoryId"
+          defaultValue={af.categoryId}
+          aria-label="Categoria"
+          className="select select-sm select-bordered"
+        >
+          <option value="">Todas as categorias</option>
+          <option value="none">Sem categoria</option>
+          {props.categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+
+        <select
+          name="accountId"
+          defaultValue={af.accountId}
+          aria-label="Conta"
+          className="select select-sm select-bordered"
+        >
+          <option value="">Todas as contas</option>
+          {props.accounts.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.name}
+            </option>
+          ))}
+        </select>
+
+        <input
+          type="search"
+          name="q"
+          defaultValue={af.q}
+          placeholder="Buscar descrição..."
+          className="input input-sm input-bordered"
+          aria-label="Buscar descrição"
+        />
+
+        <button type="submit" className="btn btn-sm btn-primary" disabled={isLoading}>
+          {isLoading ? <span className="loading loading-spinner loading-xs" /> : null}
+          Filtrar
+        </button>
+
+        {(af.type || af.categoryId || af.accountId || af.q) ? (
+          <a href="?" className="btn btn-sm btn-ghost">Limpar</a>
         ) : null}
+      </Form>
 
-        {props.ok ? (
-          <div role="status" className="alert alert-success">
-            <span>Salvo.</span>
-          </div>
-        ) : null}
-
-        <section className="bg-base-100">
-          <div className="space-y-4">
-            {props.transactions.length === 0 ? (
-              <p className="opacity-70">Nenhuma transação.</p>
-            ) : (
-              <div className="space-y-3">
-                {props.transactions.map((t) => {
-                  const displayCents =
-                    t.type === "expense" ? -t.amountCents : t.amountCents;
-                  const categoryName = props.categories.find(
-                    (category) => category.id === t.categoryId,
-                  )?.name;
-
+      {/* Transaction list grouped by date */}
+      {props.transactions.length === 0 ? (
+        <div className="flex flex-col items-center gap-3 py-16 opacity-60">
+          <span className="text-4xl">📭</span>
+          <p className="text-sm">Nenhuma transação.</p>
+          {(af.type || af.categoryId || af.accountId || af.q) ? (
+            <p className="text-xs">Tente remover os filtros.</p>
+          ) : null}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {groupedByDate.map(([dateKey, txs]) => (
+            <div key={dateKey}>
+              <div className="text-xs font-semibold uppercase opacity-60 mb-2 px-1">
+                {dateKey}
+              </div>
+              <div className="flex flex-col gap-2">
+                {txs.map((tx) => {
+                  const category = tx.categoryId ? categoryById.get(tx.categoryId) : null;
+                  const isExpense = tx.type === "expense";
                   return (
-                    <article
-                      key={t.id}
-                      className="rounded-box border border-base-300 p-4"
-                      data-testid={`transaction-card-${t.id}`}
+                    <div
+                      key={tx.id}
+                      className="card card-compact bg-base-100 shadow-sm border border-base-200"
                     >
-                      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                        <div className="space-y-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="font-semibold">{t.description}</h3>
-                            <span
-                              className={`badge ${t.type === "expense" ? "badge-error badge-outline" : "badge-success badge-outline"}`}
-                            >
-                              {t.type === "expense" ? "Despesa" : "Receita"}
-                            </span>
-                          </div>
-                          <div className="grid gap-1 text-sm opacity-70 md:grid-cols-2">
-                            <div>Data: {toDateInputValue(t.occurredAt)}</div>
-                            <div>Conta: {t.accountName ?? "—"}</div>
-                            <div>
-                              Categoria: {categoryName ?? "Sem categoria"}
-                            </div>
-                            <div>Valor: {formatBRL(displayCents)}</div>
-                          </div>
+                      <div className="card-body flex-row items-center justify-between gap-3">
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-medium truncate">{tx.description}</span>
+                          <span className="text-xs opacity-60">
+                            {tx.accountName ?? "—"}
+                            {category ? ` · ${category.name}` : ""}
+                          </span>
                         </div>
-
-                        <div className="flex gap-2 md:justify-end">
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span
+                            className={`font-semibold ${isExpense ? "text-error" : "text-success"}`}
+                          >
+                            {isExpense ? formatBRL(-tx.amountCents) : formatBRL(tx.amountCents)}
+                          </span>
                           <TransactionEditModal
                             accounts={props.accounts}
                             categories={props.categories}
-                            transaction={t}
+                            transaction={tx}
                           />
-                          <TransactionDeleteModal transaction={t} />
+                          <TransactionDeleteModal transaction={tx} />
                         </div>
                       </div>
-                    </article>
+                    </div>
                   );
                 })}
               </div>
-            )}
-          </div>
-        </section>
-      </div>
-    </main>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
