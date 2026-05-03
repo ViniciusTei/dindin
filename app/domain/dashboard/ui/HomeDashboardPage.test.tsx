@@ -9,8 +9,12 @@ vi.mock("~/lib/charts", () => ({
   BarChart: ({ series }: { series: Array<{ name: string }> }) => (
     <div data-testid="chart-mock">chart:{series.length}</div>
   ),
-  PieChart: ({ slices }: { slices: unknown[] }) => (
-    <div data-testid="expense-pie-chart">pie:{slices.length}</div>
+  PieChart: ({ slices }: { slices: Array<{ name: string; value: number }> }) => (
+    <div>
+      {slices.map((s, i) => (
+        <div key={i}>{s.name}</div>
+      ))}
+    </div>
   ),
 }));
 
