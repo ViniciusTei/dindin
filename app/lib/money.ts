@@ -28,3 +28,9 @@ export function formatBRL(cents: number): string {
     currency: "BRL",
   }).format(cents / 100);
 }
+
+export function amountColorClass(cents: number): string {
+  if (cents > 0) return "text-success";
+  if (cents < 0) return "text-error";
+  return "text-base-content";
+}
