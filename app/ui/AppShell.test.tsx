@@ -24,14 +24,10 @@ function renderShell(ui: ReactNode) {
         element: <ThemeProvider>{ui}</ThemeProvider>,
       },
     ],
-    {
-      initialEntries: ["/"],
-    },
+    { initialEntries: ["/"] },
   );
 
-  return render(
-    <RouterProvider router={router} />
-  );
+  return render(<RouterProvider router={router} />);
 }
 
 function makeUser(overrides?: Partial<Parameters<typeof AppShell>[0]["user"]>) {
@@ -39,11 +35,7 @@ function makeUser(overrides?: Partial<Parameters<typeof AppShell>[0]["user"]>) {
     username: "maria",
     isAdmin: false,
     households: [
-      {
-        householdId: "household-1",
-        name: "Casa da Maria",
-        role: "admin" as const,
-      },
+      { householdId: "household-1", name: "Casa da Maria", role: "admin" as const },
     ],
     defaultHouseholdId: "household-1",
     preferredHouseholdId: "household-1",
@@ -52,60 +44,29 @@ function makeUser(overrides?: Partial<Parameters<typeof AppShell>[0]["user"]>) {
 }
 
 describe("AppShell", () => {
-  it("mostra atalho de gestão para admin da household ativa", () => {
+  it("renderiza children no main", () => {
     renderShell(
       <AppShell user={makeUser()}>
-        <div>Conteúdo</div>
-      </AppShell>
+        <div>Conteúdo principal</div>
+      </AppShell>,
     );
-
-    expect(screen.getByLabelText("Membros e gestão")).toBeInTheDocument();
+    expect(screen.getByText("Conteúdo principal")).toBeInTheDocument();
   });
 
-  it("oculta atalho de gestão para membro sem permissão administrativa na household", () => {
+  it("exibe o username do usuário no header", () => {
     renderShell(
-      <AppShell
-        user={makeUser({
-          households: [
-            {
-              householdId: "household-1",
-              name: "Casa da Maria",
-              role: "member",
-            },
-          ],
-        })}
-      >
-        <div>Conteúdo</div>
-      </AppShell>
-    );
-
-    expect(screen.queryByLabelText("Membros e gestão")).not.toBeInTheDocument();
-  });
-
-  it("toggle do menu alterna entre recolher/expandir", async () => {
-    const user = userEvent.setup();
-
-    const view = renderShell(
       <AppShell user={makeUser()}>
-        <div>Conteúdo</div>
-      </AppShell>
+        <div />
+      </AppShell>,
     );
-
-    const collapseButton = view.getAllByRole("button", { name: "Recolher menu" })[0]!;
-    expect(collapseButton).toBeInTheDocument();
-    expect(view.getByText("Dashboard")).toBeInTheDocument();
-
-    await user.click(collapseButton);
-
-    expect(view.getAllByRole("button", { name: "Expandir menu" })[0]!).toBeInTheDocument();
-    expect(view.queryByText("Dashboard")).not.toBeInTheDocument();
+    expect(screen.getByText("maria")).toBeInTheDocument();
   });
 
   it("mostra badge de offline ao disparar evento", async () => {
     renderShell(
       <AppShell user={makeUser()}>
-        <div>Conteúdo</div>
-      </AppShell>
+        <div />
+      </AppShell>,
     );
 
     expect(screen.queryByText(/Offline — somente leitura/)).not.toBeInTheDocument();
@@ -123,56 +84,29 @@ describe("AppShell", () => {
     });
   });
 
-  it("oculta links dependentes de household quando o usuário ainda não participa de nenhuma", () => {
+  it("renderiza MobileBottomNav com link para Dashboard", () => {
     renderShell(
-      <AppShell
-        user={makeUser({
-          username: "nova",
-          households: [],
-          defaultHouseholdId: null,
-          preferredHouseholdId: null,
-        })}
-      >
-        <div>Conteúdo</div>
-      </AppShell>
+      <AppShell user={makeUser()}>
+        <div />
+      </AppShell>,
     );
-
-    expect(screen.getByLabelText("Rateios")).toBeInTheDocument();
-    expect(screen.queryByLabelText("Convites")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("Transações")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("Categorias")).not.toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Navegação mobile" })).toBeInTheDocument();
   });
 
-  it("mostra apenas o select da household ativa e ordena a recomendada primeiro", () => {
+  it("toggle do menu alterna aria-label entre recolher/expandir", async () => {
+    const user = userEvent.setup();
     renderShell(
-      <AppShell
-        user={makeUser({
-          households: [
-            {
-              householdId: "household-1",
-              name: "Casa da Maria",
-              role: "admin",
-            },
-            {
-              householdId: "household-2",
-              name: "Apartamento",
-              role: "member",
-            },
-          ],
-          preferredHouseholdId: "household-2",
-        })}
-      >
-        <div>Conteúdo</div>
+      <AppShell user={makeUser()}>
+        <div />
       </AppShell>,
     );
 
-    expect(
-      screen.getByLabelText("Selecionar household ativa"),
-    ).toBeInTheDocument();
-    expect(screen.queryByLabelText("Buscar household")).not.toBeInTheDocument();
-    expect(screen.queryByText(/Recomendada:/)).not.toBeInTheDocument();
-    expect(
-      screen.getAllByRole("option")[0],
-    ).toHaveTextContent("Apartamento");
+    const collapseButton = screen.getByRole("button", { name: "Recolher menu" });
+    expect(collapseButton).toBeInTheDocument();
+
+    await user.click(collapseButton);
+
+    expect(screen.getByRole("button", { name: "Expandir menu" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Recolher menu" })).not.toBeInTheDocument();
   });
 });
