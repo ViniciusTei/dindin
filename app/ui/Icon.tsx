@@ -14,6 +14,11 @@ import {
   RiMoonLine,
   RiSunLine,
   RiSettings3Line,
+  RiGroupLine,
+  RiDeleteBin2Line,
+  RiPencilLine,
+  RiMenuFoldLine,
+  RiMenuUnfoldLine,
 } from "@remixicon/react";
 import type { RemixiconComponentType } from "@remixicon/react";
 
@@ -35,6 +40,11 @@ const availableIcons = {
   bank: RiBankFill,
   "arrow-left": RiArrowLeftFill,
   "arrow-right": RiArrowRightFill,
+  team: RiGroupLine,
+  trash: RiDeleteBin2Line,
+  pencil: RiPencilLine,
+  "menu-fold": RiMenuFoldLine,
+  "menu-unfold": RiMenuUnfoldLine,
 };
 
 type Props = Omit<RemixiconComponentType, "name" | "className"> & {
