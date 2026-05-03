@@ -73,7 +73,7 @@ export function AppShell(props: {
       visible: boolean;
     }> = [
       { to: "/", label: "Dashboard", icon: "dashboard", visible: true },
-      { to: "/households", label: "Rateios", icon: "heart", visible: true },
+      { to: "/households", label: "Rateios", icon: "team", visible: true },
       { to: "/accounts", label: "Contas", icon: "bank", visible: true },
       { to: "/cards", label: "Cartões", icon: "credit-card", visible: true },
       { to: "/settings", label: "Configurações", icon: "settings", visible: true },
@@ -153,7 +153,7 @@ export function AppShell(props: {
             aria-label={isSidebarCollapsed ? "Expandir menu" : "Recolher menu"}
             title={isSidebarCollapsed ? "Expandir menu" : "Recolher menu"}
           >
-            {isSidebarCollapsed ? "»" : "«"}
+            <Icon name={isSidebarCollapsed ? "menu-unfold" : "menu-fold"} className="h-4 w-4" />
           </button>
 
           <div className="flex items-center gap-3 text-sm">
