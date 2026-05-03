@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   ModalCloseButton,
+  closeResponsiveModal,
   openResponsiveModal,
   ResponsiveModal,
 } from "./ResponsiveModal";
@@ -48,6 +49,27 @@ describe("ResponsiveModal", () => {
       </ResponsiveModal>,
     );
     expect(screen.getByTestId("filho")).toBeInTheDocument();
+  });
+
+  it("aplica dialogClassName customizado ao modal-box", () => {
+    render(
+      <ResponsiveModal dialogId="d5" title="T" dialogClassName="max-w-sm">
+        <div />
+      </ResponsiveModal>,
+    );
+    const box = document.querySelector(".modal-box");
+    expect(box).toHaveClass("max-w-sm");
+  });
+
+  it("adiciona aria-describedby quando description é fornecida", () => {
+    render(
+      <ResponsiveModal dialogId="d6" title="T" description="Minha desc">
+        <div />
+      </ResponsiveModal>,
+    );
+    const dialog = document.getElementById("d6");
+    expect(dialog).toHaveAttribute("aria-describedby", "d6-description");
+    expect(document.getElementById("d6-description")).toHaveTextContent("Minha desc");
   });
 });
 
@@ -96,6 +118,42 @@ describe("openResponsiveModal", () => {
     const resetSpy = vi.spyOn(form, "reset");
     openResponsiveModal("modal-noreset", false);
     expect(resetSpy).not.toHaveBeenCalled();
+  });
+
+  it("não chama showModal quando o dialogId não existe", () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    openResponsiveModal("id-inexistente", false);
+    expect(HTMLDialogElement.prototype.showModal).not.toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("id-inexistente"));
+  });
+
+  it("não chama showModal se o dialog já está aberto", () => {
+    render(
+      <ResponsiveModal dialogId="modal-ja-aberto" title="T">
+        <div />
+      </ResponsiveModal>,
+    );
+    const dialog = document.getElementById("modal-ja-aberto") as HTMLDialogElement;
+    Object.defineProperty(dialog, "open", { value: true, configurable: true });
+    openResponsiveModal("modal-ja-aberto", false);
+    expect(HTMLDialogElement.prototype.showModal).not.toHaveBeenCalled();
+  });
+});
+
+describe("closeResponsiveModal", () => {
+  beforeEach(() => {
+    HTMLDialogElement.prototype.close = vi.fn();
+  });
+
+  it("fecha o dialog ancestral ao ser chamado", async () => {
+    const user = userEvent.setup();
+    render(
+      <dialog id="close-direct-test">
+        <button onClick={closeResponsiveModal}>Fechar</button>
+      </dialog>,
+    );
+    await user.click(screen.getByRole("button", { name: "Fechar", hidden: true }));
+    expect(HTMLDialogElement.prototype.close).toHaveBeenCalledTimes(1);
   });
 });
 

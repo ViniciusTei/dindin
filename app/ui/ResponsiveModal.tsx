@@ -8,7 +8,7 @@ type ResponsiveModalProps = {
   dialogClassName?: string;
 };
 
-export function openResponsiveModal(dialogId: string, resetForm: boolean) {
+export function openResponsiveModal(dialogId: string, resetForm = false) {
   const dialog = document.getElementById(dialogId) as HTMLDialogElement | null;
   if (!dialog) {
     console.error(`Dialog element "${dialogId}" not found`);
@@ -55,6 +55,7 @@ export function ResponsiveModal(props: ResponsiveModalProps) {
       id={props.dialogId}
       className="modal modal-bottom sm:modal-middle"
       aria-labelledby={`${props.dialogId}-title`}
+      aria-describedby={props.description ? `${props.dialogId}-description` : undefined}
     >
       <section
         className={`card bg-base-100 shadow modal-box ${props.dialogClassName ?? "max-w-2xl"}`}
@@ -65,7 +66,9 @@ export function ResponsiveModal(props: ResponsiveModalProps) {
               {props.title}
             </h2>
             {props.description ? (
-              <p className="mt-1 text-sm opacity-70">{props.description}</p>
+              <p id={`${props.dialogId}-description`} className="mt-1 text-sm opacity-70">
+                {props.description}
+              </p>
             ) : null}
           </div>
           {props.children}
