@@ -7,7 +7,7 @@ export default defineConfig({
     environment: "node",
     environmentMatchGlobs: [["**/*.test.tsx", "jsdom"]],
     setupFiles: ["app/domain/test/setupDom.ts"],
-    include: ["app/domain/**/*.test.ts", "app/domain/households/**/*.test.tsx"],
+    include: ["app/domain/**/*.test.ts", "app/domain/**/*.test.tsx"],
     restoreMocks: true,
     clearMocks: true,
     mockReset: true,
