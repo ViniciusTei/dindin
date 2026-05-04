@@ -73,6 +73,7 @@ jobs:
           : "${POSTGRES_PASSWORD:?Missing POSTGRES_PASSWORD secret}"
           : "${POSTGRES_DB:?Missing POSTGRES_DB secret}"
           : "${SESSION_SECRET:?Missing SESSION_SECRET secret}"
+          : "${CARD_ENCRYPTION_KEY:?Missing CARD_ENCRYPTION_KEY secret}"
 
           trap 'rm -f .env.prod' EXIT
 
@@ -83,7 +84,7 @@ jobs:
           SESSION_SECRET=${SESSION_SECRET}
           COOKIE_SECURE=${COOKIE_SECURE:-true}
           APP_PORT=${APP_PORT:-3000}
-          CARD_ENCRYPTION_KEY=${CARD_ENCRYPTION_KEY:-}
+          CARD_ENCRYPTION_KEY=${CARD_ENCRYPTION_KEY}
           EOF
 
           chmod +x ./scripts/release/deploy-prod.sh
