@@ -1,14 +1,19 @@
 import { Form, Link } from "react-router";
 
+import { HouseholdContextBar, type HouseholdContext } from "~/domain/households/ui/HouseholdContextBar";
+
 export function InvitePage(props: {
   origin: string;
   token?: string;
   expiresAt?: string;
+  household?: HouseholdContext;
 }) {
   const link = props.token ? `${props.origin}/join/${props.token}` : null;
 
   return (
-    <main className="mx-auto mt-10 max-w-2xl px-4">
+    <>
+      {props.household ? <HouseholdContextBar household={props.household} /> : null}
+      <main className="mx-auto mt-10 max-w-2xl px-4">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Convite</h1>
         <Link className="btn btn-ghost btn-sm" to="/">
@@ -43,6 +48,7 @@ export function InvitePage(props: {
           ) : null}
         </div>
       </div>
-    </main>
+      </main>
+    </>
   );
 }

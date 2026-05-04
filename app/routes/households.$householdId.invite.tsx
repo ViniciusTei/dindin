@@ -10,9 +10,16 @@ import { getRequestOrigin } from "~/lib/request.server";
 export async function loader({ request, params }: Route.LoaderArgs) {
   const userId = await requireUserId(request);
   const householdId = String(params.householdId ?? "");
-  await requireHouseholdAdmin({ userId, householdId });
+  const household = await requireHouseholdAdmin({ userId, householdId });
 
-  return { origin: getRequestOrigin(request) };
+  return {
+    origin: getRequestOrigin(request),
+    householdContext: {
+      householdId: household.householdId,
+      name: household.name,
+      role: household.role,
+    },
+  };
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -35,6 +42,7 @@ export default function HouseholdInvite({ loaderData, actionData }: Route.Compon
       origin={loaderData.origin}
       token={actionData?.token}
       expiresAt={actionData?.expiresAt}
+      household={loaderData.householdContext}
     />
   );
 }
