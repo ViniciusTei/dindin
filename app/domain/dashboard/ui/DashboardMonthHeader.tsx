@@ -1,3 +1,4 @@
+import type { AvailableMonth } from "~/ui/MonthSelect";
 import MonthSelect from "~/ui/MonthSelect";
 import { formatDate } from "~/lib/datetime";
 
@@ -5,6 +6,7 @@ export function DashboardMonthHeader(props: {
   monthLabel: string;
   previousMonthLabel: string;
   nextMonthLabel: string;
+  availableMonths?: AvailableMonth[];
 }) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -19,6 +21,7 @@ export function DashboardMonthHeader(props: {
         })}
         previousLink={`/?month=${props.previousMonthLabel}`}
         nextLink={`/?month=${props.nextMonthLabel}`}
+        availableMonths={props.availableMonths}
       />
     </div>
   );

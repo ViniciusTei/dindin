@@ -1,7 +1,9 @@
-import { Form } from "react-router";
+import { useState } from "react";
+import { Form, useNavigation } from "react-router";
 
 import type { Account } from "~/domain/accounts/entity";
-import { formatBRL } from "~/lib/money";
+import { amountColorClass, formatBRL } from "~/lib/money";
+import Icon from "~/ui/Icon";
 import FormModal, {
   ModalCloseButton,
   closeDialogOnSubmit,
@@ -68,58 +70,15 @@ function AccountCreateModal(props: { error?: string }) {
   );
 }
 
-function AccountRenameModal(props: { account: Account }) {
-  return (
-    <FormModal
-      dialogId={`rename_account_modal_${props.account.id}`}
-      triggerLabel="Renomear"
-      title="Renomear conta"
-      description={`Atualize o nome exibido para a conta "${props.account.name}".`}
-      triggerClassName="btn btn-ghost btn-sm"
-      dialogClassName="max-w-lg"
-    >
-      <Form method="post" onSubmit={closeDialogOnSubmit} className="space-y-3">
-        <input type="hidden" name="intent" value="rename" />
-        <input type="hidden" name="accountId" value={props.account.id} />
-
-        <div className="form-control">
-          <label
-            className="label"
-            htmlFor={`account-rename-name-${props.account.id}`}
-          >
-            <span className="label-text">Nome</span>
-          </label>
-          <input
-            id={`account-rename-name-${props.account.id}`}
-            name="name"
-            defaultValue={props.account.name}
-            className="input input-bordered w-full"
-          />
-        </div>
-
-        <div className="modal-action">
-          <ModalCloseButton />
-          <button
-            type="submit"
-            className="btn btn-primary"
-            data-testid={`account-rename-button-${props.account.id}`}
-          >
-            Salvar nome
-          </button>
-        </div>
-      </Form>
-    </FormModal>
-  );
-}
-
 function AccountDeleteModal(props: { account: Account }) {
   return (
     <FormModal
       dialogId={`delete_account_modal_${props.account.id}`}
-      triggerLabel="Excluir"
+      triggerLabel="Excluir conta"
+      triggerContent={<Icon name="trash" className="h-4 w-4" />}
+      triggerClassName="btn btn-ghost btn-sm btn-square text-error"
       title="Excluir conta"
       description={`Tem certeza que deseja excluir a conta "${props.account.name}"?`}
-      triggerClassName="btn btn-ghost btn-sm text-error"
       dialogClassName="max-w-lg"
       resetFormOnOpen={false}
     >
@@ -150,73 +109,107 @@ export function AccountsPage(props: {
   error?: string;
   ok?: boolean;
 }) {
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
+  const [editingId, setEditingId] = useState<string | null>(null);
+
   return (
-    <main className="mx-auto mt-10 max-w-2xl px-4">
-      <div className="flex items-center justify-between gap-4">
+    <div className="p-4 max-w-2xl">
+      <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-semibold">Contas</h1>
         <AccountCreateModal error={props.error} />
       </div>
 
-      <div className="mt-6 grid gap-6">
-        {props.error ? (
-          <div role="alert" className="alert alert-error">
-            <span>{props.error}</span>
+      {props.error ? (
+        <div role="alert" className="alert alert-error mb-4">
+          <span>{props.error}</span>
+        </div>
+      ) : null}
+
+      {props.ok ? (
+        <div role="status" className="alert alert-success mb-4">
+          <span>Salvo.</span>
+        </div>
+      ) : null}
+
+      {props.accounts.length === 0 ? (
+        <p className="opacity-70">Nenhuma conta.</p>
+      ) : (
+        <div className="card bg-base-100 rounded-box shadow">
+          <div className="card-body p-0">
+            <ul className="divide-y divide-base-200">
+              {props.accounts.map((account) => (
+                <li key={account.id} className="flex items-center gap-3 p-3">
+                  {editingId === account.id ? (
+                    <Form
+                      method="post"
+                      className="flex flex-1 items-center gap-2"
+                      onSubmit={() => setEditingId(null)}
+                    >
+                      <input type="hidden" name="intent" value="rename" />
+                      <input type="hidden" name="accountId" value={account.id} />
+                      <input
+                        type="text"
+                        name="name"
+                        defaultValue={account.name}
+                        className="input input-sm input-bordered flex-1"
+                        autoFocus
+                      />
+                      <button
+                        type="submit"
+                        className="btn btn-sm btn-primary"
+                        disabled={isSubmitting}
+                        data-testid={`account-rename-button-${account.id}`}
+                      >
+                        {isSubmitting ? (
+                          <span className="loading loading-spinner loading-xs" />
+                        ) : null}
+                        Salvar
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-ghost"
+                        onClick={() => setEditingId(null)}
+                      >
+                        Cancelar
+                      </button>
+                    </Form>
+                  ) : (
+                    <>
+                      <div className="flex-1 min-w-0">
+                        <div
+                          className="font-medium truncate"
+                          data-testid={`account-name-${account.name}`}
+                        >
+                          {account.name}
+                        </div>
+                        <div className={`text-sm ${amountColorClass(account.currentBalanceCents)}`}>
+                          {formatBRL(account.currentBalanceCents)}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm btn-square"
+                        aria-label="Renomear conta"
+                        onClick={() => setEditingId(account.id)}
+                      >
+                        <Icon name="pencil" className="h-4 w-4" />
+                      </button>
+                      <AccountDeleteModal account={account} />
+                    </>
+                  )}
+                </li>
+              ))}
+            </ul>
           </div>
-        ) : null}
-
-        {props.ok ? (
-          <div role="status" className="alert alert-success">
-            <span>Salvo.</span>
-          </div>
-        ) : null}
-
-        <section className="bg-base-100 ">
-          <div className="space-y-4">
-            {props.accounts.length === 0 ? (
-              <p className="opacity-70">Nenhuma conta.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="table table-zebra w-full">
-                  <thead>
-                    <tr>
-                      <th>Nome</th>
-                      <th>Saldo inicial</th>
-                      <th>Saldo atual</th>
-                      <th className="text-right">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {props.accounts.map((a) => (
-                      <tr key={a.id}>
-                        <td>
-                          <span data-testid={`account-name-${a.name}`}>
-                            {a.name}
-                          </span>
-                        </td>
-                        <td>{formatBRL(a.initialBalanceCents)}</td>
-                        <td>{formatBRL(a.currentBalanceCents)}</td>
-                        <td>
-                          <div className="flex justify-end gap-2">
-                            <AccountRenameModal account={a} />
-                            <AccountDeleteModal account={a} />
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between border-t border-base-300 pt-3">
-              <div className="text-sm opacity-70">Total (saldo atual)</div>
-              <div className="font-semibold">
-                {formatBRL(props.totalCurrentBalanceCents)}
-              </div>
+          <div className="flex items-center justify-between border-t border-base-300 px-3 py-2">
+            <div className="text-sm opacity-70">Total (saldo atual)</div>
+            <div className={`font-semibold ${amountColorClass(props.totalCurrentBalanceCents)}`}>
+              {formatBRL(props.totalCurrentBalanceCents)}
             </div>
           </div>
-        </section>
-      </div>
-    </main>
+        </div>
+      )}
+    </div>
   );
 }

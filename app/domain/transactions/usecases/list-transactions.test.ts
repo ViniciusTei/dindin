@@ -1,28 +1,50 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { listTransactions } from "~/domain/transactions/usecases/list-transactions";
-import { makeTransactionsRepo } from "~/domain/test/fakes";
+import type { TransactionsRepo } from "~/domain/transactions/ports";
+import { listTransactions } from "./list-transactions";
+
+function makeRepo(): TransactionsRepo {
+  return {
+    listByHousehold: vi.fn().mockResolvedValue([]),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+  };
+}
 
 describe("listTransactions", () => {
   it("lista por usuário", async () => {
-    const { repo, userId, householdId } = makeTransactionsRepo({
-      userId: "user-1",
-      accounts: [{ id: "a1" }],
-      transactions: [
-        {
-          id: "t1",
-          accountId: "a1",
-          categoryId: null,
-          type: "expense",
-          description: "Mercado",
-          amountCents: 100,
-        },
-      ],
+    const repo = makeRepo();
+    await listTransactions({ transactionsRepo: repo, userId: "u1", householdId: "hh1" });
+    expect(repo.listByHousehold).toHaveBeenCalledWith({
+      userId: "u1",
+      householdId: "hh1",
+      filters: undefined,
     });
+  });
 
-    const rows = await listTransactions({ transactionsRepo: repo, userId, householdId });
+  it("calls listByHousehold without filters when none provided", async () => {
+    const repo = makeRepo();
+    await listTransactions({ transactionsRepo: repo, userId: "u1", householdId: "hh1" });
+    expect(repo.listByHousehold).toHaveBeenCalledWith({
+      userId: "u1",
+      householdId: "hh1",
+      filters: undefined,
+    });
+  });
 
-    expect(rows).toHaveLength(1);
-    expect(rows[0]?.id).toBe("t1");
+  it("passes filters to listByHousehold", async () => {
+    const repo = makeRepo();
+    await listTransactions({
+      transactionsRepo: repo,
+      userId: "u1",
+      householdId: "hh1",
+      filters: { type: "expense" },
+    });
+    expect(repo.listByHousehold).toHaveBeenCalledWith({
+      userId: "u1",
+      householdId: "hh1",
+      filters: { type: "expense" },
+    });
   });
 });

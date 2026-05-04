@@ -1,7 +1,18 @@
 import type { Transaction, TransactionType } from "./entity";
 
+export type TransactionFilters = {
+  type?: TransactionType;
+  categoryId?: string | null;
+  accountId?: string;
+  q?: string;
+};
+
 export interface TransactionsRepo<TTx = never> {
-  listByHousehold(params: { userId: string; householdId: string }): Promise<Transaction[]>;
+  listByHousehold(params: {
+    userId: string;
+    householdId: string;
+    filters?: TransactionFilters;
+  }): Promise<Transaction[]>;
 
   create(params: {
     id: string;

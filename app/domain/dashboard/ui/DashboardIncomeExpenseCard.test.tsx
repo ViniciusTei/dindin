@@ -1,63 +1,58 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { ThemeProvider } from "~/contexts/ThemeContext";
 import { DashboardIncomeExpenseCard } from "~/domain/dashboard/ui/DashboardIncomeExpenseCard";
 
-const chartSpy = vi.fn();
-
-vi.mock("react-charts", () => {
-  return {
-    Chart: ({
-      options,
-    }: {
-      options: {
-        primaryAxis: {
-          scaleType?: string;
-          innerBandPadding?: number;
-          innerSeriesBandPadding?: number;
-          maxBandSize?: number;
-        };
-      };
-    }) => {
-      chartSpy(options);
-      return <div data-testid="chart-mock">chart</div>;
-    },
-  };
-});
+vi.mock("~/lib/charts", () => ({
+  BarChart: ({ series }: { series: Array<{ name: string }> }) => (
+    <div data-testid="bar-chart-mock">
+      {series.map((s) => s.name).join(",")}
+    </div>
+  ),
+}));
 
 describe("DashboardIncomeExpenseCard", () => {
-  it("configura barras mais finas com agrupamento por mês", () => {
-    chartSpy.mockClear();
-
+  it("renders chart with income and expense series", () => {
     render(
-      <ThemeProvider>
-        <DashboardIncomeExpenseCard
-          monthIncomeCents={300_00}
-          monthExpenseCents={120_00}
-          incomeExpenseSeries={[
-            { monthLabel: "2026-02", incomeCents: 200_00, expenseCents: 90_00 },
-            { monthLabel: "2026-03", incomeCents: 300_00, expenseCents: 120_00 },
-          ]}
-        />
-      </ThemeProvider>,
+      <DashboardIncomeExpenseCard
+        monthIncomeCents={300_00}
+        monthExpenseCents={120_00}
+        incomeExpenseSeries={[
+          { monthLabel: "2026-02", incomeCents: 200_00, expenseCents: 90_00 },
+          { monthLabel: "2026-03", incomeCents: 300_00, expenseCents: 120_00 },
+        ]}
+      />,
     );
 
-    expect(screen.getByTestId("chart-mock")).toBeInTheDocument();
-    expect(chartSpy).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("bar-chart-mock")).toBeInTheDocument();
+    expect(screen.getByText(/Receitas.*Despesas/)).toBeInTheDocument();
+  });
 
-    const options = chartSpy.mock.calls[0][0] as {
-      primaryAxis: {
-        scaleType?: string;
-        innerBandPadding?: number;
-        innerSeriesBandPadding?: number;
-        maxBandSize?: number;
-      };
-    };
+  it("shows empty state when all series are zero", () => {
+    render(
+      <DashboardIncomeExpenseCard
+        monthIncomeCents={0}
+        monthExpenseCents={0}
+        incomeExpenseSeries={[
+          { monthLabel: "2026-02", incomeCents: 0, expenseCents: 0 },
+        ]}
+      />,
+    );
 
-    expect(options.primaryAxis.scaleType).toBe("band");
-    expect(options.primaryAxis.innerBandPadding).toBe(0.45);
-    expect(options.primaryAxis.innerSeriesBandPadding).toBe(0.3);
-    expect(options.primaryAxis.maxBandSize).toBe(40);
+    expect(screen.getByText(/Sem dados suficientes/)).toBeInTheDocument();
+    expect(screen.queryByTestId("bar-chart-mock")).not.toBeInTheDocument();
+  });
+
+  it("shows monthly summary amounts with correct colors", () => {
+    render(
+      <DashboardIncomeExpenseCard
+        monthIncomeCents={300_00}
+        monthExpenseCents={120_00}
+        incomeExpenseSeries={[]}
+      />,
+    );
+
+    expect(screen.getByText("R$ 300,00")).toBeInTheDocument();
+    expect(screen.getByText("-R$ 120,00")).toBeInTheDocument();
   });
 });

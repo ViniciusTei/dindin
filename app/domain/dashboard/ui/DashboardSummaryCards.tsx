@@ -1,4 +1,4 @@
-import { formatBRL } from "~/lib/money";
+import { amountColorClass, formatBRL } from "~/lib/money";
 
 export function DashboardSummaryCards(props: {
   totalBalanceCents: number;
@@ -11,7 +11,9 @@ export function DashboardSummaryCards(props: {
       <section className="card bg-base-100 shadow">
         <div className="card-body gap-2">
           <div className="text-sm opacity-70">Saldo total</div>
-          <div className="text-2xl font-semibold">{formatBRL(props.totalBalanceCents)}</div>
+          <div className={`text-2xl font-semibold ${amountColorClass(props.totalBalanceCents)}`}>
+            {formatBRL(props.totalBalanceCents)}
+          </div>
           <div className="text-xs opacity-70">Saldo atual das contas</div>
         </div>
       </section>
@@ -22,15 +24,21 @@ export function DashboardSummaryCards(props: {
           <div className="grid grid-cols-3 gap-2">
             <div>
               <div className="text-xs opacity-70">Receitas</div>
-              <div className="font-semibold">{formatBRL(props.monthIncomeCents)}</div>
+              <div className="font-semibold text-success">
+                {formatBRL(props.monthIncomeCents)}
+              </div>
             </div>
             <div>
               <div className="text-xs opacity-70">Despesas</div>
-              <div className="font-semibold">{formatBRL(-props.monthExpenseCents)}</div>
+              <div className="font-semibold text-error">
+                {formatBRL(-props.monthExpenseCents)}
+              </div>
             </div>
             <div>
               <div className="text-xs opacity-70">Resultado</div>
-              <div className="font-semibold">{formatBRL(props.monthNetCents)}</div>
+              <div className={`font-semibold ${amountColorClass(props.monthNetCents)}`}>
+                {formatBRL(props.monthNetCents)}
+              </div>
             </div>
           </div>
         </div>

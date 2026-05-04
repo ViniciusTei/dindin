@@ -1,6 +1,8 @@
-import { Form } from "react-router";
+import { useState } from "react";
+import { Form, useNavigation } from "react-router";
 
 import type { Category } from "~/domain/categories/entity";
+import Icon from "~/ui/Icon";
 import FormModal, {
   ModalCloseButton,
   closeDialogOnSubmit,
@@ -50,54 +52,15 @@ function CategoryCreateModal(props: { error?: string }) {
   );
 }
 
-function CategoryRenameModal(props: { category: Category }) {
-  return (
-    <FormModal
-      dialogId={`rename_category_modal_${props.category.id}`}
-      triggerLabel="Renomear"
-      title="Renomear categoria"
-      description={`Atualize o nome da categoria "${props.category.name}".`}
-      triggerClassName="btn btn-ghost btn-sm"
-      dialogClassName="max-w-lg"
-    >
-      <Form method="post" onSubmit={closeDialogOnSubmit} className="space-y-3">
-        <input type="hidden" name="intent" value="rename" />
-        <input type="hidden" name="categoryId" value={props.category.id} />
-
-        <div className="form-control">
-          <label
-            className="label"
-            htmlFor={`category-rename-name-${props.category.id}`}
-          >
-            <span className="label-text">Nome</span>
-          </label>
-          <input
-            id={`category-rename-name-${props.category.id}`}
-            name="name"
-            defaultValue={props.category.name}
-            className="input input-bordered w-full"
-          />
-        </div>
-
-        <div className="modal-action">
-          <ModalCloseButton />
-          <button type="submit" className="btn btn-primary">
-            Salvar nome
-          </button>
-        </div>
-      </Form>
-    </FormModal>
-  );
-}
-
 function CategoryDeleteModal(props: { category: Category }) {
   return (
     <FormModal
       dialogId={`delete_category_modal_${props.category.id}`}
-      triggerLabel="Excluir"
+      triggerLabel="Excluir categoria"
+      triggerContent={<Icon name="trash" className="h-4 w-4" />}
+      triggerClassName="btn btn-ghost btn-sm btn-square text-error"
       title="Excluir categoria"
       description={`Tem certeza que deseja excluir a categoria "${props.category.name}"?`}
-      triggerClassName="btn btn-ghost btn-sm text-error"
       dialogClassName="max-w-lg"
       resetFormOnOpen={false}
     >
@@ -123,58 +86,90 @@ export function CategoriesPage(props: {
   error?: string;
   ok?: boolean;
 }) {
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
+  const [editingId, setEditingId] = useState<string | null>(null);
+
   return (
-    <main className="mx-auto mt-10 max-w-2xl px-4">
-      <div className="flex items-center justify-between gap-4">
+    <div className="p-4 max-w-2xl">
+      <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-semibold">Categorias</h1>
         <CategoryCreateModal error={props.error} />
       </div>
 
-      <div className="mt-6 grid gap-6">
-        {props.error ? (
-          <div role="alert" className="alert alert-error">
-            <span>{props.error}</span>
-          </div>
-        ) : null}
+      {props.error ? (
+        <div role="alert" className="alert alert-error mb-4">
+          <span>{props.error}</span>
+        </div>
+      ) : null}
 
-        {props.ok ? (
-          <div role="status" className="alert alert-success">
-            <span>Salvo.</span>
-          </div>
-        ) : null}
+      {props.ok ? (
+        <div role="status" className="alert alert-success mb-4">
+          <span>Salvo.</span>
+        </div>
+      ) : null}
 
-        <section className="bg-base-100 ">
-          <div className="space-y-4">
-            {props.categories.length === 0 ? (
-              <p className="opacity-70">Nenhuma categoria.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="table table-zebra w-full">
-                  <thead>
-                    <tr>
-                      <th>Nome</th>
-                      <th className="text-right">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {props.categories.map((c) => (
-                      <tr key={c.id}>
-                        <td>{c.name}</td>
-                        <td>
-                          <div className="flex justify-end gap-2">
-                            <CategoryRenameModal category={c} />
-                            <CategoryDeleteModal category={c} />
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+      {props.categories.length === 0 ? (
+        <p className="opacity-70">Nenhuma categoria.</p>
+      ) : (
+        <div className="card bg-base-100 rounded-box shadow">
+          <div className="card-body p-0">
+            <ul className="divide-y divide-base-200">
+              {props.categories.map((category) => (
+                <li key={category.id} className="flex items-center gap-3 p-3">
+                  {editingId === category.id ? (
+                    <Form
+                      method="post"
+                      className="flex flex-1 items-center gap-2"
+                      onSubmit={() => setEditingId(null)}
+                    >
+                      <input type="hidden" name="intent" value="rename" />
+                      <input type="hidden" name="categoryId" value={category.id} />
+                      <input
+                        type="text"
+                        name="name"
+                        defaultValue={category.name}
+                        className="input input-sm input-bordered flex-1"
+                        autoFocus
+                      />
+                      <button
+                        type="submit"
+                        className="btn btn-sm btn-primary"
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? (
+                          <span className="loading loading-spinner loading-xs" />
+                        ) : null}
+                        Salvar
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-ghost"
+                        onClick={() => setEditingId(null)}
+                      >
+                        Cancelar
+                      </button>
+                    </Form>
+                  ) : (
+                    <>
+                      <span className="flex-1">{category.name}</span>
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm btn-square"
+                        aria-label="Renomear categoria"
+                        onClick={() => setEditingId(category.id)}
+                      >
+                        <Icon name="pencil" className="h-4 w-4" />
+                      </button>
+                      <CategoryDeleteModal category={category} />
+                    </>
+                  )}
+                </li>
+              ))}
+            </ul>
           </div>
-        </section>
-      </div>
-    </main>
+        </div>
+      )}
+    </div>
   );
 }

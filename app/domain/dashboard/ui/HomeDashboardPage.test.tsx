@@ -5,13 +5,18 @@ import { describe, expect, it, vi } from "vitest";
 import { ThemeProvider } from "~/contexts/ThemeContext";
 import { HomeDashboardPage } from "~/domain/dashboard/ui/HomeDashboardPage";
 
-vi.mock("react-charts", () => {
-  return {
-    Chart: ({ options }: { options: { data: unknown[]; primaryAxis: { scaleType?: string } } }) => (
-      <div data-testid="chart-mock">chart:{options.data.length}</div>
-    ),
-  };
-});
+vi.mock("~/lib/charts", () => ({
+  BarChart: ({ series }: { series: Array<{ name: string }> }) => (
+    <div data-testid="chart-mock">chart:{series.length}</div>
+  ),
+  PieChart: ({ slices }: { slices: Array<{ name: string; value: number }> }) => (
+    <div>
+      {slices.map((s, i) => (
+        <div key={i}>{s.name}</div>
+      ))}
+    </div>
+  ),
+}));
 
 describe("HomeDashboardPage", () => {
   it("renderiza os blocos principais e os gráficos", () => {
@@ -126,5 +131,50 @@ describe("HomeDashboardPage", () => {
     expect(screen.getByText("Receitas (mês exibido)")).toBeInTheDocument();
     expect(screen.getByText("Despesas (mês exibido)")).toBeInTheDocument();
     expect(screen.getByText("Saldo atual das contas")).toBeInTheDocument();
+  });
+
+  it("aplica cor verde ao saldo total positivo", () => {
+    render(
+      <MemoryRouter>
+        <ThemeProvider>
+          <HomeDashboardPage
+            monthLabel="2026-03"
+            previousMonthLabel="2026-02"
+            nextMonthLabel="2026-04"
+            totalBalanceCents={50000}
+            monthIncomeCents={60000}
+            monthExpenseCents={10000}
+            monthNetCents={50000}
+            expenseByCategory={[]}
+            incomeExpenseSeries={[]}
+          />
+        </ThemeProvider>
+      </MemoryRouter>
+    );
+    const saldoValues = screen.getAllByText("R$ 500,00");
+    expect(saldoValues[0]).toHaveClass("text-success");
+  });
+
+  it("exibe seção RESUMO PESSOAL e RATEIOS ATIVOS", () => {
+    render(
+      <MemoryRouter>
+        <ThemeProvider>
+          <HomeDashboardPage
+            monthLabel="2026-03"
+            previousMonthLabel="2026-02"
+            nextMonthLabel="2026-04"
+            totalBalanceCents={0}
+            monthIncomeCents={0}
+            monthExpenseCents={0}
+            monthNetCents={0}
+            expenseByCategory={[]}
+            incomeExpenseSeries={[]}
+          />
+        </ThemeProvider>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText("Resumo pessoal")).toBeInTheDocument();
+    expect(screen.getByText("Rateios ativos")).toBeInTheDocument();
   });
 });

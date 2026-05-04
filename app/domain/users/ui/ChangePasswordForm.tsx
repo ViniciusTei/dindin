@@ -3,9 +3,10 @@ import { Form } from "react-router";
 type Props = {
   error?: string | null;
   success?: boolean;
+  action?: string;
 };
 
-export function ChangePasswordForm({ error, success }: Props) {
+export function ChangePasswordForm({ error, success, action }: Props) {
   return (
     <div className="max-w-md">
       {success ? (
@@ -20,7 +21,7 @@ export function ChangePasswordForm({ error, success }: Props) {
         </div>
       ) : null}
 
-      <Form method="post" className="flex flex-col gap-4">
+      <Form method="post" action={action} className="flex flex-col gap-4">
         <fieldset className="fieldset">
           <legend className="fieldset-legend">Alterar senha</legend>
 

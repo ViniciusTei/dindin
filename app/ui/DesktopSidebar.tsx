@@ -28,6 +28,11 @@ type DesktopSidebarProps = {
   onActiveHouseholdChange: (id: string) => void;
 };
 
+function isNavItemActive(itemTo: string, currentPath: string): boolean {
+  if (itemTo === "/") return currentPath === "/" || currentPath === "";
+  return currentPath.startsWith(itemTo);
+}
+
 export function DesktopSidebar(props: DesktopSidebarProps) {
   const { isSidebarCollapsed } = props;
 
@@ -58,7 +63,7 @@ export function DesktopSidebar(props: DesktopSidebarProps) {
         <nav className="mt-4 flex-1">
           <ul className="menu w-full p-0">
             {props.navItems.map((item) => (
-              <li key={item.to}>
+              <li key={item.to} className={isNavItemActive(item.to, props.currentPath) ? "active" : ""}>
                 <Link
                   to={item.to}
                   title={item.label}
@@ -84,9 +89,13 @@ export function DesktopSidebar(props: DesktopSidebarProps) {
               </li>
             ))}
 
-            {!isSidebarCollapsed && props.activeHousehold ? (
-              <li className="menu-title mt-4 px-3 text-xs uppercase opacity-60">
-                <span>Rateio ativo</span>
+            {props.activeHousehold ? (
+              <li className="mt-2 mb-1">
+                <div className="border-t border-base-300 pt-2">
+                  {!isSidebarCollapsed ? (
+                    <span className="px-1 text-xs uppercase opacity-60">Rateio ativo</span>
+                  ) : null}
+                </div>
               </li>
             ) : null}
 
@@ -105,7 +114,7 @@ export function DesktopSidebar(props: DesktopSidebarProps) {
             ) : null}
 
             {props.householdNavItems.map((item) => (
-              <li key={item.to}>
+              <li key={item.to} className={isNavItemActive(item.to, props.currentPath) ? "active" : ""}>
                 <Link
                   to={item.to}
                   title={item.label}

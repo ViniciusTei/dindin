@@ -7,10 +7,14 @@ import { accountsRepo } from "~/db/repositories/accounts.repo.server";
 import { dashboardRepo } from "~/db/repositories/dashboard.repo.server";
 import { householdsRepo } from "~/db/repositories/households.repo.server";
 import { usersStatsRepo } from "~/db/repositories/users-stats.repo.server";
-import { resolveDashboardMonthLabel } from "~/domain/dashboard/month";
+import {
+  resolveDashboardMonthLabel,
+  shiftDashboardMonthLabel,
+} from "~/domain/dashboard/month";
 import { getHomeDashboard } from "~/domain/dashboard/usecases/get-home-dashboard";
 import { HomeDashboardPage } from "~/domain/dashboard/ui/HomeDashboardPage";
 import { listUserHouseholds } from "~/domain/households/usecases/list-user-households";
+import { formatDate } from "~/lib/datetime";
 
 export function meta() {
   return [
@@ -46,9 +50,18 @@ export async function loader({ request }: Route.LoaderArgs) {
     }),
   ]);
 
+  const availableMonths = Array.from({ length: 12 }, (_, i) => {
+    const label = shiftDashboardMonthLabel(selectedMonthLabel, -(11 - i));
+    return {
+      label: formatDate(label, { format: "long", exclude: ["day"] }),
+      link: `/?month=${label}`,
+    };
+  });
+
   return {
     ...dashboard,
     householdSummaries,
+    availableMonths,
   };
 }
 

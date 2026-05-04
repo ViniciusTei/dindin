@@ -48,10 +48,23 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const ok = url.searchParams.get("ok") === "1";
 
+  // Read filter params
+  const typeParam = url.searchParams.get("type") ?? undefined;
+  const categoryIdParam = url.searchParams.get("categoryId") ?? undefined;
+  const accountIdParam = url.searchParams.get("accountId") ?? undefined;
+  const qParam = url.searchParams.get("q") ?? undefined;
+
+  const filters = {
+    type: (typeParam === "income" || typeParam === "expense") ? typeParam : undefined,
+    categoryId: categoryIdParam === "none" ? null : categoryIdParam,
+    accountId: accountIdParam || undefined,
+    q: qParam || undefined,
+  } satisfies import("~/domain/transactions/ports").TransactionFilters;
+
   const [accounts, categories, transactions, cards] = await Promise.all([
     listAccounts({ accountsRepo, userId }),
     listCategories({ categoriesRepo, householdId }),
-    listTransactions({ transactionsRepo, userId, householdId }),
+    listTransactions({ transactionsRepo, userId, householdId, filters }),
     listCreditCards({ creditCardsRepo, userId }),
   ]);
 
@@ -92,6 +105,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     warning,
     ok,
     householdId,
+    activeFilters: {
+      type: typeParam ?? "",
+      categoryId: categoryIdParam ?? "",
+      accountId: accountIdParam ?? "",
+      q: qParam ?? "",
+    },
   };
 }
 
@@ -325,6 +344,7 @@ export default function HouseholdTransactions({ loaderData, actionData }: Route.
       loaderOk={Boolean(loaderData?.ok)}
       cards={loaderData.cards}
       householdId={loaderData.householdId}
+      activeFilters={loaderData.activeFilters}
     />
   );
 }
