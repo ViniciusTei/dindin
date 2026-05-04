@@ -17,10 +17,17 @@ function createId(): string {
 export async function loader({ request, params }: Route.LoaderArgs) {
   const userId = await requireUserId(request);
   const householdId = String(params.householdId ?? "");
-  await requireHouseholdAccess({ userId, householdId });
+  const household = await requireHouseholdAccess({ userId, householdId });
 
   const categories = await listCategories({ categoriesRepo, householdId });
-  return { categories };
+  return {
+    categories,
+    householdContext: {
+      householdId: household.householdId,
+      name: household.name,
+      role: household.role,
+    },
+  };
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -97,6 +104,7 @@ export default function HouseholdCategories({ loaderData, actionData }: Route.Co
   return (
     <CategoriesPage
       categories={loaderData.categories}
+      household={loaderData.householdContext}
       error={actionData?.error}
       ok={actionData?.ok}
     />
