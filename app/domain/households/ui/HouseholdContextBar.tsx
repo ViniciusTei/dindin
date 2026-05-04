@@ -17,7 +17,7 @@ type TabItem = {
 
 function isTabActive(tab: TabItem, currentPath: string): boolean {
   if (tab.exact) return currentPath === tab.to;
-  return currentPath.startsWith(tab.to);
+  return currentPath === tab.to || currentPath.startsWith(tab.to + "/");
 }
 
 export function HouseholdContextBar({ household }: { household: HouseholdContext }) {
