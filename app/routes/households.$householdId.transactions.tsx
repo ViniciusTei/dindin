@@ -43,7 +43,7 @@ import { redirect } from "react-router";
 export async function loader({ request, params }: Route.LoaderArgs) {
   const userId = await requireUserId(request);
   const householdId = String(params.householdId ?? "");
-  await requireHouseholdAccess({ userId, householdId });
+  const household = await requireHouseholdAccess({ userId, householdId });
 
   const url = new URL(request.url);
   const ok = url.searchParams.get("ok") === "1";
@@ -105,6 +105,11 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     warning,
     ok,
     householdId,
+    householdContext: {
+      householdId: household.householdId,
+      name: household.name,
+      role: household.role,
+    },
     activeFilters: {
       type: typeParam ?? "",
       categoryId: categoryIdParam ?? "",
@@ -344,6 +349,7 @@ export default function HouseholdTransactions({ loaderData, actionData }: Route.
       loaderOk={Boolean(loaderData?.ok)}
       cards={loaderData.cards}
       householdId={loaderData.householdId}
+      householdContext={loaderData.householdContext}
       activeFilters={loaderData.activeFilters}
     />
   );

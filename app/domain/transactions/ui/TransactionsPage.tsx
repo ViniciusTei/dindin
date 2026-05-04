@@ -5,6 +5,7 @@ import type { Account } from "~/domain/accounts/entity";
 import type { Category } from "~/domain/categories/entity";
 import type { Transaction } from "~/domain/transactions/entity";
 import { formatTransactionDate } from "~/domain/transactions/helpers";
+import { HouseholdContextBar, type HouseholdContext } from "~/domain/households/ui/HouseholdContextBar";
 import { formatBRL } from "~/lib/money";
 import TransactionCreateModal from "./TransactionCreateModal";
 import TransactionEditModal from "./TransactionEditModal";
@@ -27,6 +28,7 @@ export function TransactionsPage(props: {
   loaderOk?: boolean;
   today: string;
   householdId?: string;
+  householdContext?: HouseholdContext;
   activeFilters?: ActiveFilters;
   cards?: Array<{
     id: string;
@@ -60,7 +62,9 @@ export function TransactionsPage(props: {
   const af = props.activeFilters ?? { type: "", categoryId: "", accountId: "", q: "" };
 
   return (
-    <div className="p-4 flex flex-col gap-4">
+    <>
+      {props.householdContext ? <HouseholdContextBar household={props.householdContext} /> : null}
+      <div className="p-4 flex flex-col gap-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Transações</h1>
@@ -210,5 +214,6 @@ export function TransactionsPage(props: {
         </div>
       )}
     </div>
+    </>
   );
 }
