@@ -4,6 +4,7 @@ import type {
   HouseholdDetails,
   HouseholdMember,
 } from "~/domain/households/entity";
+import { HouseholdContextBar } from "~/domain/households/ui/HouseholdContextBar";
 import { formatBRL } from "~/lib/money";
 import FormModal, {
   ModalCloseButton,
@@ -280,7 +281,9 @@ export function HouseholdManagePage(props: {
     : null;
 
   return (
-    <main className="mx-auto mt-10 max-w-6xl px-4">
+    <>
+      <HouseholdContextBar household={props.household} />
+      <main className="mx-auto mt-10 max-w-6xl px-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">
@@ -493,5 +496,6 @@ export function HouseholdManagePage(props: {
         </div>
       </div>
     </main>
+    </>
   );
 }

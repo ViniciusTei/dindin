@@ -2,6 +2,7 @@ import { Link } from "react-router";
 
 import { DashboardExpensePieCard } from "~/domain/dashboard/ui/DashboardExpensePieCard";
 import type { HouseholdDetails } from "~/domain/households/entity";
+import { HouseholdContextBar } from "~/domain/households/ui/HouseholdContextBar";
 import { HouseholdExpenseTrendCard } from "~/domain/households/ui/HouseholdExpenseTrendCard";
 import MonthSelect from "~/ui/MonthSelect";
 import { formatBRL } from "~/lib/money";
@@ -13,7 +14,9 @@ function formatShareBps(shareBps: number): string {
 
 export function HouseholdDetailsPage(props: { household: HouseholdDetails }) {
   return (
-    <main className="mx-auto mt-10 max-w-6xl px-4">
+    <>
+      <HouseholdContextBar household={props.household} />
+      <main className="mx-auto mt-10 max-w-6xl px-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -123,5 +126,6 @@ export function HouseholdDetailsPage(props: { household: HouseholdDetails }) {
         </div>
       </section>
     </main>
+    </>
   );
 }
