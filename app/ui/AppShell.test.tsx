@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { describe, expect, it } from "vitest";
 
+import { SidebarProvider } from "~/contexts/SidebarContext";
 import { ThemeProvider } from "~/contexts/ThemeContext";
 
 import { AppShell } from "./AppShell";
@@ -21,7 +22,7 @@ function renderShell(ui: ReactNode) {
       },
       {
         path: "*",
-        element: <ThemeProvider>{ui}</ThemeProvider>,
+        element: <ThemeProvider><SidebarProvider>{ui}</SidebarProvider></ThemeProvider>,
       },
     ],
     { initialEntries: ["/"] },
@@ -34,11 +35,6 @@ function makeUser(overrides?: Partial<Parameters<typeof AppShell>[0]["user"]>) {
   return {
     username: "maria",
     isAdmin: false,
-    households: [
-      { householdId: "household-1", name: "Casa da Maria", role: "admin" as const },
-    ],
-    defaultHouseholdId: "household-1",
-    preferredHouseholdId: "household-1",
     ...overrides,
   };
 }

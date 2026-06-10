@@ -2,28 +2,24 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router";
 
 import { useTheme } from "~/contexts/ThemeContext";
+import { useSidebar } from "~/contexts/SidebarContext";
 
-import { DesktopSidebar, type AppShellHousehold } from "./DesktopSidebar";
-import Icon, { type IconName } from "./Icon";
+import { DesktopSidebar } from "./DesktopSidebar";
+import type { IconName } from "./Icon";
+import Icon from "./Icon";
 import { MobileBottomNav } from "./MobileBottomNav";
 
 type AppShellUser = {
   username: string;
   isAdmin: boolean;
-  households: AppShellHousehold[];
-  defaultHouseholdId: string | null;
-  preferredHouseholdId: string | null;
 };
 
 export function AppShell(props: {
   user: AppShellUser;
   children: React.ReactNode;
 }) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
-  const [preferredHouseholdId, setPreferredHouseholdId] = useState(
-    props.user.preferredHouseholdId ?? props.user.defaultHouseholdId,
-  );
+  const { isSidebarCollapsed, setIsSidebarCollapsed } = useSidebar();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 
@@ -42,28 +38,9 @@ export function AppShell(props: {
     };
   }, []);
 
-  useEffect(() => {
-    setPreferredHouseholdId(
-      props.user.preferredHouseholdId ?? props.user.defaultHouseholdId,
-    );
-  }, [props.user.defaultHouseholdId, props.user.preferredHouseholdId]);
-
   const shellGridCols = isSidebarCollapsed
     ? "grid-cols-1 md:grid-cols-[4rem_repeat(4,minmax(0,1fr))]"
     : "grid-cols-1 md:grid-cols-[16rem_repeat(4,minmax(0,1fr))]";
-
-  const activeHouseholdId = useMemo(() => {
-    const match = location.pathname.match(/^\/households\/([^/]+)/);
-    return match?.[1] ?? preferredHouseholdId ?? props.user.defaultHouseholdId;
-  }, [location.pathname, preferredHouseholdId, props.user.defaultHouseholdId]);
-
-  const activeHousehold = useMemo(
-    () =>
-      props.user.households.find(
-        (household) => household.householdId === activeHouseholdId,
-      ) ?? null,
-    [activeHouseholdId, props.user.households],
-  );
 
   const navItems = useMemo(() => {
     const items: Array<{
@@ -81,48 +58,6 @@ export function AppShell(props: {
     return items.filter((i) => i.visible);
   }, []);
 
-  const householdNavItems = useMemo(() => {
-    if (!activeHousehold) return [];
-    const items: Array<{
-      to: string;
-      label: string;
-      icon: IconName;
-      visible: boolean;
-    }> = [
-      {
-        to: `/households/${activeHousehold.householdId}`,
-        label: "Visão geral",
-        icon: "dashboard",
-        visible: true,
-      },
-      {
-        to: `/households/${activeHousehold.householdId}/transactions`,
-        label: "Transações",
-        icon: "wallet",
-        visible: true,
-      },
-      {
-        to: `/households/${activeHousehold.householdId}/categories`,
-        label: "Categorias",
-        icon: "categories",
-        visible: true,
-      },
-      {
-        to: `/households/${activeHousehold.householdId}/invite`,
-        label: "Convites",
-        icon: "invite",
-        visible: activeHousehold.role === "admin",
-      },
-      {
-        to: `/households/${activeHousehold.householdId}/manage`,
-        label: "Membros e gestão",
-        icon: "admin-users",
-        visible: activeHousehold.role === "admin",
-      },
-    ];
-    return items.filter((item) => item.visible);
-  }, [activeHousehold]);
-
   return (
     <div
       className={[
@@ -135,13 +70,7 @@ export function AppShell(props: {
       <DesktopSidebar
         isSidebarCollapsed={isSidebarCollapsed}
         navItems={navItems}
-        householdNavItems={householdNavItems}
-        activeHousehold={activeHousehold}
-        households={props.user.households}
-        preferredHouseholdId={preferredHouseholdId}
-        defaultHouseholdId={props.user.defaultHouseholdId}
         currentPath={`${location.pathname}${location.search}`}
-        onActiveHouseholdChange={setPreferredHouseholdId}
       />
 
       <header className="row-start-1 row-end-2 col-start-1 col-end-2 md:col-start-2 md:col-end-6 border-b border-base-300 bg-base-100">
