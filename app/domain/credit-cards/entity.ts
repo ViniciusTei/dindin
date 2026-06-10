@@ -4,13 +4,14 @@ export type CreditCard = {
   id: string;
   userId: string;
   accountId: string | null;
-  numberEnc: string;
-  expirationEnc: string;
+  nickname: string;
+  numberEnc: string | null;
+  expirationEnc: string | null;
   cvvEnc: string | null;
-  brand: CreditCardBrand;
+  brand: CreditCardBrand | null;
   limitCents: number | null;
-  closingDay: number;
-  dueDay: number;
+  closingDay: number | null;
+  dueDay: number | null;
   createdAt: Date;
 };
 

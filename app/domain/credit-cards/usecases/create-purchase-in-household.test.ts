@@ -23,6 +23,7 @@ describe("createCreditCardPurchaseInHousehold", () => {
           cvvEnc: null,
           brand: "visa",
           limitCents: null,
+          nickname: "Meu cartão",
           closingDay: 10,
           dueDay: 15,
         },

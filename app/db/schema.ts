@@ -299,13 +299,14 @@ export const creditCards = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     accountId: text("account_id").references(() => accounts.id),
-    numberEnc: text("number_enc").notNull(),
-    expirationEnc: text("expiration_enc").notNull(),
+    nickname: text("nickname").notNull(),
+    numberEnc: text("number_enc"),
+    expirationEnc: text("expiration_enc"),
     cvvEnc: text("cvv_enc"),
-    brand: text("brand").notNull(),
+    brand: text("brand"),
     limitCents: integer("limit_cents"),
-    closingDay: integer("closing_day").notNull(),
-    dueDay: integer("due_day").notNull(),
+    closingDay: integer("closing_day"),
+    dueDay: integer("due_day"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

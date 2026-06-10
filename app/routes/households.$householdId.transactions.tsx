@@ -74,8 +74,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const viewCards = cards.map((c) => {
     let last4 = "????";
     try {
-      const number = decryptString(c.numberEnc);
-      last4 = number.slice(-4);
+      if (c.numberEnc) {
+        const number = decryptString(c.numberEnc);
+        last4 = number.slice(-4);
+      }
     } catch (err) {
       warning =
         warning ??
@@ -87,8 +89,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       brand: String(c.brand),
       last4,
       limitCents: c.limitCents,
-      closingDay: c.closingDay,
-      dueDay: c.dueDay,
+      closingDay: c.closingDay ?? undefined,
+      dueDay: c.dueDay ?? undefined,
       accountId: c.accountId,
     };
   });

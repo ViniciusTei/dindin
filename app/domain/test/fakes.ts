@@ -563,6 +563,7 @@ export function makeCreditCardsRepo(seed?: {
         id: params.id,
         userId: params.userId,
         accountId: params.accountId,
+        nickname: params.nickname,
         numberEnc: params.numberEnc,
         expirationEnc: params.expirationEnc,
         cvvEnc: params.cvvEnc,
@@ -583,8 +584,9 @@ export function makeCreditCardsRepo(seed?: {
         ...cards[idx],
         accountId: params.accountId,
         limitCents: params.limitCents,
-        closingDay: params.closingDay,
-        dueDay: params.dueDay,
+        ...(params.nickname !== undefined ? { nickname: params.nickname } : {}),
+        ...(params.closingDay !== undefined ? { closingDay: params.closingDay } : {}),
+        ...(params.dueDay !== undefined ? { dueDay: params.dueDay } : {}),
       };
     },
     async delete(params) {

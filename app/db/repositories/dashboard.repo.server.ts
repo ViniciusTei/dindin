@@ -328,6 +328,8 @@ export async function getCreditCardMonthlyExpenses(params: {
   }
 
   for (const card of cards) {
+    if (card.closingDay == null) continue;
+
     const purchasesByCard = purchasesByCardId.get(card.id) ?? [];
     if (purchasesByCard.length === 0) continue;
 
@@ -447,6 +449,8 @@ export async function getCreditCardExpenseByCategory(params: {
 
   const totalsByCategory = new Map<string, number>();
   for (const card of cards) {
+    if (card.closingDay == null) continue;
+
     const purchasesByCard = purchasesByCardId.get(card.id) ?? [];
     if (purchasesByCard.length === 0) continue;
 

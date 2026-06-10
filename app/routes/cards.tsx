@@ -29,8 +29,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   const viewCards = cards.map((c) => {
     let last4 = "????";
     try {
-      const number = decryptString(c.numberEnc);
-      last4 = number.slice(-4);
+      if (c.numberEnc) {
+        const number = decryptString(c.numberEnc);
+        last4 = number.slice(-4);
+      }
     } catch (err) {
       warning =
         warning ??
@@ -39,7 +41,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 
     return {
       id: c.id,
-      brand: String(c.brand),
+      nickname: c.nickname,
+      brand: String(c.brand ?? ""),
       last4,
       limitCents: c.limitCents,
       closingDay: c.closingDay,
@@ -59,13 +62,16 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (intent !== "create") return { error: "Ação inválida" };
 
+  const nickname = String(form.get("nickname") ?? "");
   const number = String(form.get("number") ?? "");
   const expiration = String(form.get("expiration") ?? "");
   const cvv = String(form.get("cvv") ?? "");
 
   const limitCents = toCents(form.get("limit"));
-  const closingDay = Number(form.get("closingDay"));
-  const dueDay = Number(form.get("dueDay"));
+  const closingDayRaw = form.get("closingDay");
+  const dueDayRaw = form.get("dueDay");
+  const closingDay = closingDayRaw ? Number(closingDayRaw) : null;
+  const dueDay = dueDayRaw ? Number(dueDayRaw) : null;
 
   const accountIdRaw = String(form.get("accountId") ?? "").trim();
   const accountId = accountIdRaw ? accountIdRaw : null;
@@ -78,8 +84,9 @@ export async function action({ request }: Route.ActionArgs) {
       idFactory: createId,
       userId,
       accountId,
-      number,
-      expiration,
+      nickname,
+      number: number || null,
+      expiration: expiration || null,
       cvv: cvv || null,
       limitCents,
       closingDay,
@@ -88,12 +95,10 @@ export async function action({ request }: Route.ActionArgs) {
 
     if (!result.ok) {
       switch (result.error) {
-        case "NUMBER_REQUIRED":
-          return { error: "Número é obrigatório." };
+        case "NICKNAME_REQUIRED":
+          return { error: "Apelido é obrigatório." };
         case "NUMBER_INVALID":
           return { error: "Número inválido." };
-        case "EXPIRATION_REQUIRED":
-          return { error: "Validade é obrigatória." };
         case "EXPIRATION_INVALID":
           return { error: "Validade inválida (use MM/AA)." };
         case "CVV_INVALID":

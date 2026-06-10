@@ -6,7 +6,7 @@ type ViewCard = {
   id: string;
   brand: string;
   last4: string;
-  closingDay: number;
+  closingDay: number | null;
   accountId: string | null;
 };
 

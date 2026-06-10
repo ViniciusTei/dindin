@@ -41,7 +41,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const ym =
     ymParam && ymParam.trim()
       ? ymParam.trim()
-      : computeInvoiceYmForDate({ occurredAt: new Date(), closingDay: card.closingDay });
+      : computeInvoiceYmForDate({
+          occurredAt: new Date(),
+          closingDay: card.closingDay ?? 10,
+        });
 
   const [accounts, categories, purchases, invoiceResult] = await Promise.all([
     listAccounts({ accountsRepo, userId }),
@@ -58,7 +61,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   let last4 = "????";
   try {
-    last4 = decryptString(card.numberEnc).slice(-4);
+    if (card.numberEnc) {
+      last4 = decryptString(card.numberEnc).slice(-4);
+    }
   } catch {
     // mantém mascarado
   }
@@ -84,7 +89,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     categories,
     card: {
       id: card.id,
-      brand: String(card.brand),
+      nickname: card.nickname,
+      brand: String(card.brand ?? ""),
       last4,
       limitCents: card.limitCents,
       closingDay: card.closingDay,
@@ -190,7 +196,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     // alerta de limite (simples): soma compras do ciclo > limite
     const card = await creditCardsRepo.findById({ userId, creditCardId });
     if (card?.limitCents) {
-      const { start, end } = computeCycleRangeUTC({ occurredAt, closingDay: card.closingDay });
+      const { start, end } = computeCycleRangeUTC({ occurredAt, closingDay: card.closingDay ?? 10 });
       const existing = await creditCardPurchasesRepo.listByCard({ userId, creditCardId });
       const sum = existing
         .filter((p) => p.occurredAt >= start && p.occurredAt <= end)
@@ -237,16 +243,20 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   if (intent === "update") {
+    const nickname = String(form.get("nickname") ?? "").trim();
     const accountIdRaw = String(form.get("accountId") ?? "").trim();
     const accountId = accountIdRaw ? accountIdRaw : null;
     const limitCents = toCents(form.get("limit"));
-    const closingDay = Number(form.get("closingDay"));
-    const dueDay = Number(form.get("dueDay"));
+    const closingDayRaw = form.get("closingDay");
+    const dueDayRaw = form.get("dueDay");
+    const closingDay = closingDayRaw ? Number(closingDayRaw) : null;
+    const dueDay = dueDayRaw ? Number(dueDayRaw) : null;
 
     try {
       await creditCardsRepo.update({
         userId,
         creditCardId,
+        nickname: nickname || undefined,
         accountId,
         limitCents,
         closingDay,

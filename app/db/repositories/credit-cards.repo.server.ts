@@ -34,10 +34,11 @@ export const creditCardsRepo: CreditCardsRepo<DbTransaction> = {
       id: c.id,
       userId: c.userId,
       accountId: c.accountId,
+      nickname: c.nickname,
       numberEnc: c.numberEnc,
       expirationEnc: c.expirationEnc,
       cvvEnc: c.cvvEnc,
-      brand: c.brand as CreditCardBrand,
+      brand: c.brand as CreditCardBrand | null,
       limitCents: c.limitCents,
       closingDay: c.closingDay,
       dueDay: c.dueDay,
@@ -60,10 +61,11 @@ export const creditCardsRepo: CreditCardsRepo<DbTransaction> = {
       id: c.id,
       userId: c.userId,
       accountId: c.accountId,
+      nickname: c.nickname,
       numberEnc: c.numberEnc,
       expirationEnc: c.expirationEnc,
       cvvEnc: c.cvvEnc,
-      brand: c.brand as CreditCardBrand,
+      brand: c.brand as CreditCardBrand | null,
       limitCents: c.limitCents,
       closingDay: c.closingDay,
       dueDay: c.dueDay,
@@ -81,6 +83,7 @@ export const creditCardsRepo: CreditCardsRepo<DbTransaction> = {
       id: params.id,
       userId: params.userId,
       accountId: params.accountId,
+      nickname: params.nickname,
       numberEnc: params.numberEnc,
       expirationEnc: params.expirationEnc,
       cvvEnc: params.cvvEnc,
@@ -97,14 +100,17 @@ export const creditCardsRepo: CreditCardsRepo<DbTransaction> = {
       await assertAccountBelongsToUser({ userId: params.userId, accountId: params.accountId, tx: client });
     }
 
+    const setValues: Record<string, unknown> = {
+      accountId: params.accountId,
+      limitCents: params.limitCents,
+    };
+    if (params.nickname !== undefined) setValues.nickname = params.nickname;
+    if (params.closingDay !== undefined) setValues.closingDay = params.closingDay;
+    if (params.dueDay !== undefined) setValues.dueDay = params.dueDay;
+
     const updated = await client
       .update(creditCards)
-      .set({
-        accountId: params.accountId,
-        limitCents: params.limitCents,
-        closingDay: params.closingDay,
-        dueDay: params.dueDay,
-      })
+      .set(setValues)
       .where(and(eq(creditCards.id, params.creditCardId), eq(creditCards.userId, params.userId)))
       .returning({ id: creditCards.id });
 

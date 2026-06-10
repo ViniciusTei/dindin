@@ -83,8 +83,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   const viewCards = cards.map((c) => {
     let last4 = "????";
     try {
-      const number = decryptString(c.numberEnc);
-      last4 = number.slice(-4);
+      if (c.numberEnc) {
+        const number = decryptString(c.numberEnc);
+        last4 = number.slice(-4);
+      }
     } catch {
       // ignore decrypt errors — use placeholder
     }
@@ -219,6 +221,10 @@ export async function action({ request }: Route.ActionArgs) {
         1,
         Number(form.get("installments") ?? 1) || 1,
       );
+      if (card.closingDay == null) {
+        return { type: "error" as const, message: "Cartão precisa ter dia de fechamento definido." };
+      }
+
       paymentMethod = {
         type: "credit-card",
         creditCardId,

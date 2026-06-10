@@ -51,6 +51,10 @@ export async function createCreditCardPurchase<TTx>(params: {
   });
   if (!card) return { ok: false, error: "CARD_NOT_FOUND" };
 
+  if (card.closingDay == null) {
+    return { ok: false, error: "CARD_NOT_FOUND" };
+  }
+
   const firstInvoiceYm = computeInvoiceYmForDate({
     occurredAt: params.occurredAt,
     closingDay: card.closingDay,

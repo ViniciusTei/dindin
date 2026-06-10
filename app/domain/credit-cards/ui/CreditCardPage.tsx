@@ -10,11 +10,12 @@ import FormModal, {
 
 export type CreditCardDetail = {
   id: string;
+  nickname: string;
   brand: string;
   last4: string;
   limitCents: number | null;
-  closingDay: number;
-  dueDay: number;
+  closingDay: number | null;
+  dueDay: number | null;
   accountId: string | null;
 };
 
@@ -57,9 +58,21 @@ function CreditCardSettingsModal(props: {
         <input type="hidden" name="intent" value="update" />
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="form-control md:col-span-2">
+            <label className="label" htmlFor="card-settings-nickname">
+              <span className="label-text">Apelido</span>
+            </label>
+            <input
+              id="card-settings-nickname"
+              name="nickname"
+              defaultValue={props.card.nickname}
+              className="input input-bordered w-full"
+            />
+          </div>
+
           <div className="form-control">
             <label className="label" htmlFor="card-settings-closing-day">
-              <span className="label-text">Dia de fechamento</span>
+              <span className="label-text">Dia de fechamento (opcional)</span>
             </label>
             <input
               id="card-settings-closing-day"
@@ -67,14 +80,14 @@ function CreditCardSettingsModal(props: {
               type="number"
               min={1}
               max={31}
-              defaultValue={props.card.closingDay}
+              defaultValue={props.card.closingDay ?? ""}
               className="input input-bordered w-full"
             />
           </div>
 
           <div className="form-control">
             <label className="label" htmlFor="card-settings-due-day">
-              <span className="label-text">Dia de vencimento</span>
+              <span className="label-text">Dia de vencimento (opcional)</span>
             </label>
             <input
               id="card-settings-due-day"
@@ -82,7 +95,7 @@ function CreditCardSettingsModal(props: {
               type="number"
               min={1}
               max={31}
-              defaultValue={props.card.dueDay}
+              defaultValue={props.card.dueDay ?? ""}
               className="input input-bordered w-full"
             />
           </div>
@@ -297,11 +310,19 @@ export function CreditCardPage(props: {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">
-            {props.card.brand} •••• {props.card.last4}
+            {props.card.nickname}
           </h1>
           <div className="mt-1 text-sm opacity-70">
-            Fechamento: dia {props.card.closingDay} • Vencimento: dia{" "}
-            {props.card.dueDay}
+            {props.card.brand
+              ? `${props.card.brand} •••• ${props.card.last4}`
+              : null}
+            {props.card.closingDay
+              ? `Fechamento: dia ${props.card.closingDay}`
+              : ""}
+            {props.card.closingDay && props.card.dueDay ? " • " : ""}
+            {props.card.dueDay
+              ? `Vencimento: dia ${props.card.dueDay}`
+              : ""}
           </div>
         </div>
         <Link to="/cards" className="btn btn-ghost">
@@ -332,8 +353,15 @@ export function CreditCardPage(props: {
           <div className="card-body gap-4 md:flex-row md:items-start md:justify-between">
             <div className="space-y-2 text-sm">
               <h2 className="card-title">Configurações</h2>
-              <div>Fechamento: dia {props.card.closingDay}</div>
-              <div>Vencimento: dia {props.card.dueDay}</div>
+              <div>Apelido: {props.card.nickname}</div>
+              <div>
+                Fechamento:{" "}
+                {props.card.closingDay ? `dia ${props.card.closingDay}` : "—"}
+              </div>
+              <div>
+                Vencimento:{" "}
+                {props.card.dueDay ? `dia ${props.card.dueDay}` : "—"}
+              </div>
               <div>
                 Limite:{" "}
                 {props.card.limitCents ? formatBRL(props.card.limitCents) : "—"}

@@ -9,11 +9,12 @@ import FormModal, {
 
 export type CreditCardListItem = {
   id: string;
+  nickname: string;
   brand: string;
   last4: string;
   limitCents: number | null;
-  closingDay: number;
-  dueDay: number;
+  closingDay: number | null;
+  dueDay: number | null;
   accountId: string | null;
 };
 
@@ -31,22 +32,34 @@ function CreditCardCreateModal(props: { accounts: Account[]; error?: string }) {
         <input type="hidden" name="intent" value="create" />
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          <div className="form-control">
-            <label className="label" htmlFor="card-create-number">
-              <span className="label-text">Número</span>
+          <div className="form-control md:col-span-2">
+            <label className="label" htmlFor="card-create-nickname">
+              <span className="label-text">Apelido</span>
             </label>
             <input
-              id="card-create-number"
-              name="number"
-              placeholder="Ex.: 4111 1111 1111 1111"
+              id="card-create-nickname"
+              name="nickname"
+              placeholder="Ex.: Cartão do Nubank"
               className="input input-bordered w-full"
               aria-invalid={props.error ? "true" : undefined}
             />
           </div>
 
           <div className="form-control">
+            <label className="label" htmlFor="card-create-number">
+              <span className="label-text">Número (opcional)</span>
+            </label>
+            <input
+              id="card-create-number"
+              name="number"
+              placeholder="Ex.: 4111 1111 1111 1111"
+              className="input input-bordered w-full"
+            />
+          </div>
+
+          <div className="form-control">
             <label className="label" htmlFor="card-create-expiration">
-              <span className="label-text">Validade (MM/AA)</span>
+              <span className="label-text">Validade (opcional)</span>
             </label>
             <input
               id="card-create-expiration"
@@ -81,7 +94,7 @@ function CreditCardCreateModal(props: { accounts: Account[]; error?: string }) {
 
           <div className="form-control">
             <label className="label" htmlFor="card-create-closing-day">
-              <span className="label-text">Dia de fechamento</span>
+              <span className="label-text">Dia de fechamento (opcional)</span>
             </label>
             <input
               id="card-create-closing-day"
@@ -89,14 +102,13 @@ function CreditCardCreateModal(props: { accounts: Account[]; error?: string }) {
               type="number"
               min={1}
               max={31}
-              defaultValue={10}
               className="input input-bordered w-full"
             />
           </div>
 
           <div className="form-control">
             <label className="label" htmlFor="card-create-due-day">
-              <span className="label-text">Dia de vencimento</span>
+              <span className="label-text">Dia de vencimento (opcional)</span>
             </label>
             <input
               id="card-create-due-day"
@@ -104,7 +116,6 @@ function CreditCardCreateModal(props: { accounts: Account[]; error?: string }) {
               type="number"
               min={1}
               max={31}
-              defaultValue={15}
               className="input input-bordered w-full"
             />
           </div>
@@ -200,10 +211,17 @@ export function CreditCardsPage(props: {
                     {props.cards.map((c) => (
                       <tr key={c.id}>
                         <td>
-                          {c.brand} •••• {c.last4}
+                          {c.nickname}
+                          {c.brand ? (
+                            <span className="opacity-70">
+                              {" "}
+                              — {c.brand}
+                              {c.last4 !== "????" ? ` •••• ${c.last4}` : ""}
+                            </span>
+                          ) : null}
                         </td>
-                        <td>Dia {c.closingDay}</td>
-                        <td>Dia {c.dueDay}</td>
+                        <td>{c.closingDay ? `Dia ${c.closingDay}` : "—"}</td>
+                        <td>{c.dueDay ? `Dia ${c.dueDay}` : "—"}</td>
                         <td>{c.limitCents ? formatBRL(c.limitCents) : "—"}</td>
                         <td className="text-right">
                           <Link

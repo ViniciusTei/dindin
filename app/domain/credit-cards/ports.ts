@@ -17,23 +17,25 @@ export interface CreditCardsRepo<TTx = never> {
     id: string;
     userId: string;
     accountId: string | null;
-    numberEnc: string;
-    expirationEnc: string;
+    nickname: string;
+    numberEnc: string | null;
+    expirationEnc: string | null;
     cvvEnc: string | null;
-    brand: string;
+    brand: string | null;
     limitCents: number | null;
-    closingDay: number;
-    dueDay: number;
+    closingDay: number | null;
+    dueDay: number | null;
     tx?: TTx;
   }): Promise<void>;
 
   update(params: {
     userId: string;
     creditCardId: string;
+    nickname?: string;
     accountId: string | null;
     limitCents: number | null;
-    closingDay: number;
-    dueDay: number;
+    closingDay?: number | null;
+    dueDay?: number | null;
     tx?: TTx;
   }): Promise<void>;
 
