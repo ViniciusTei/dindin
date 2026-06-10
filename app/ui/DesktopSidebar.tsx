@@ -1,14 +1,6 @@
 import { Form, Link } from "react-router";
 
-import { HouseholdSwitcher } from "~/domain/households/ui/HouseholdSwitcher";
-
 import Icon, { type IconName } from "./Icon";
-
-export type AppShellHousehold = {
-  householdId: string;
-  name: string;
-  role: "admin" | "member";
-};
 
 type NavItem = {
   to: string;
@@ -19,13 +11,7 @@ type NavItem = {
 type DesktopSidebarProps = {
   isSidebarCollapsed: boolean;
   navItems: NavItem[];
-  householdNavItems: NavItem[];
-  activeHousehold: AppShellHousehold | null;
-  households: AppShellHousehold[];
-  preferredHouseholdId: string | null;
-  defaultHouseholdId: string | null;
   currentPath: string;
-  onActiveHouseholdChange: (id: string) => void;
 };
 
 function isNavItemActive(itemTo: string, currentPath: string): boolean {
@@ -70,59 +56,6 @@ export function DesktopSidebar(props: DesktopSidebarProps) {
                   className={[
                     "flex items-center",
                     isSidebarCollapsed ? "justify-center" : "justify-start",
-                    "gap-3",
-                  ].join(" ")}
-                  aria-label={item.label}
-                >
-                  <span
-                    className={[
-                      "inline-flex h-8 w-8 items-center justify-center rounded-box",
-                      "bg-base-300",
-                      "text-sm font-semibold",
-                    ].join(" ")}
-                    aria-hidden={true}
-                  >
-                    <Icon name={item.icon} className="h-4 w-4" />
-                  </span>
-                  {isSidebarCollapsed ? null : <span>{item.label}</span>}
-                </Link>
-              </li>
-            ))}
-
-            {props.activeHousehold ? (
-              <li className="mt-2 mb-1">
-                <div className="border-t border-base-300 pt-2">
-                  {!isSidebarCollapsed ? (
-                    <span className="px-1 text-xs uppercase opacity-60">Rateio ativo</span>
-                  ) : null}
-                </div>
-              </li>
-            ) : null}
-
-            {!isSidebarCollapsed && props.activeHousehold ? (
-              <li className="mb-1 px-3 pb-2 text-sm">
-                <HouseholdSwitcher
-                  households={props.households}
-                  activeHouseholdId={props.activeHousehold.householdId}
-                  recommendedHouseholdId={
-                    props.preferredHouseholdId ?? props.defaultHouseholdId
-                  }
-                  currentPath={props.currentPath}
-                  onActiveHouseholdChange={props.onActiveHouseholdChange}
-                />
-              </li>
-            ) : null}
-
-            {props.householdNavItems.map((item) => (
-              <li key={item.to} className={isNavItemActive(item.to, props.currentPath) ? "active" : ""}>
-                <Link
-                  to={item.to}
-                  title={item.label}
-                  className={[
-                    "flex items-center",
-                    isSidebarCollapsed
-                      ? "justify-center"
-                      : "justify-start pl-6",
                     "gap-3",
                   ].join(" ")}
                   aria-label={item.label}
