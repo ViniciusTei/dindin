@@ -1,10 +1,13 @@
+import { useEffect } from "react";
 import { Form, Link } from "react-router";
 
 import type {
   HouseholdDetails,
   HouseholdMember,
 } from "~/domain/households/entity";
+import { useSidebar } from "~/contexts/SidebarContext";
 import { HouseholdContextBar } from "~/domain/households/ui/HouseholdContextBar";
+import { HouseholdManageSidebar } from "~/domain/households/ui/HouseholdManageSidebar";
 import { formatBRL } from "~/lib/money";
 import FormModal, {
   ModalCloseButton,
@@ -276,6 +279,13 @@ export function HouseholdManagePage(props: {
   inviteToken?: string;
   inviteExpiresAt?: string;
 }) {
+  const { setIsSidebarCollapsed } = useSidebar();
+
+  useEffect(() => {
+    setIsSidebarCollapsed(true);
+    return () => setIsSidebarCollapsed(false);
+  }, [setIsSidebarCollapsed]);
+
   const inviteLink = props.inviteToken
     ? `${props.origin}/join/${props.inviteToken}`
     : null;
@@ -283,223 +293,230 @@ export function HouseholdManagePage(props: {
   return (
     <>
       <HouseholdContextBar household={props.household} />
-      <main className="mx-auto mt-10 max-w-6xl px-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold">
-              Gerenciar {props.household.name}
-            </h1>
-            <p className="text-sm opacity-70">
-              Membros, permissões, convites e rateio financeiro.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Link
-              className="btn btn-ghost btn-sm"
-              to={`/households/${props.household.householdId}`}
-            >
-              Ver detalhes
-            </Link>
-            <Link className="btn btn-ghost btn-sm" to="/households">
-              Voltar
-            </Link>
-          </div>
-        </div>
-
-        <div className="mt-6 grid gap-6">
-          {props.error ? (
-            <div role="alert" className="alert alert-error">
-              <span>{props.error}</span>
+      <div className="flex">
+        <HouseholdManageSidebar
+          householdId={props.household.householdId}
+          householdName={props.household.name}
+          role={props.household.role}
+        />
+        <main className="grow min-w-0 mx-auto max-w-6xl mt-10 px-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-semibold">
+                Gerenciar {props.household.name}
+              </h1>
+              <p className="text-sm opacity-70">
+                Membros, permissões, convites e rateio financeiro.
+              </p>
             </div>
-          ) : null}
-
-          {props.message ? (
-            <div role="status" className="alert alert-success">
-              <span>{props.message}</span>
+            <div className="flex gap-2">
+              <Link
+                className="btn btn-ghost btn-sm"
+                to={`/households/${props.household.householdId}`}
+              >
+                Ver detalhes
+              </Link>
+              <Link className="btn btn-ghost btn-sm" to="/households">
+                Voltar
+              </Link>
             </div>
-          ) : null}
-
-          <div className="grid gap-4 md:grid-cols-3">
-            <section className="card bg-base-100 shadow">
-              <div className="card-body gap-2">
-                <div className="text-sm opacity-70">Membros</div>
-                <div className="text-2xl font-semibold">
-                  {props.household.memberCount}
-                </div>
-              </div>
-            </section>
-            <section className="card bg-base-100 shadow">
-              <div className="card-body gap-2">
-                <div className="text-sm opacity-70">Despesas do mês</div>
-                <div className="text-2xl font-semibold">
-                  {formatBRL(-props.household.currentMonthExpenseCents)}
-                </div>
-              </div>
-            </section>
-            <section className="card bg-base-100 shadow">
-              <div className="card-body gap-2">
-                <div className="text-sm opacity-70">Seu rateio</div>
-                <div className="text-2xl font-semibold">
-                  {formatShareBps(props.household.currentUserEffectiveShareBps)}
-                </div>
-              </div>
-            </section>
           </div>
 
-          <div className="grid gap-6 xl:grid-cols-[24rem_minmax(0,1fr)]">
-            <div className="grid gap-6">
+          <div className="mt-6 grid gap-6">
+            {props.error ? (
+              <div role="alert" className="alert alert-error">
+                <span>{props.error}</span>
+              </div>
+            ) : null}
+
+            {props.message ? (
+              <div role="status" className="alert alert-success">
+                <span>{props.message}</span>
+              </div>
+            ) : null}
+
+            <div className="grid gap-4 md:grid-cols-3">
               <section className="card bg-base-100 shadow">
-                <div className="card-body gap-4">
-                  <div>
-                    <h2 className="card-title">Dados básicos</h2>
-                    <p className="text-sm opacity-70">
-                      Nome atual: {props.household.name}
-                    </p>
+                <div className="card-body gap-2">
+                  <div className="text-sm opacity-70">Membros</div>
+                  <div className="text-2xl font-semibold">
+                    {props.household.memberCount}
                   </div>
-                  <HouseholdRenameModal household={props.household} />
                 </div>
               </section>
-
               <section className="card bg-base-100 shadow">
-                <div className="card-body gap-4">
-                  <div>
-                    <h2 className="card-title">Membros</h2>
-                    <p className="text-sm opacity-70">
-                      Adicione usuários existentes diretamente à household.
-                    </p>
+                <div className="card-body gap-2">
+                  <div className="text-sm opacity-70">Despesas do mês</div>
+                  <div className="text-2xl font-semibold">
+                    {formatBRL(-props.household.currentMonthExpenseCents)}
                   </div>
-                  <HouseholdAddMemberModal />
                 </div>
               </section>
-
               <section className="card bg-base-100 shadow">
-                <div className="card-body gap-4">
-                  <div>
-                    <h2 className="card-title">Convite por link</h2>
-                    <p className="text-sm opacity-70">
-                      Use para convidar alguém a entrar nessa household.
-                    </p>
+                <div className="card-body gap-2">
+                  <div className="text-sm opacity-70">Seu rateio</div>
+                  <div className="text-2xl font-semibold">
+                    {formatShareBps(props.household.currentUserEffectiveShareBps)}
                   </div>
-                  <HouseholdInviteModal />
-                  {inviteLink && props.inviteExpiresAt ? (
-                    <div className="space-y-2 text-sm">
-                      <div className="alert alert-info">
-                        <span>
-                          Link:{" "}
-                          <a className="link" href={inviteLink}>
-                            {inviteLink}
-                          </a>
-                        </span>
-                      </div>
-                      <p>
-                        Expira em:{" "}
-                        <span className="font-mono">
-                          {props.inviteExpiresAt}
-                        </span>
+                </div>
+              </section>
+            </div>
+
+            <div className="grid gap-6 xl:grid-cols-[24rem_minmax(0,1fr)]">
+              <div className="grid gap-6">
+                <section className="card bg-base-100 shadow">
+                  <div className="card-body gap-4">
+                    <div>
+                      <h2 className="card-title">Dados básicos</h2>
+                      <p className="text-sm opacity-70">
+                        Nome atual: {props.household.name}
                       </p>
                     </div>
-                  ) : null}
-                </div>
-              </section>
-            </div>
+                    <HouseholdRenameModal household={props.household} />
+                  </div>
+                </section>
 
-            <div className="grid gap-6">
-              <section className="card bg-base-100 shadow">
-                <div className="card-body gap-4">
-                  <h2 className="card-title">Permissões dos membros</h2>
+                <section className="card bg-base-100 shadow">
+                  <div className="card-body gap-4">
+                    <div>
+                      <h2 className="card-title">Membros</h2>
+                      <p className="text-sm opacity-70">
+                        Adicione usuários existentes diretamente à household.
+                      </p>
+                    </div>
+                    <HouseholdAddMemberModal />
+                  </div>
+                </section>
 
-                  <div className="overflow-x-auto">
-                    <table className="table table-zebra w-full">
-                      <thead>
-                        <tr>
-                          <th>Usuário</th>
-                          <th>Papel</th>
-                          <th className="text-right">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {props.household.members.map((member) => (
-                          <tr key={member.userId}>
-                            <td>
-                              <div className="font-medium">
-                                {member.username}
-                              </div>
-                              <div className="text-xs opacity-70">
+                <section className="card bg-base-100 shadow">
+                  <div className="card-body gap-4">
+                    <div>
+                      <h2 className="card-title">Convite por link</h2>
+                      <p className="text-sm opacity-70">
+                        Use para convidar alguém a entrar nessa household.
+                      </p>
+                    </div>
+                    <HouseholdInviteModal />
+                    {inviteLink && props.inviteExpiresAt ? (
+                      <div className="space-y-2 text-sm">
+                        <div className="alert alert-info">
+                          <span>
+                            Link:{" "}
+                            <a className="link" href={inviteLink}>
+                              {inviteLink}
+                            </a>
+                          </span>
+                        </div>
+                        <p>
+                          Expira em:{" "}
+                          <span className="font-mono">
+                            {props.inviteExpiresAt}
+                          </span>
+                        </p>
+                      </div>
+                    ) : null}
+                  </div>
+                </section>
+              </div>
+
+              <div className="grid gap-6">
+                <section className="card bg-base-100 shadow">
+                  <div className="card-body gap-4">
+                    <h2 className="card-title">Permissões dos membros</h2>
+
+                    <div className="overflow-x-auto">
+                      <table className="table table-zebra w-full">
+                        <thead>
+                          <tr>
+                            <th>Usuário</th>
+                            <th>Papel</th>
+                            <th className="text-right">Ações</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {props.household.members.map((member) => (
+                            <tr key={member.userId}>
+                              <td>
+                                <div className="font-medium">
+                                  {member.username}
+                                </div>
+                                <div className="text-xs opacity-70">
+                                  {member.role === "admin"
+                                    ? "Administrador"
+                                    : "Membro"}
+                                </div>
+                              </td>
+                              <td>
                                 {member.role === "admin"
                                   ? "Administrador"
                                   : "Membro"}
-                              </div>
-                            </td>
-                            <td>
-                              {member.role === "admin"
-                                ? "Administrador"
-                                : "Membro"}
-                            </td>
-                            <td>
-                              <div className="flex justify-end gap-2">
-                                <HouseholdUpdateRoleModal member={member} />
-                                <HouseholdRemoveMemberModal member={member} />
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </section>
-
-              <section className="card bg-base-100 shadow">
-                <div className="card-body gap-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <h2 className="card-title">Rateio de pagamentos</h2>
-                      <p className="text-sm opacity-70">
-                        Confira o percentual explícito e o efetivo aplicado a
-                        cada membro.
-                      </p>
+                              </td>
+                              <td>
+                                <div className="flex justify-end gap-2">
+                                  <HouseholdUpdateRoleModal member={member} />
+                                  <HouseholdRemoveMemberModal member={member} />
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
-                    <HouseholdSharesModal household={props.household} />
                   </div>
+                </section>
 
-                  <div className="overflow-x-auto">
-                    <table className="table table-zebra w-full">
-                      <thead>
-                        <tr>
-                          <th>Usuário</th>
-                          <th>Papel</th>
-                          <th>Percentual explícito</th>
-                          <th>Percentual efetivo</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {props.household.members.map((member) => (
-                          <tr key={member.userId}>
-                            <td>{member.username}</td>
-                            <td>
-                              {member.role === "admin"
-                                ? "Administrador"
-                                : "Membro"}
-                            </td>
-                            <td>
-                              {member.explicitShareBps == null
-                                ? "Automático"
-                                : formatShareBps(member.explicitShareBps)}
-                            </td>
-                            <td className="font-medium">
-                              {formatShareBps(member.effectiveShareBps)}
-                            </td>
+                <section className="card bg-base-100 shadow">
+                  <div className="card-body gap-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <h2 className="card-title">Rateio de pagamentos</h2>
+                        <p className="text-sm opacity-70">
+                          Confira o percentual explícito e o efetivo aplicado a
+                          cada membro.
+                        </p>
+                      </div>
+                      <HouseholdSharesModal household={props.household} />
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="table table-zebra w-full">
+                        <thead>
+                          <tr>
+                            <th>Usuário</th>
+                            <th>Papel</th>
+                            <th>Percentual explícito</th>
+                            <th>Percentual efetivo</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {props.household.members.map((member) => (
+                            <tr key={member.userId}>
+                              <td>{member.username}</td>
+                              <td>
+                                {member.role === "admin"
+                                  ? "Administrador"
+                                  : "Membro"}
+                              </td>
+                              <td>
+                                {member.explicitShareBps == null
+                                  ? "Automático"
+                                  : formatShareBps(member.explicitShareBps)}
+                              </td>
+                              <td className="font-medium">
+                                {formatShareBps(member.effectiveShareBps)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
-              </section>
+                </section>
+              </div>
             </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </>
   );
 }
