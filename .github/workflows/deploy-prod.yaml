@@ -1,103 +1,129 @@
-name: Deploy Produção
+name: CD
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: viniciustei/financeiro-remix
+  MIGRATE_IMAGE_NAME: viniciustei/financeiro-remix-migrate
 
 jobs:
-  deploy-prod:
+  build-and-push:
+    name: Build & Push Docker Images
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    concurrency:
-      group: deploy-prod-main
-      cancel-in-progress: false
-    env:
-      CI: true
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      web_image: ${{ steps.images.outputs.web_image }}
+      migrate_image: ${{ steps.images.outputs.migrate_image }}
+      app_version: ${{ steps.deploy.outputs.version }}
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+    steps:
+      - uses: actions/checkout@v4
         with:
-          node-version: 24
-          cache: npm
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
 
       - name: Resolver metadados do deploy
         id: deploy
         shell: bash
         run: |
-          DEPLOY_COMMIT="$(node ./scripts/release/resolve-deploy-version.mjs --sha)"
-          DEPLOY_VERSION="$(node ./scripts/release/resolve-deploy-version.mjs --version)"
+          DEPLOY_COMMIT="$(node ./scripts/release/resolve-deploy-version.mjs --sha ${{ github.event.workflow_run.head_sha }})"
+          DEPLOY_VERSION="$(node ./scripts/release/resolve-deploy-version.mjs --version ${{ github.event.workflow_run.head_sha }})"
 
           echo "commit=$DEPLOY_COMMIT" >> "$GITHUB_OUTPUT"
           echo "version=$DEPLOY_VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Instalar dependências
-        run: npm ci
+      - name: Resolver nomes das imagens
+        id: images
+        shell: bash
+        run: |
+          echo "web_image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+          echo "migrate_image=${{ env.REGISTRY }}/${{ env.MIGRATE_IMAGE_NAME }}:sha-${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
 
-      - name: Lint
-        run: npm run lint
-        
-      - name: Rodar testes de domínio
-        run: npm run test:domain
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Rodar testes de UI
-        run: npm run test:ui
-
-      - name: Rodar typecheck
-        run: npm run typecheck
-
-      - name: Gerar build
-        env:
-          APP_VERSION: ${{ steps.deploy.outputs.version }}
-        run: npm run build
-
-      - name: Login no ghcr.io
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
-          username: ${{ secrets.GHCR_USERNAME }}
-          password: ${{ secrets.GHCR_PAT }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build e push da imagem Web
-        env:
-          APP_VERSION: ${{ steps.deploy.outputs.version }}
-          REGISTRY_IMAGE: ghcr.io/${{ secrets.GHCR_USERNAME }}/financeiro-remix
-        run: |
-          docker build \
-            --target runner \
-            --build-arg "APP_VERSION=${APP_VERSION}" \
-            -t "${REGISTRY_IMAGE}:${APP_VERSION}" \
-            -t "${REGISTRY_IMAGE}:latest" \
-            .
-          docker push "${REGISTRY_IMAGE}:${APP_VERSION}"
-          docker push "${REGISTRY_IMAGE}:latest"
+      - name: Build and push web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          target: runner
+          push: true
+          build-args: |
+            APP_VERSION=${{ steps.deploy.outputs.version }}
+          tags: |
+            ${{ steps.images.outputs.web_image }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
 
-      - name: Build e push da imagem Migrate
-        env:
-          APP_VERSION: ${{ steps.deploy.outputs.version }}
-          MIGRATE_IMAGE: ghcr.io/${{ secrets.GHCR_USERNAME }}/financeiro-remix-migrate
-        run: |
-          docker build \
-            --target dev-deps \
-            --build-arg "APP_VERSION=${APP_VERSION}" \
-            -t "${MIGRATE_IMAGE}:${APP_VERSION}" \
-            -t "${MIGRATE_IMAGE}:latest" \
-            .
-          docker push "${MIGRATE_IMAGE}:${APP_VERSION}"
-          docker push "${MIGRATE_IMAGE}:latest"
+      - name: Build and push migrate image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          target: dev-deps
+          push: true
+          build-args: |
+            APP_VERSION=${{ steps.deploy.outputs.version }}
+          tags: |
+            ${{ steps.images.outputs.migrate_image }}
+            ${{ env.REGISTRY }}/${{ env.MIGRATE_IMAGE_NAME }}:latest
+          cache-from: type=gha,scope=migrate
+          cache-to: type=gha,mode=max,scope=migrate
+
+  deploy-production:
+    name: Deploy to Production
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 10
+    concurrency:
+      group: deploy-prod-main
+      cancel-in-progress: false
+    env:
+      CI: true
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Copy compose file to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "docker-compose.yml"
+          target: ${{ secrets.DEPLOY_DIR }}/
+          overwrite: true
 
       - name: Deploy na VPS via SSH
         uses: appleboy/ssh-action@v1
         env:
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_PAT: ${{ secrets.GHCR_PAT }}
-          REGISTRY_IMAGE: ghcr.io/${{ secrets.GHCR_USERNAME }}/financeiro-remix
-          MIGRATE_IMAGE: ghcr.io/${{ secrets.GHCR_USERNAME }}/financeiro-remix-migrate
-          APP_VERSION: ${{ steps.deploy.outputs.version }}
+          REGISTRY_IMAGE: ${{ needs.build-and-push.outputs.web_image }}
+          MIGRATE_IMAGE: ${{ needs.build-and-push.outputs.migrate_image }}
+          APP_VERSION: ${{ needs.build-and-push.outputs.app_version }}
           DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -107,7 +133,7 @@ jobs:
           envs: GHCR_USERNAME,GHCR_PAT,REGISTRY_IMAGE,MIGRATE_IMAGE,APP_VERSION,DEPLOY_DIR
           script: |
             set -e
-            cd $DEPLOY_DIR
+            cd "$DEPLOY_DIR"
 
             set -a
             . ./.env.prod
@@ -117,16 +143,19 @@ jobs:
 
             PREV_IMAGE=$(docker inspect financeiro-prod-web-1 --format='{{.Config.Image}}' 2>/dev/null || echo "")
 
-            REGISTRY_IMAGE="${REGISTRY_IMAGE}:${APP_VERSION}" \
-            MIGRATE_IMAGE="${MIGRATE_IMAGE}:${APP_VERSION}" \
+            REGISTRY_IMAGE="$REGISTRY_IMAGE" \
+            MIGRATE_IMAGE="$MIGRATE_IMAGE" \
+            APP_VERSION="$APP_VERSION" \
             docker compose pull web migrate
 
-            REGISTRY_IMAGE="${REGISTRY_IMAGE}:${APP_VERSION}" \
-            MIGRATE_IMAGE="${MIGRATE_IMAGE}:${APP_VERSION}" \
+            REGISTRY_IMAGE="$REGISTRY_IMAGE" \
+            MIGRATE_IMAGE="$MIGRATE_IMAGE" \
+            APP_VERSION="$APP_VERSION" \
             docker compose run --rm migrate
 
-            REGISTRY_IMAGE="${REGISTRY_IMAGE}:${APP_VERSION}" \
-            MIGRATE_IMAGE="${MIGRATE_IMAGE}:${APP_VERSION}" \
+            REGISTRY_IMAGE="$REGISTRY_IMAGE" \
+            MIGRATE_IMAGE="$MIGRATE_IMAGE" \
+            APP_VERSION="$APP_VERSION" \
             docker compose up -d --no-deps web
 
             echo "Waiting for application to start..."
@@ -142,8 +171,9 @@ jobs:
             echo "Health check failed."
             if [ -n "$PREV_IMAGE" ]; then
               echo "Rolling back web to: $PREV_IMAGE"
-              MIGRATE_IMAGE="${MIGRATE_IMAGE}:${APP_VERSION}" \
+              MIGRATE_IMAGE="$MIGRATE_IMAGE" \
               REGISTRY_IMAGE="$PREV_IMAGE" \
+              APP_VERSION="$APP_VERSION" \
               docker compose up -d --no-deps web
               echo "Rollback complete."
             else

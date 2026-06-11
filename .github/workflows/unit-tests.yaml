@@ -1,15 +1,18 @@
-name: Testes Unitários
+name: CI
 
 on:
+  push:
+    branches: [main]
   pull_request:
-    types: [opened, synchronize, reopened]
+    branches: [main]
 
 jobs:
-  unit-tests:
+  ci:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -20,13 +23,21 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-      - name: Typecheck
-        run: npm run typecheck
-
       - name: Lint
         run: npm run lint
 
-      - name: Rodar testes unitários
+      - name: Rodar testes de domínio
         env:
           CI: true
-        run: npm run test
+        run: npm run test:domain
+
+      - name: Rodar testes de UI
+        env:
+          CI: true
+        run: npm run test:ui
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
