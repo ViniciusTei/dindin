@@ -44,7 +44,20 @@ if [ "$USING_PERSISTENT_CHECKOUT" = "true" ]; then
   git checkout --force "$DEPLOY_COMMIT"
 fi
 
+if [ -n "${GHCR_PAT:-}" ]; then
+  echo "$GHCR_PAT" | docker login ghcr.io -u "${GHCR_USERNAME:?GHCR_USERNAME is required}" --password-stdin
+fi
+
+REGISTRY_IMAGE="${REGISTRY_IMAGE:?REGISTRY_IMAGE is required}"
+COMPOSE_PROJECT="financeiro-prod"
+
+echo "Pulling image ${REGISTRY_IMAGE}:${APP_VERSION}..."
+docker pull "${REGISTRY_IMAGE}:${APP_VERSION}"
+
+echo "Tagging image for local compose..."
+docker tag "${REGISTRY_IMAGE}:${APP_VERSION}" "${COMPOSE_PROJECT}_web"
+
 APP_VERSION="$APP_VERSION" docker compose \
   --env-file .env.prod \
-  -p financeiro-prod \
-  up -d --build --remove-orphans
+  -p "$COMPOSE_PROJECT" \
+  up -d --remove-orphans

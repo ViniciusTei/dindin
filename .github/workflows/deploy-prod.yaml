@@ -55,37 +55,98 @@ jobs:
           APP_VERSION: ${{ steps.deploy.outputs.version }}
         run: npm run build
 
-      - name: Deploy em produção
-        shell: bash
+      - name: Login no ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_PAT }}
+
+      - name: Build e push da imagem Web
         env:
-          PROD_APP_DIR: ${{ secrets.PROD_APP_DIR }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-          COOKIE_SECURE: ${{ secrets.COOKIE_SECURE }}
-          APP_PORT: ${{ secrets.APP_PORT }}
-          CARD_ENCRYPTION_KEY: ${{ secrets.CARD_ENCRYPTION_KEY }}
-          DEPLOY_COMMIT: ${{ steps.deploy.outputs.commit }}
           APP_VERSION: ${{ steps.deploy.outputs.version }}
+          REGISTRY_IMAGE: ghcr.io/${{ secrets.GHCR_USERNAME }}/financeiro-remix
         run: |
-          : "${POSTGRES_USER:?Missing POSTGRES_USER secret}"
-          : "${POSTGRES_PASSWORD:?Missing POSTGRES_PASSWORD secret}"
-          : "${POSTGRES_DB:?Missing POSTGRES_DB secret}"
-          : "${SESSION_SECRET:?Missing SESSION_SECRET secret}"
-          : "${CARD_ENCRYPTION_KEY:?Missing CARD_ENCRYPTION_KEY secret}"
+          docker build \
+            --target runner \
+            --build-arg "APP_VERSION=${APP_VERSION}" \
+            -t "${REGISTRY_IMAGE}:${APP_VERSION}" \
+            -t "${REGISTRY_IMAGE}:latest" \
+            .
+          docker push "${REGISTRY_IMAGE}:${APP_VERSION}"
+          docker push "${REGISTRY_IMAGE}:latest"
 
-          trap 'rm -f .env.prod' EXIT
+      - name: Build e push da imagem Migrate
+        env:
+          APP_VERSION: ${{ steps.deploy.outputs.version }}
+          MIGRATE_IMAGE: ghcr.io/${{ secrets.GHCR_USERNAME }}/financeiro-remix-migrate
+        run: |
+          docker build \
+            --target dev-deps \
+            --build-arg "APP_VERSION=${APP_VERSION}" \
+            -t "${MIGRATE_IMAGE}:${APP_VERSION}" \
+            -t "${MIGRATE_IMAGE}:latest" \
+            .
+          docker push "${MIGRATE_IMAGE}:${APP_VERSION}"
+          docker push "${MIGRATE_IMAGE}:latest"
 
-          cat > .env.prod <<EOF
-          POSTGRES_USER=${POSTGRES_USER}
-          POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-          POSTGRES_DB=${POSTGRES_DB}
-          SESSION_SECRET=${SESSION_SECRET}
-          COOKIE_SECURE=${COOKIE_SECURE:-true}
-          APP_PORT=${APP_PORT:-3000}
-          CARD_ENCRYPTION_KEY=${CARD_ENCRYPTION_KEY}
-          EOF
+      - name: Deploy na VPS via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT | default('22') }}
+          envs: GHCR_USERNAME,GHCR_PAT,REGISTRY_IMAGE,MIGRATE_IMAGE,APP_VERSION
+        env:
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}
+          REGISTRY_IMAGE: ghcr.io/${{ secrets.GHCR_USERNAME }}/financeiro-remix
+          MIGRATE_IMAGE: ghcr.io/${{ secrets.GHCR_USERNAME }}/financeiro-remix-migrate
+          APP_VERSION: ${{ steps.deploy.outputs.version }}
+          DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
+        script: |
+          set -e
+          cd $DEPLOY_DIR
 
-          chmod +x ./scripts/release/deploy-prod.sh
-          ./scripts/release/deploy-prod.sh
+          set -a
+          . ./.env.prod
+          set +a
+
+          echo "$GHCR_PAT" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+
+          PREV_IMAGE=$(docker inspect financeiro-prod-web-1 --format='{{.Config.Image}}' 2>/dev/null || echo "")
+
+          REGISTRY_IMAGE="${REGISTRY_IMAGE}:${APP_VERSION}" \
+          MIGRATE_IMAGE="${MIGRATE_IMAGE}:${APP_VERSION}" \
+          docker compose pull web migrate
+
+          REGISTRY_IMAGE="${REGISTRY_IMAGE}:${APP_VERSION}" \
+          MIGRATE_IMAGE="${MIGRATE_IMAGE}:${APP_VERSION}" \
+          docker compose run --rm migrate
+
+          REGISTRY_IMAGE="${REGISTRY_IMAGE}:${APP_VERSION}" \
+          MIGRATE_IMAGE="${MIGRATE_IMAGE}:${APP_VERSION}" \
+          docker compose up -d --no-deps web
+
+          echo "Waiting for application to start..."
+          for i in $(seq 1 10); do
+            if curl -sf "http://localhost:${APP_PORT:-3000}/health" > /dev/null; then
+              echo "Health check passed. Deploy successful."
+              exit 0
+            fi
+            echo "Attempt $i/10 failed, retrying in 10s..."
+            sleep 10
+          done
+
+          echo "Health check failed."
+          if [ -n "$PREV_IMAGE" ]; then
+            echo "Rolling back web to: $PREV_IMAGE"
+            MIGRATE_IMAGE="${MIGRATE_IMAGE}:${APP_VERSION}" \
+            REGISTRY_IMAGE="$PREV_IMAGE" \
+            docker compose up -d --no-deps web
+            echo "Rollback complete."
+          else
+            echo "WARNING: No previous image to roll back to."
+          fi
+          exit 1

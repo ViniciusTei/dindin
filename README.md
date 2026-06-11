@@ -105,35 +105,36 @@ npm run stack:up:prod
 
 3) Configure Nginx (ver `docs/nginx-financeiro.example.conf`).
 
-## Deploy contínuo com Gitea
+## Deploy contínuo com GitHub Container Registry (ghcr.io)
 
-- O workflow de deploy fica em `.gitea/workflows/deploy-prod.yaml`.
-- O gatilho é qualquer `push` para `main`, incluindo merges.
-- O deploy sempre usa o commit exato que acabou de entrar em `main`.
+O workflow de deploy fica em `.github/workflows/deploy-prod.yaml`.
+O gatilho é qualquer `push` para `main`, incluindo merges.
 
-### O que o pipeline faz
+### Fluxo do pipeline
 
-1) Faz checkout do código atualizado em `main`.
+1) **Checkout** do código atualizado em `main`.
 
-2) Resolve a versão do deploy com `npm run deploy:version`.
-
-Exemplo manual:
+2) **Resolve a versão** do deploy com `npm run deploy:version`.
 
 ```bash
 npm run deploy:version
 node ./scripts/release/resolve-deploy-version.mjs --sha
 ```
 
-3) Executa:
+3) **Validação**: executa `lint`, `test:domain`, `test:ui`, `typecheck` e `build`.
 
-- `npm run test:domain`
-- `npm run test:ui`
-- `npm run typecheck`
-- `npm run build`
+4) **Build da imagem Docker** com target `runner` e push para o ghcr.io:
+   - Tagueada com a versão exata (`ghcr.io/<user>/financeiro-remix:<version>`)
+   - Tagueada como `latest`
 
-4) Atualiza o clone de produção para o commit publicado em `main` e executa o deploy localmente no próprio host do runner do Gitea com Docker Compose, reaproveitando o serviço `migrate` antes do `web`.
+5) **Deploy no servidor**: o script `deploy-prod.sh`:
+   - Faz login no ghcr.io (se `GHCR_PAT` estiver disponível)
+   - Faz pull da imagem exata do registry
+   - Tagueia a imagem para o nome esperado pelo Docker Compose local
+   - Sobe a stack com `docker compose up -d` (sem `--build`)
+   - O serviço `migrate` ainda é construído localmente (rápido, apenas instala deps)
 
-### Segredos necessários no Gitea
+### Segredos necessários no repositório
 
 Obrigatórios:
 
@@ -141,6 +142,8 @@ Obrigatórios:
 - `POSTGRES_PASSWORD`
 - `POSTGRES_DB`
 - `SESSION_SECRET`
+- `GHCR_USERNAME` — seu usuário do GitHub
+- `GHCR_PAT` — Personal Access Token do GitHub com permissão `write:packages`
 
 Opcionais:
 
@@ -151,24 +154,26 @@ Opcionais:
 
 ### Pré-requisitos no servidor de produção
 
-- O runner do Gitea que executa `deploy-prod.yaml` deve estar instalado no mesmo servidor da produção.
-- Se você tiver múltiplos runners, ajuste o `runs-on` do workflow para apontar explicitamente para o runner de produção.
+- O runner que executa `deploy-prod.yaml` deve estar instalado no mesmo servidor da produção.
 - Docker e Docker Compose devem estar instalados e disponíveis no PATH do usuário usado pelo runner.
+- O runner precisa ter acesso à internet para fazer pull das imagens do ghcr.io.
 
 #### Sobre `PROD_APP_DIR`
 
 - Se o runner executa direto no host e você quer manter um checkout persistente para deploy, defina `PROD_APP_DIR` apontando para um clone Git existente do repositório.
-- Se o runner executa em container (caso comum com `act_runner`), o caminho do host normalmente **não** fica visível dentro do job. Nesse caso, deixe `PROD_APP_DIR` vazio e o pipeline fará o deploy usando o checkout temporário do próprio job, enviando o build para o Docker do host.
+- Se o runner executa em container (caso comum com `act_runner`), o caminho do host normalmente **não** fica visível dentro do job. Nesse caso, deixe `PROD_APP_DIR` vazio e o pipeline fará o deploy usando o checkout temporário do próprio job.
 - Quando `PROD_APP_DIR` é usado, o remoto `origin` desse clone precisa ter acesso para `git fetch origin main`.
+- O deploy sempre usa a imagem do registry, independentemente de `PROD_APP_DIR`.
 
 #### Variáveis do deploy
 
-- O pipeline gera um `.env.prod` temporário dentro do workspace do job usando os segredos do Gitea.
+- O pipeline gera um `.env.prod` temporário dentro do workspace do job usando os segredos.
 - O serviço `pgadmin` não sobe por padrão em produção; para usá-lo manualmente, rode o Compose com o profile `admin`.
 
 ### Migrações automáticas
 
 O Compose sobe um serviço `migrate` que roda `npm run db:migrate` antes do `web` iniciar.
+O `migrate` ainda é construído localmente (target `dev-deps`) — é rápido e não justifica o push para o registry.
 
 ## Healthcheck
 
