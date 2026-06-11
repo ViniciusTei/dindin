@@ -96,7 +96,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT | default('22') }}
+          port: ${{ secrets.SSH_PORT }}
           envs: GHCR_USERNAME,GHCR_PAT,REGISTRY_IMAGE,MIGRATE_IMAGE,APP_VERSION
         env:
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
