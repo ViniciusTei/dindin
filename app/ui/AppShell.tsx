@@ -19,7 +19,7 @@ export function AppShell(props: {
   children: React.ReactNode;
 }) {
   const [isOnline, setIsOnline] = useState(true);
-  const { isSidebarCollapsed, setIsSidebarCollapsed } = useSidebar();
+  const { isSidebarCollapsed, toggleSidebar } = useSidebar();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 
@@ -53,7 +53,12 @@ export function AppShell(props: {
       { to: "/households", label: "Rateios", icon: "team", visible: true },
       { to: "/accounts", label: "Contas", icon: "bank", visible: true },
       { to: "/cards", label: "Cartões", icon: "credit-card", visible: true },
-      { to: "/settings", label: "Configurações", icon: "settings", visible: true },
+      {
+        to: "/settings",
+        label: "Configurações",
+        icon: "settings",
+        visible: true,
+      },
     ];
     return items.filter((i) => i.visible);
   }, []);
@@ -78,11 +83,14 @@ export function AppShell(props: {
           <button
             type="button"
             className="hidden md:inline-flex btn btn-ghost btn-square"
-            onClick={() => setIsSidebarCollapsed((v) => !v)}
+            onClick={toggleSidebar}
             aria-label={isSidebarCollapsed ? "Expandir menu" : "Recolher menu"}
             title={isSidebarCollapsed ? "Expandir menu" : "Recolher menu"}
           >
-            <Icon name={isSidebarCollapsed ? "menu-unfold" : "menu-fold"} className="h-4 w-4" />
+            <Icon
+              name={isSidebarCollapsed ? "menu-unfold" : "menu-fold"}
+              className="h-4 w-4"
+            />
           </button>
 
           <div className="flex items-center gap-3 text-sm">
@@ -98,12 +106,19 @@ export function AppShell(props: {
               }
             >
               <Icon
-                name={theme === "sunset" ? ("sun" as IconName) : ("moon" as IconName)}
+                name={
+                  theme === "sunset"
+                    ? ("sun" as IconName)
+                    : ("moon" as IconName)
+                }
                 className="h-4 w-4"
               />
             </button>
             {isOnline ? null : (
-              <span className="badge badge-warning" title="Offline (somente leitura)">
+              <span
+                className="badge badge-warning"
+                title="Offline (somente leitura)"
+              >
                 Offline — somente leitura
               </span>
             )}
