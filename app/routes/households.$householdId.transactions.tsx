@@ -20,7 +20,6 @@ import { listTransactions } from "~/domain/transactions/usecases/list-transactio
 import { updateTransaction } from "~/domain/transactions/usecases/update-transaction";
 import { TransactionsPage } from "~/domain/transactions/ui/TransactionsPage";
 import { toCents } from "~/lib/money";
-import { decryptString } from "~/lib/crypto.server";
 
 function createId(): string {
   return crypto.randomUUID();
@@ -55,7 +54,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const qParam = url.searchParams.get("q") ?? undefined;
 
   const filters = {
-    type: (typeParam === "income" || typeParam === "expense") ? typeParam : undefined,
+    type:
+      typeParam === "income" || typeParam === "expense" ? typeParam : undefined,
     categoryId: categoryIdParam === "none" ? null : categoryIdParam,
     accountId: accountIdParam || undefined,
     q: qParam || undefined,
@@ -68,32 +68,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     listCreditCards({ creditCardsRepo, userId }),
   ]);
 
-  const accountNameById = new Map(accounts.map((account) => [account.id, account.name] as const));
-
-  let warning: string | undefined;
-  const viewCards = cards.map((c) => {
-    let last4 = "????";
-    try {
-      if (c.numberEnc) {
-        const number = decryptString(c.numberEnc);
-        last4 = number.slice(-4);
-      }
-    } catch (err) {
-      warning =
-        warning ??
-        (err instanceof Error ? err.message : "Falha ao decriptografar dados do cartão.");
-    }
-
-    return {
-      id: c.id,
-      brand: String(c.brand),
-      last4,
-      limitCents: c.limitCents,
-      closingDay: c.closingDay ?? undefined,
-      dueDay: c.dueDay ?? undefined,
-      accountId: c.accountId,
-    };
-  });
+  const accountNameById = new Map(
+    accounts.map((account) => [account.id, account.name] as const),
+  );
 
   return {
     accounts,
@@ -103,8 +80,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       accountName: accountNameById.get(transaction.accountId),
     })),
     today: todayISODate(),
-    cards: viewCards,
-    warning,
+    cards,
     ok,
     householdId,
     householdContext: {
@@ -148,7 +124,9 @@ export async function action({ request, params }: Route.ActionArgs) {
 
     const creditCardIdRaw = String(form.get("creditCardId") ?? "").trim();
     const creditCardId = creditCardIdRaw ? creditCardIdRaw : null;
-    const installmentsTotalRaw = String(form.get("installmentsTotal") ?? "1").trim();
+    const installmentsTotalRaw = String(
+      form.get("installmentsTotal") ?? "1",
+    ).trim();
     const installmentsTotal = Number(installmentsTotalRaw) || 1;
 
     if (creditCardId) {
@@ -212,16 +190,24 @@ export async function action({ request, params }: Route.ActionArgs) {
               case "DATE_REQUIRED":
                 return { error: "Data é obrigatória." };
               case "LINK_FAILED":
-                return { error: detail ? `Falha ao vincular transação ao purchase: ${detail}` : "Falha ao vincular transação." };
+                return {
+                  error: detail
+                    ? `Falha ao vincular transação ao purchase: ${detail}`
+                    : "Falha ao vincular transação.",
+                };
               default:
-                return { error: detail ? `Falha ao criar transações: ${detail}` : "Falha ao criar transações." };
+                return {
+                  error: detail
+                    ? `Falha ao criar transações: ${detail}`
+                    : "Falha ao criar transações.",
+                };
             }
           }
         }
       }
 
       const url = new URL(request.url);
-      url.searchParams.set('ok', '1');
+      url.searchParams.set("ok", "1");
       return redirect(url.pathname + url.search);
     }
 
@@ -259,7 +245,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     }
 
     const url = new URL(request.url);
-    url.searchParams.set('ok', '1');
+    url.searchParams.set("ok", "1");
     return redirect(url.pathname + url.search);
   }
 
@@ -312,7 +298,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     }
 
     const url = new URL(request.url);
-    url.searchParams.set('ok', '1');
+    url.searchParams.set("ok", "1");
     return redirect(url.pathname + url.search);
   }
 
@@ -331,21 +317,24 @@ export async function action({ request, params }: Route.ActionArgs) {
     }
 
     const url = new URL(request.url);
-    url.searchParams.set('ok', '1');
+    url.searchParams.set("ok", "1");
     return redirect(url.pathname + url.search);
   }
 
   return { error: "Ação inválida" };
 }
 
-export default function HouseholdTransactions({ loaderData, actionData }: Route.ComponentProps) {
+export default function HouseholdTransactions({
+  loaderData,
+  actionData,
+}: Route.ComponentProps) {
   return (
     <TransactionsPage
       accounts={loaderData.accounts}
       categories={loaderData.categories}
       transactions={loaderData.transactions}
       today={loaderData.today}
-      error={actionData?.error ?? loaderData?.warning}
+      error={actionData?.error}
       ok={Boolean(loaderData?.ok)}
       actionOk={Boolean(loaderData?.ok)}
       loaderOk={Boolean(loaderData?.ok)}

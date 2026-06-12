@@ -20,7 +20,6 @@ import { listCategories } from "~/domain/categories/usecases/list-categories";
 import { listCreditCards } from "~/domain/credit-cards/usecases/list-credit-cards";
 import { parseReceipt } from "~/domain/receipt/usecases/parse-receipt";
 import { createReceiptTransactions } from "~/domain/receipt/usecases/create-receipt-transactions";
-import { decryptString } from "~/lib/crypto.server";
 import type { ReceiptItem } from "~/domain/receipt/entity";
 import { ReceiptUploadStep } from "~/domain/receipt/ui/ReceiptUploadStep";
 import { ReceiptItemsTable } from "~/domain/receipt/ui/ReceiptItemsTable";
@@ -80,29 +79,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     listCreditCards({ creditCardsRepo, userId }),
   ]);
 
-  const viewCards = cards.map((c) => {
-    let last4 = "????";
-    try {
-      if (c.numberEnc) {
-        const number = decryptString(c.numberEnc);
-        last4 = number.slice(-4);
-      }
-    } catch {
-      // ignore decrypt errors — use placeholder
-    }
-    return {
-      id: c.id,
-      brand: String(c.brand),
-      last4,
-      closingDay: c.closingDay,
-      accountId: c.accountId,
-    };
-  });
-
   return {
     accounts,
     categories,
-    cards: viewCards,
+    cards,
     householdId,
     today: todayISODate(),
   };
@@ -222,7 +202,10 @@ export async function action({ request }: Route.ActionArgs) {
         Number(form.get("installments") ?? 1) || 1,
       );
       if (card.closingDay == null) {
-        return { type: "error" as const, message: "Cartão precisa ter dia de fechamento definido." };
+        return {
+          type: "error" as const,
+          message: "Cartão precisa ter dia de fechamento definido.",
+        };
       }
 
       paymentMethod = {

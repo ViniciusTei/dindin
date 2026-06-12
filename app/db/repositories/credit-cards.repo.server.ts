@@ -11,12 +11,21 @@ import {
 } from "~/domain/credit-cards/errors";
 import type { CreditCardsRepo } from "~/domain/credit-cards/ports";
 
-async function assertAccountBelongsToUser(params: { userId: string; accountId: string; tx?: DbExecutor }) {
+async function assertAccountBelongsToUser(params: {
+  userId: string;
+  accountId: string;
+  tx?: DbExecutor;
+}) {
   const client = resolveClient(params.tx);
   const rows = await client
     .select({ id: accounts.id })
     .from(accounts)
-    .where(and(eq(accounts.id, params.accountId), eq(accounts.userId, params.userId)))
+    .where(
+      and(
+        eq(accounts.id, params.accountId),
+        eq(accounts.userId, params.userId),
+      ),
+    )
     .limit(1);
 
   if (rows.length === 0) throw new CreditCardAccountNotFoundError();
@@ -76,7 +85,11 @@ export const creditCardsRepo: CreditCardsRepo<DbTransaction> = {
   async create(params) {
     const client = resolveClient(params.tx);
     if (params.accountId) {
-      await assertAccountBelongsToUser({ userId: params.userId, accountId: params.accountId, tx: client });
+      await assertAccountBelongsToUser({
+        userId: params.userId,
+        accountId: params.accountId,
+        tx: client,
+      });
     }
 
     await client.insert(creditCards).values({
@@ -97,7 +110,11 @@ export const creditCardsRepo: CreditCardsRepo<DbTransaction> = {
   async update(params) {
     const client = resolveClient(params.tx);
     if (params.accountId) {
-      await assertAccountBelongsToUser({ userId: params.userId, accountId: params.accountId, tx: client });
+      await assertAccountBelongsToUser({
+        userId: params.userId,
+        accountId: params.accountId,
+        tx: client,
+      });
     }
 
     const setValues: Record<string, unknown> = {
@@ -105,13 +122,19 @@ export const creditCardsRepo: CreditCardsRepo<DbTransaction> = {
       limitCents: params.limitCents,
     };
     if (params.nickname !== undefined) setValues.nickname = params.nickname;
-    if (params.closingDay !== undefined) setValues.closingDay = params.closingDay;
+    if (params.closingDay !== undefined)
+      setValues.closingDay = params.closingDay;
     if (params.dueDay !== undefined) setValues.dueDay = params.dueDay;
 
     const updated = await client
       .update(creditCards)
       .set(setValues)
-      .where(and(eq(creditCards.id, params.creditCardId), eq(creditCards.userId, params.userId)))
+      .where(
+        and(
+          eq(creditCards.id, params.creditCardId),
+          eq(creditCards.userId, params.userId),
+        ),
+      )
       .returning({ id: creditCards.id });
 
     if (updated.length === 0) throw new CreditCardNotFoundError();
@@ -121,7 +144,12 @@ export const creditCardsRepo: CreditCardsRepo<DbTransaction> = {
     const client = resolveClient(params.tx);
     const deleted = await client
       .delete(creditCards)
-      .where(and(eq(creditCards.id, params.creditCardId), eq(creditCards.userId, params.userId)))
+      .where(
+        and(
+          eq(creditCards.id, params.creditCardId),
+          eq(creditCards.userId, params.userId),
+        ),
+      )
       .returning({ id: creditCards.id });
 
     if (deleted.length === 0) throw new CreditCardNotFoundError();
