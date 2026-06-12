@@ -36,7 +36,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   return { household, origin: getRequestOrigin(request) };
 }
 
-export default function HouseholdLayout({ loaderData }) {
+export default function HouseholdLayout({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <HouseholdContextBar household={loaderData.household} />
