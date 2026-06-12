@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { describe, expect, it } from "vitest";
 
+import { SidebarProvider } from "~/contexts/SidebarContext";
 import { ThemeProvider } from "~/contexts/ThemeContext";
 
 import { HouseholdManageSidebar } from "./HouseholdManageSidebar";
@@ -20,7 +21,9 @@ function renderSidebar(props: Partial<Parameters<typeof HouseholdManageSidebar>[
         path: "*",
         element: (
           <ThemeProvider>
-            <HouseholdManageSidebar {...defaultProps} />
+            <SidebarProvider>
+              <HouseholdManageSidebar {...defaultProps} />
+            </SidebarProvider>
           </ThemeProvider>
         ),
       },
@@ -68,11 +71,13 @@ describe("HouseholdManageSidebar", () => {
           path: "*",
           element: (
             <ThemeProvider>
-              <HouseholdManageSidebar
-                householdId="household-1"
-                householdName="Casa da Maria"
-                role="admin"
-              />
+              <SidebarProvider>
+                <HouseholdManageSidebar
+                  householdId="household-1"
+                  householdName="Casa da Maria"
+                  role="admin"
+                />
+              </SidebarProvider>
             </ThemeProvider>
           ),
         },

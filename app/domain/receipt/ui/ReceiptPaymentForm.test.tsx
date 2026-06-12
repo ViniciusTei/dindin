@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { ReceiptPaymentForm } from "./ReceiptPaymentForm";
 import type { Account } from "~/domain/accounts/entity";
 import type { Category } from "~/domain/categories/entity";
+import type { CreditCard } from "~/db/schema";
 
 function makeAccount(overrides: Partial<Account> = {}): Account {
   return {
@@ -26,7 +27,7 @@ function makeCategory(overrides: Partial<Category> = {}): Category {
 const BASE_PROPS = {
   accounts: [makeAccount()],
   categories: [makeCategory()],
-  cards: [] as Array<{ id: string; brand: string; last4: string; closingDay: number; accountId: string | null }>,
+  cards: [] as CreditCard[],
   defaultDate: "2026-03-28",
   defaultNote: "Nota fiscal importada",
   totalCents: 5000,
@@ -64,8 +65,8 @@ describe("ReceiptPaymentForm", () => {
   });
 
   it("esconde o select de conta e mostra cartões ao selecionar 'Cartão'", () => {
-    const cards = [
-      { id: "card-1", brand: "visa", last4: "1234", closingDay: 10, accountId: "acc-1" },
+    const cards: CreditCard[] = [
+      { id: "card-1", userId: "", nickname: "visa 1234", brand: "visa", closingDay: 10, accountId: "acc-1", numberEnc: null, expirationEnc: null, cvvEnc: null, limitCents: null, dueDay: null, createdAt: new Date() },
     ];
 
     render(<ReceiptPaymentForm {...BASE_PROPS} cards={cards} />);
@@ -77,8 +78,8 @@ describe("ReceiptPaymentForm", () => {
   });
 
   it("mostra o campo de parcelas quando cartão está selecionado", () => {
-    const cards = [
-      { id: "card-1", brand: "mastercard", last4: "5678", closingDay: 10, accountId: null },
+    const cards: CreditCard[] = [
+      { id: "card-1", userId: "", nickname: "mastercard 5678", brand: "mastercard", closingDay: 10, accountId: null, numberEnc: null, expirationEnc: null, cvvEnc: null, limitCents: null, dueDay: null, createdAt: new Date() },
     ];
 
     render(<ReceiptPaymentForm {...BASE_PROPS} cards={cards} />);
