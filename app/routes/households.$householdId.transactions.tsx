@@ -132,7 +132,8 @@ export async function action({ request, params }: Route.ActionArgs) {
     if (creditCardId) {
       // fetch card to validate and prefer its linked account if present
       const card = await creditCardsRepo.findById({ userId, creditCardId });
-      if (!card) {
+      console.log({ card, creditCardId });
+      if (card === null || card === undefined) {
         return { error: "Cartão não encontrado." };
       }
 
@@ -163,6 +164,11 @@ export async function action({ request, params }: Route.ActionArgs) {
             return { error: "Cartão é obrigatório." };
           case "CARD_NOT_FOUND":
             return { error: "Cartão não encontrado." };
+          case "CARD_CLOSING_DAY_REQUIRED":
+            return {
+              error:
+                "Cartão precisa ter dia de fechamento para cadastrar compras parceladas.",
+            };
           case "DESCRIPTION_REQUIRED":
             return { error: "Descrição é obrigatória." };
           case "AMOUNT_INVALID":

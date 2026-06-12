@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { Link, useLocation } from "react-router";
+import { useSidebar } from "~/contexts/SidebarContext";
 
 import Icon, { type IconName } from "~/ui/Icon";
 
@@ -21,6 +23,13 @@ type HouseholdManageSidebarProps = {
 };
 
 export function HouseholdManageSidebar(props: HouseholdManageSidebarProps) {
+  const { setIsSidebarCollapsed } = useSidebar();
+
+  useEffect(() => {
+    setIsSidebarCollapsed(true);
+    return () => setIsSidebarCollapsed(false);
+  }, [setIsSidebarCollapsed]);
+
   const { pathname } = useLocation();
 
   const allItems: NavItem[] = [
