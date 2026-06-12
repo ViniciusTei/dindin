@@ -124,7 +124,7 @@ export default function TransactionFormFields(props: {
           <option value="">Não (usar conta)</option>
           {props.cards?.map((c) => (
             <option key={c.id} value={c.id}>
-              {`${String(c.nickname).toUpperCase()} ••••`}
+              {`${String(c.nickname).toUpperCase()} ${c.brand ?? ""} ${c.numberEnc ?? "••••"}`}
             </option>
           ))}
         </select>

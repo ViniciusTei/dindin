@@ -1,24 +1,33 @@
-import type { CreditCardsRepo, CreditCardPurchasesRepo } from "~/domain/credit-cards/ports";
+import type {
+  CreditCardsRepo,
+  CreditCardPurchasesRepo,
+} from "~/domain/credit-cards/ports";
 import type { TransactionRunner } from "~/domain/shared/transaction";
 import type { TransactionsRepo } from "~/domain/transactions/ports";
 import { createCreditCardPurchase } from "~/domain/credit-cards/usecases/create-purchase";
 import { createTransaction } from "~/domain/transactions/usecases/create-transaction";
 
-type CreatePurchaseInHouseholdError = 
+type CreatePurchaseInHouseholdError =
   | "CARD_REQUIRED"
   | "CARD_NOT_FOUND"
   | "DESCRIPTION_REQUIRED"
   | "AMOUNT_INVALID"
   | "DATE_REQUIRED"
   | "INSTALLMENTS_INVALID"
-  | "TRANSACTION_ERROR";
+  | "TRANSACTION_ERROR"
+  | "CARD_CLOSING_DAY_REQUIRED";
 type CreatePurchaseInHouseholdErrorResult = {
-      ok: false;
-      error: CreatePurchaseInHouseholdError;
-      causeError?: string;
-      cause?: string;
-    };
-type CreatePurchaseInHouseholdResult = { ok: true; purchaseId: string; transactionIds: string[]; firstInvoiceYm: string }
+  ok: false;
+  error: CreatePurchaseInHouseholdError;
+  causeError?: string;
+  cause?: string;
+};
+type CreatePurchaseInHouseholdResult = {
+  ok: true;
+  purchaseId: string;
+  transactionIds: string[];
+  firstInvoiceYm: string;
+};
 
 export async function createCreditCardPurchaseInHousehold<TTx>(params: {
   transactionRunner: TransactionRunner<TTx>;
@@ -35,7 +44,9 @@ export async function createCreditCardPurchaseInHousehold<TTx>(params: {
   amountCents: number;
   occurredAt: Date;
   installmentsTotal: number;
-}): Promise<CreatePurchaseInHouseholdResult | CreatePurchaseInHouseholdErrorResult> {
+}): Promise<
+  CreatePurchaseInHouseholdResult | CreatePurchaseInHouseholdErrorResult
+> {
   try {
     const result = await params.transactionRunner.run(async (tx) => {
       const purchaseResult = await createCreditCardPurchase({
@@ -67,7 +78,16 @@ export async function createCreditCardPurchaseInHousehold<TTx>(params: {
       for (let i = 0; i < n; i++) {
         const installmentAmount = base + (i < rem ? 1 : 0);
         // use first day of month for installments to keep consistent with dashboard helpers
-        const installmentDate = new Date(Date.UTC(params.occurredAt.getUTCFullYear(), params.occurredAt.getUTCMonth() + i, params.occurredAt.getUTCDate(), 0, 0, 0));
+        const installmentDate = new Date(
+          Date.UTC(
+            params.occurredAt.getUTCFullYear(),
+            params.occurredAt.getUTCMonth() + i,
+            params.occurredAt.getUTCDate(),
+            0,
+            0,
+            0,
+          ),
+        );
 
         const res = await createTransaction({
           transactionsRepo: params.transactionsRepo,
@@ -85,7 +105,12 @@ export async function createCreditCardPurchaseInHousehold<TTx>(params: {
 
         if (!res.ok) {
           // propagate transaction-level error (e.g., ACCOUNT_REQUIRED) without throwing
-          return { ok: false, error: "TRANSACTION_ERROR", causeError: res.error, cause: `createTransaction failed: ${res.error}` };
+          return {
+            ok: false,
+            error: "TRANSACTION_ERROR",
+            causeError: res.error,
+            cause: `createTransaction failed: ${res.error}`,
+          };
         }
 
         transactionIds.push(res.transactionId);
@@ -99,12 +124,25 @@ export async function createCreditCardPurchaseInHousehold<TTx>(params: {
           });
         } catch (err) {
           // propagate link failure without throwing to allow graceful response
-          const detailed = err && typeof err === 'object' ? JSON.stringify(err, Object.getOwnPropertyNames(err)) : String(err);
-          return { ok: false, error: "TRANSACTION_ERROR", causeError: 'LINK_FAILED', cause: `linkTransaction failed: ${detailed}` };
+          const detailed =
+            err && typeof err === "object"
+              ? JSON.stringify(err, Object.getOwnPropertyNames(err))
+              : String(err);
+          return {
+            ok: false,
+            error: "TRANSACTION_ERROR",
+            causeError: "LINK_FAILED",
+            cause: `linkTransaction failed: ${detailed}`,
+          };
         }
       }
 
-      return { ok: true, purchaseId: purchaseResult.purchaseId, transactionIds, firstInvoiceYm: purchaseResult.firstInvoiceYm };
+      return {
+        ok: true,
+        purchaseId: purchaseResult.purchaseId,
+        transactionIds,
+        firstInvoiceYm: purchaseResult.firstInvoiceYm,
+      };
     });
 
     // result may be an error object returned from transaction callback or the success
