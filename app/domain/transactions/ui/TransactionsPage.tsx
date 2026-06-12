@@ -13,6 +13,7 @@ import { formatBRL } from "~/lib/money";
 import TransactionCreateModal from "./TransactionCreateModal";
 import TransactionEditModal from "./TransactionEditModal";
 import TransactionDeleteModal from "./TransactionDeleteModal";
+import type { CreditCard } from "~/db/schema";
 
 type ActiveFilters = {
   type: string;
@@ -33,15 +34,7 @@ export function TransactionsPage(props: {
   householdId?: string;
   householdContext?: HouseholdContext;
   activeFilters?: ActiveFilters;
-  cards?: Array<{
-    id: string;
-    brand: string;
-    last4: string;
-    limitCents?: number | null;
-    closingDay?: number;
-    dueDay?: number;
-    accountId?: string | null;
-  }>;
+  cards?: Array<CreditCard>;
 }) {
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";

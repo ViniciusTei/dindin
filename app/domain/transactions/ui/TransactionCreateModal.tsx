@@ -3,23 +3,14 @@ import { Form, useNavigation } from "react-router";
 
 import type { Account } from "~/domain/accounts/entity";
 import type { Category } from "~/domain/categories/entity";
-import FormModal, {
-  ModalCloseButton,
-} from "~/ui/FormModal";
+import FormModal, { ModalCloseButton } from "~/ui/FormModal";
 import TransactionFormFields from "./TransactionFormFields";
+import type { CreditCard } from "~/db/schema";
 
 export default function TransactionCreateModal(props: {
   accounts: Account[];
   categories: Category[];
-  cards?: Array<{
-    id: string;
-    brand: string;
-    last4: string;
-    limitCents?: number | null;
-    closingDay?: number;
-    dueDay?: number;
-    accountId?: string | null;
-  }>;
+  cards?: Array<CreditCard>;
   error?: string;
   today: string;
 }) {

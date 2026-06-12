@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import type { CreditCard } from "~/db/schema";
 import type { Account } from "~/domain/accounts/entity";
 import type { Category } from "~/domain/categories/entity";
 import type { Transaction } from "~/domain/transactions/entity";
@@ -17,17 +18,11 @@ export default function TransactionFormFields(props: {
   categories: Category[];
   values: TransactionFormValues;
   idPrefix: string;
-  cards?: Array<{
-    id: string;
-    brand: string;
-    last4: string;
-    limitCents?: number | null;
-    closingDay?: number;
-    dueDay?: number;
-    accountId?: string | null;
-  }>;
+  cards?: Array<CreditCard>;
 }) {
-  const [accountId, setAccountId] = useState<string>(props.values.accountId ?? "");
+  const [accountId, setAccountId] = useState<string>(
+    props.values.accountId ?? "",
+  );
   const [creditCardId, setCreditCardId] = useState<string>("");
 
   // Keep controlled account state in sync if parent updates values (e.g., when opening edit modal)
@@ -129,14 +124,17 @@ export default function TransactionFormFields(props: {
           <option value="">Não (usar conta)</option>
           {props.cards?.map((c) => (
             <option key={c.id} value={c.id}>
-              {`${String(c.brand).toUpperCase()} •••• ${c.last4}`}
+              {`${String(c.nickname).toUpperCase()} ${c.brand ?? ""} ${c.numberEnc ?? "••••"}`}
             </option>
           ))}
         </select>
       </div>
 
       <div className="form-control md:col-span-3">
-        <label className="label" htmlFor={`${props.idPrefix}-installmentsTotal`}>
+        <label
+          className="label"
+          htmlFor={`${props.idPrefix}-installmentsTotal`}
+        >
           <span className="label-text">Parcelas</span>
         </label>
         <input

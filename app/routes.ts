@@ -1,4 +1,9 @@
-import { type RouteConfig, index, layout, route } from "@react-router/dev/routes";
+import {
+  type RouteConfig,
+  index,
+  layout,
+  route,
+} from "@react-router/dev/routes";
 
 export default [
   route("health", "routes/health.ts"),
@@ -9,11 +14,25 @@ export default [
   layout("routes/_app.tsx", [
     route("api/households/options", "routes/households.options.ts"),
     route("api/households/active", "routes/households.active.ts"),
-    route("households/:householdId/manage", "routes/households.$householdId.manage.tsx"),
-    route("households/:householdId/invite", "routes/households.$householdId.invite.tsx"),
-    route("households/:householdId/categories", "routes/households.$householdId.categories.tsx"),
-    route("households/:householdId/transactions", "routes/households.$householdId.transactions.tsx"),
-    route("households/:householdId", "routes/households.$householdId.tsx"),
+    layout("routes/households_layout.tsx", [
+      route(
+        "households/:householdId/manage",
+        "routes/households.$householdId.manage.tsx",
+      ),
+      route(
+        "households/:householdId/invite",
+        "routes/households.$householdId.invite.tsx",
+      ),
+      route(
+        "households/:householdId/categories",
+        "routes/households.$householdId.categories.tsx",
+      ),
+      route(
+        "households/:householdId/transactions",
+        "routes/households.$householdId.transactions.tsx",
+      ),
+      route("households/:householdId", "routes/households.$householdId.tsx"),
+    ]),
     route("households", "routes/households.tsx"),
     route("invite", "routes/invite.tsx"),
     route("settings", "routes/settings.tsx"),

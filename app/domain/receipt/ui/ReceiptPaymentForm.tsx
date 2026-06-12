@@ -1,19 +1,12 @@
 import { useState } from "react";
+import type { CreditCard } from "~/db/schema";
 import type { Account } from "~/domain/accounts/entity";
 import type { Category } from "~/domain/categories/entity";
-
-type ViewCard = {
-  id: string;
-  brand: string;
-  last4: string;
-  closingDay: number | null;
-  accountId: string | null;
-};
 
 type Props = {
   accounts: Account[];
   categories: Category[];
-  cards: ViewCard[];
+  cards: CreditCard[];
   defaultDate: string;
   defaultNote: string;
   totalCents: number;
@@ -26,7 +19,9 @@ export function ReceiptPaymentForm({
   defaultDate,
   defaultNote,
 }: Props) {
-  const [paymentType, setPaymentType] = useState<"account" | "credit-card">("account");
+  const [paymentType, setPaymentType] = useState<"account" | "credit-card">(
+    "account",
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -35,11 +30,22 @@ export function ReceiptPaymentForm({
           <legend className="fieldset-legend">Granularidade</legend>
           <div className="join">
             <label className="join-item btn has-[:checked]:btn-primary">
-              <input type="radio" name="mode" value="single" defaultChecked className="hidden" />
+              <input
+                type="radio"
+                name="mode"
+                value="single"
+                defaultChecked
+                className="hidden"
+              />
               Uma transação
             </label>
             <label className="join-item btn has-[:checked]:btn-primary">
-              <input type="radio" name="mode" value="per-item" className="hidden" />
+              <input
+                type="radio"
+                name="mode"
+                value="per-item"
+                className="hidden"
+              />
               Por item
             </label>
           </div>
@@ -121,7 +127,7 @@ export function ReceiptPaymentForm({
               <option value="">Selecione…</option>
               {cards.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {`${String(c.brand).toUpperCase()} •••• ${c.last4}`}
+                  {`${String(c.nickname).toUpperCase()} •••• `}
                 </option>
               ))}
             </select>
